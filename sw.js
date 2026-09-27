@@ -1,9 +1,23 @@
-const CACHE_NAME = 'kapos-v2-cache-v2';
+const CACHE_NAME = 'kapos-v3-cache-v1';
 const ASSETS = [
   '/',
   'index.html',
   'manifest.json',
-  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap',
+  'css/design-system.css',
+  'js/state.js',
+  'js/supabase.js',
+  'js/printer.js',
+  'js/views/auth.js',
+  'js/views/pos.js',
+  'js/views/payment.js',
+  'js/views/kds.js',
+  'js/views/shift.js',
+  'js/views/inventory.js',
+  'js/views/reports.js',
+  'js/views/settings.js',
+  'js/app.js',
+  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
