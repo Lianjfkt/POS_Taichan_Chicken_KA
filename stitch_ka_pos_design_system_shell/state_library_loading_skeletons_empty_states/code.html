@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"error":"#ffb4ab","surface-tint":"#ffb690","secondary-container":"#3e495d","on-tertiary-fixed":"#002113","on-error":"#690005","on-secondary-fixed":"#111c2d","primary-container":"#f97316","on-secondary-container":"#aeb9d0","surface-container-low":"#171b26","on-primary":"#552100","surface-container":"#1c1f2a","surface-container-lowest":"#0a0e18","on-tertiary":"#003824","secondary-fixed-dim":"#bcc7de","inverse-surface":"#dfe2f1","background":"#0f131d","outline-variant":"#584237","on-tertiary-fixed-variant":"#005236","error-container":"#93000a","surface-variant":"#313540","primary-fixed-dim":"#ffb690","tertiary":"#4edea3","secondary":"#bcc7de","surface-bright":"#353944","tertiary-fixed":"#6ffbbe","surface-dim":"#0f131d","on-primary-container":"#582200","on-error-container":"#ffdad6","on-background":"#dfe2f1","tertiary-fixed-dim":"#4edea3","on-secondary-fixed-variant":"#3c475a","surface-container-highest":"#313540","inverse-primary":"#9d4300","surface":"#0f131d","primary":"#ffb690","secondary-fixed":"#d8e3fb","surface-container-high":"#262a35","outline":"#a78b7d","on-primary-fixed-variant":"#783200","on-surface":"#dfe2f1","on-tertiary-container":"#003b26","primary-fixed":"#ffdbca","on-secondary":"#263143","inverse-on-surface":"#2c303b","on-primary-fixed":"#341100","tertiary-container":"#00b07a","on-surface-variant":"#e0c0b1"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-sm":"0.5rem","gutter":"1rem","space-xl":"2rem","space-xs":"0.25rem","margin":"1rem","margin-mobile":"0.75rem","gutter-mobile":"0.5rem","space-lg":"1.5rem","space-md":"1rem"},"fontFamily":{"body-md":["Plus Jakarta Sans"],"label-numeric-md":["Space Mono"],"label-numeric-sm":["Space Mono"],"headline-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"label-numeric-lg":["Space Mono"],"headline-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"label-caps":["Plus Jakarta Sans"]},"fontSize":{"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"label-numeric-md":["16px",{"lineHeight":"20px","fontWeight":"700"}],"label-numeric-sm":["13px",{"lineHeight":"16px","fontWeight":"400"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-numeric-lg":["22px",{"lineHeight":"28px","fontWeight":"700"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-xl-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-caps":["11px",{"lineHeight":"16px","letterSpacing":"0.06em","fontWeight":"700"}]}}}}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between py-space-lg shadow-[0_1px_8px_rgba(0,0,0,0.3)]"><div class="flex flex-col gap-space-lg"><div class="px-space-lg flex items-center gap-space-sm"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X4frgPtMayAw3UVejzC_Zx3lOyEzePs97XYB7gXuNVKDeD2PoruWVnoDai1Cu-9T_TgZIckCw0Xk6GggED7j3xMUUvhGnLPKyfei_OeDbgh6D5nTAAl3sUsL8l1ly7OQJnfkQuqnNJpBfdzXxrfDcZQtZgfIh1ZQJZoqMbID3LZxzf71GTGk-3LFOIq5AMOeQfTQw5ErvtroDTBriNnDa2jHSVtdx9iApQdQeiIQnhev7rRDy4sRX2sejt"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">KA POS</span><span class="font-label-caps text-label-caps uppercase text-primary tracking-wider">Resilience UX v3.0</span></div></div><div class="px-space-lg"><span class="font-label-caps text-label-caps uppercase text-secondary tracking-widest">State Library</span></div><nav class="flex flex-col gap-space-xs px-space-md" data-active-classes="bg-primary-container text-on-primary font-headline-sm rounded-lg"><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="overview" href="#">Ringkasan Status</a><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="loading-skeletons" href="#">Loading Skeletons</a><a aria-current="page" class="flex items-center px-space-md py-space-sm transition-colors bg-primary-container text-on-primary font-headline-sm rounded-lg" data-path="empty-states" href="#">Empty States</a><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="error-fallbacks" href="#">Error Fallbacks</a><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="sync-offline-engine" href="#">Sync &amp; Offline Mode</a><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="feedback-dialogs" href="#">Feedback &amp; Dialogs</a><a class="flex items-center px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="rbac-permissions" href="#">Hak Akses RBAC</a></nav></div><div class="px-space-md flex flex-col gap-space-sm"><div class="bg-surface-container p-space-md rounded-xl flex items-center justify-between"><div class="flex flex-col"><span class="font-label-caps text-label-caps uppercase text-secondary">Terminal Status</span><span class="font-label-numeric-sm text-label-numeric-sm text-tertiary flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-tertiary inline-block animate-pulse"></span> KDS Online (Local)</span></div><span class="font-label-numeric-sm text-label-numeric-sm text-on-surface-variant">v3.0.4</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.25)] z-40 flex items-center justify-between px-space-xl"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-7 w-auto object-contain md:hidden" src="https://lh3.googleusercontent.com/aida/AEtjO1X4frgPtMayAw3UVejzC_Zx3lOyEzePs97XYB7gXuNVKDeD2PoruWVnoDai1Cu-9T_TgZIckCw0Xk6GggED7j3xMUUvhGnLPKyfei_OeDbgh6D5nTAAl3sUsL8l1ly7OQJnfkQuqnNJpBfdzXxrfDcZQtZgfIh1ZQJZoqMbID3LZxzf71GTGk-3LFOIq5AMOeQfTQw5ErvtroDTBriNnDa2jHSVtdx9iApQdQeiIQnhev7rRDy4sRX2sejt"/><nav class="flex items-center gap-space-sm font-body-md text-body-md"><span class="text-secondary">Sistem Kasir</span><span class="text-secondary">/</span><span class="text-on-surface font-headline-sm text-headline-sm">Resilience Matrix</span></nav></div><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container-high"><span class="w-2 h-2 rounded-full bg-tertiary"></span><span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">Ping: 14ms</span></div><div class="flex items-center gap-space-sm"><div class="text-right hidden sm:flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface leading-tight">Kasir Utama</span><span class="font-label-caps text-label-caps uppercase text-secondary">Shift Pagi #04</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 w-full min-h-screen bg-surface"><div class="flex flex-col w-full">
+<!-- Top Protocol Bar & Section Metric Ribbon -->
+<div class="px-space-xl py-space-lg flex flex-col gap-space-lg bg-surface-container-lowest">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs max-w-2xl">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-0.5 rounded-full bg-surface-container-high text-primary font-label-caps text-label-caps uppercase tracking-widest flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+            UX Protocol • Resilience v3.0
+          </span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">REF // KA-RSL-9081</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">State Library: Loading Skeletons &amp; Empty States</h1>
+<p class="font-body-md text-body-md text-secondary">
+          Pedoman interaksi operasional tanpa layar kosong (<em class="text-on-surface font-headline-sm not-italic">Zero Blank Screen Policy</em>). Menjaga rasa kontrol kasir dan brigade dapur saat fluktuasi sinyal edge atau cold-start database.
+        </p>
+</div>
+<!-- Quick Interactive Filter Tabs -->
+<div class="flex items-center gap-space-xs p-1 bg-surface-container-low rounded-xl self-start md:self-auto shadow-sm">
+<button class="px-space-md py-space-sm rounded-lg font-headline-sm text-headline-sm transition-all bg-primary-container text-on-primary shadow-sm flex items-center gap-2" id="btn-tab-skeletons" onclick="switchStateTab('skeletons')">
+<span class="material-symbols-outlined text-[18px]">view_quilt</span>
+<span>1. Loading Skeletons</span>
+</button>
+<button class="px-space-md py-space-sm rounded-lg font-headline-sm text-headline-sm text-secondary transition-all hover:text-on-surface flex items-center gap-2" id="btn-tab-empty" onclick="switchStateTab('empty')">
+<span class="material-symbols-outlined text-[18px]">inbox</span>
+<span>2. Empty States (8 Skenario)</span>
+</button>
+<button class="px-space-md py-space-sm rounded-lg font-headline-sm text-headline-sm text-secondary transition-all hover:text-on-surface flex items-center gap-2" id="btn-tab-indicators" onclick="switchStateTab('indicators')">
+<span class="material-symbols-outlined text-[18px]">hourglass_top</span>
+<span>3. Progress Micro-Tokens</span>
+</button>
+</div>
+</div>
+<!-- Live Status Telemetry Bar -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-md pt-space-xs">
+<div class="bg-surface-container-low p-space-md rounded-xl flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Perceived Speed Lift</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-tertiary font-bold">+41.8%</span>
+</div>
+<span class="material-symbols-outlined text-tertiary text-2xl">speed</span>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Layout Shift (CLS)</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-on-surface font-bold">0.002</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-2xl">grid_view</span>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Context-Aware Text</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-primary font-bold">100% ID</span>
+</div>
+<span class="material-symbols-outlined text-primary text-2xl">translate</span>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Empty Fallbacks</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-secondary-fixed-dim font-bold">8 Scenarios</span>
+</div>
+<span class="material-symbols-outlined text-secondary-fixed-dim text-2xl">checklist</span>
+</div>
+</div>
+</div>
+<!-- SECTION 1: LOADING SKELETONS DISPLAY (Default View) -->
+<section class="px-space-xl py-space-xl flex flex-col gap-space-xl" id="panel-skeletons">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-caps text-label-caps uppercase text-primary tracking-wider">Modul Operasional</span>
+<span class="text-secondary">•</span>
+<span class="font-body-sm text-body-sm text-secondary">Animasi CSS Shimmer Ringan (Zero Reflow)</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Layout-Preserving Skeletons</h2>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-space-sm rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline-sm text-headline-sm flex items-center gap-2 transition-all" id="btn-toggle-pulse" onclick="toggleShimmerPause()">
+<span class="material-symbols-outlined text-[18px]">play_pause</span>
+<span id="label-toggle-pulse">Jeda Animasi Pulse</span>
+</button>
+</div>
+</div>
+<!-- 3 Big Context Skeletons Bento -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- SKELETON 1: POS CASHIER TERMINAL GRID (Span 8 Cols) -->
+<div class="lg:col-span-8 bg-surface-container-low rounded-xl p-space-lg flex flex-col gap-space-md shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="p-2 rounded-lg bg-primary-container/10 text-primary-container">
+<span class="material-symbols-outlined text-[20px]">point_of_sale</span>
+</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">1. Kasir POS Grid Terminal</span>
+<span class="font-body-sm text-body-sm text-secondary">Preserving 3-column split: Search, Pills, Items, &amp; Cart Summary</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-1 rounded-full bg-surface-container-high">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary">Memuat menu &amp; varian aktif... (42 item)</span>
+</div>
+</div>
+<!-- Wireframe Layout for POS Terminal -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-md pt-space-xs">
+<!-- Catalog area (8 cols on mid) -->
+<div class="md:col-span-8 flex flex-col gap-space-md">
+<!-- Search & Filter bar skeleton -->
+<div class="flex items-center gap-space-sm">
+<div class="h-10 flex-1 rounded-lg bg-surface-container-high animate-pulse flex items-center px-space-md">
+<span class="material-symbols-outlined text-surface-container-highest text-xl">search</span>
+<div class="ml-2 h-3.5 w-32 rounded bg-surface-container-highest"></div>
+</div>
+<div class="h-10 w-24 rounded-lg bg-surface-container-high animate-pulse"></div>
+</div>
+<!-- Categories ribbon pills skeleton -->
+<div class="flex items-center gap-space-sm overflow-hidden py-1">
+<div class="h-8 w-20 rounded-full bg-primary-container/30 animate-pulse"></div>
+<div class="h-8 w-28 rounded-full bg-surface-container-high animate-pulse"></div>
+<div class="h-8 w-24 rounded-full bg-surface-container-high animate-pulse"></div>
+<div class="h-8 w-20 rounded-full bg-surface-container-high animate-pulse"></div>
+<div class="h-8 w-16 rounded-full bg-surface-container-high animate-pulse"></div>
+</div>
+<!-- 6 Grid Product Cards Skeleton -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-space-sm">
+<!-- Card 1 -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col gap-space-sm animate-pulse">
+<div class="aspect-square w-full rounded-md bg-surface-container-high"></div>
+<div class="h-4 w-3/4 rounded bg-surface-container-highest"></div>
+<div class="flex items-center justify-between pt-1">
+<div class="h-4 w-12 rounded bg-surface-container-highest"></div>
+<div class="w-6 h-6 rounded-full bg-surface-container-high"></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col gap-space-sm animate-pulse">
+<div class="aspect-square w-full rounded-md bg-surface-container-high"></div>
+<div class="h-4 w-2/3 rounded bg-surface-container-highest"></div>
+<div class="flex items-center justify-between pt-1">
+<div class="h-4 w-14 rounded bg-surface-container-highest"></div>
+<div class="w-6 h-6 rounded-full bg-surface-container-high"></div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col gap-space-sm animate-pulse">
+<div class="aspect-square w-full rounded-md bg-surface-container-high"></div>
+<div class="h-4 w-4/5 rounded bg-surface-container-highest"></div>
+<div class="flex items-center justify-between pt-1">
+<div class="h-4 w-16 rounded bg-surface-container-highest"></div>
+<div class="w-6 h-6 rounded-full bg-surface-container-high"></div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col gap-space-sm animate-pulse">
+<div class="aspect-square w-full rounded-md bg-surface-container-high"></div>
+<div class="h-4 w-3/4 rounded bg-surface-container-highest"></div>
+<div class="flex items-center justify-between pt-1">
+<div class="h-4 w-12 rounded bg-surface-container-highest"></div>
+<div class="w-6 h-6 rounded-full bg-surface-container-high"></div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col gap-space-sm animate-pulse">
+<div class="aspect-square w-full rounded-md bg-surface-container-high"></div>
+<div class="h-4 w-1/2 rounded bg-surface-container-highest"></div>
+<div class="flex items-center justify-between pt-1">
+<div class="h-4 w-14 rounded bg-surface-container-highest"></div>
+<div class="w-6 h-6 rounded-full bg-surface-container-high"></div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col gap-space-sm animate-pulse">
+<div class="aspect-square w-full rounded-md bg-surface-container-high"></div>
+<div class="h-4 w-3/5 rounded bg-surface-container-highest"></div>
+<div class="flex items-center justify-between pt-1">
+<div class="h-4 w-12 rounded bg-surface-container-highest"></div>
+<div class="w-6 h-6 rounded-full bg-surface-container-high"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Checkout Cart summary skeleton rail (4 cols on mid) -->
+<div class="md:col-span-4 bg-surface-container p-space-md rounded-xl flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="h-5 w-24 rounded bg-surface-container-high animate-pulse"></div>
+<div class="h-5 w-12 rounded-full bg-surface-container-high animate-pulse"></div>
+</div>
+<!-- Placeholder Cart lines -->
+<div class="flex flex-col gap-space-sm">
+<div class="p-space-sm rounded-lg bg-surface-container-high/60 flex flex-col gap-1.5 animate-pulse">
+<div class="flex justify-between items-center">
+<div class="h-4 w-28 rounded bg-surface-container-highest"></div>
+<div class="h-4 w-12 rounded bg-surface-container-highest"></div>
+</div>
+<div class="h-3 w-20 rounded bg-surface-container-high"></div>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-high/60 flex flex-col gap-1.5 animate-pulse">
+<div class="flex justify-between items-center">
+<div class="h-4 w-32 rounded bg-surface-container-highest"></div>
+<div class="h-4 w-12 rounded bg-surface-container-highest"></div>
+</div>
+<div class="h-3 w-16 rounded bg-surface-container-high"></div>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-high/60 flex flex-col gap-1.5 animate-pulse">
+<div class="flex justify-between items-center">
+<div class="h-4 w-24 rounded bg-surface-container-highest"></div>
+<div class="h-4 w-10 rounded bg-surface-container-highest"></div>
+</div>
+<div class="h-3 w-24 rounded bg-surface-container-high"></div>
+</div>
+</div>
+</div>
+<!-- Price Breakdown & Checkout Button Skeleton -->
+<div class="flex flex-col gap-space-sm pt-space-md">
+<div class="flex justify-between items-center">
+<div class="h-3.5 w-16 rounded bg-surface-container-high animate-pulse"></div>
+<div class="h-3.5 w-20 rounded bg-surface-container-high animate-pulse"></div>
+</div>
+<div class="flex justify-between items-center">
+<div class="h-4 w-14 rounded bg-surface-container-high animate-pulse"></div>
+<div class="h-5 w-24 rounded bg-surface-container-highest animate-pulse"></div>
+</div>
+<div class="h-12 w-full rounded-xl bg-primary-container/40 animate-pulse mt-space-xs flex items-center justify-center">
+<span class="font-headline-sm text-body-sm text-on-primary-fixed uppercase tracking-wider opacity-60">Memuat Keranjang...</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- SKELETON 3: KITCHEN DISPLAY SYSTEM (KDS) ORDERS QUEUE (Span 4 Cols) -->
+<div class="lg:col-span-4 bg-surface-container-low rounded-xl p-space-lg flex flex-col gap-space-md shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="p-2 rounded-lg bg-tertiary-container/20 text-tertiary">
+<span class="material-symbols-outlined text-[20px]">skillet</span>
+</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">3. Antrean KDS Dapur</span>
+<span class="font-body-sm text-body-sm text-secondary">Kitchen station ticket flow</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-tertiary truncate">Menghubungkan ke antrean dapur station bakaran...</span>
+</div>
+<!-- 2 Simulated Kitchen Tickets Skeleton -->
+<div class="flex flex-col gap-space-md overflow-hidden">
+<!-- Ticket 1 Skeleton -->
+<div class="bg-surface-container rounded-xl p-space-md flex flex-col gap-space-sm animate-pulse shadow-sm">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<div class="h-6 w-16 rounded bg-primary-container/40"></div>
+<div class="h-4 w-20 rounded bg-surface-container-high"></div>
+</div>
+<div class="h-5 w-14 rounded-full bg-surface-container-high"></div>
+</div>
+<!-- Ticket Items -->
+<div class="flex flex-col gap-2 py-1">
+<div class="flex items-center gap-space-sm">
+<div class="w-4 h-4 rounded bg-surface-container-highest"></div>
+<div class="h-4 w-3/4 rounded bg-surface-container-highest"></div>
+</div>
+<div class="pl-6 h-3 w-1/2 rounded bg-surface-container-high"></div>
+<div class="flex items-center gap-space-sm mt-1">
+<div class="w-4 h-4 rounded bg-surface-container-highest"></div>
+<div class="h-4 w-2/3 rounded bg-surface-container-highest"></div>
+</div>
+</div>
+<div class="h-10 w-full rounded-lg bg-tertiary/20 mt-space-xs"></div>
+</div>
+<!-- Ticket 2 Skeleton -->
+<div class="bg-surface-container rounded-xl p-space-md flex flex-col gap-space-sm animate-pulse shadow-sm">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<div class="h-6 w-20 rounded bg-surface-container-high"></div>
+<div class="h-4 w-16 rounded bg-surface-container-high"></div>
+</div>
+<div class="h-5 w-12 rounded-full bg-surface-container-high"></div>
+</div>
+<!-- Ticket Items -->
+<div class="flex flex-col gap-2 py-1">
+<div class="flex items-center gap-space-sm">
+<div class="w-4 h-4 rounded bg-surface-container-highest"></div>
+<div class="h-4 w-4/5 rounded bg-surface-container-highest"></div>
+</div>
+<div class="pl-6 h-3 w-2/3 rounded bg-surface-container-high"></div>
+</div>
+<div class="h-10 w-full rounded-lg bg-surface-container-high mt-space-xs"></div>
+</div>
+</div>
+</div>
+<!-- SKELETON 2: OWNER ANALYTICS & KPI FINANCIALS (Span 12 Cols) -->
+<div class="lg:col-span-12 bg-surface-container-low rounded-xl p-space-lg flex flex-col gap-space-md shadow-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="p-2 rounded-lg bg-secondary-container/30 text-secondary">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">2. Owner Analytics &amp; KPI Real-time</span>
+<span class="font-body-sm text-body-sm text-secondary">Financial metric tiles, sparkline charts, and ledger table placeholders</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-1 rounded-full bg-surface-container-high">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed animate-ping"></span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary-fixed">Mengkonsolidasi omset &amp; margin FIFO real-time...</span>
+</div>
+</div>
+<!-- 4 KPI Metrics Skeleton -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-space-md">
+<div class="bg-surface-container p-space-md rounded-xl flex flex-col gap-space-sm animate-pulse">
+<div class="flex items-center justify-between">
+<div class="h-3 w-20 rounded bg-surface-container-high"></div>
+<div class="w-6 h-6 rounded bg-surface-container-high"></div>
+</div>
+<div class="h-7 w-32 rounded bg-surface-container-highest"></div>
+<div class="h-3.5 w-24 rounded bg-surface-container-high"></div>
+</div>
+<div class="bg-surface-container p-space-md rounded-xl flex flex-col gap-space-sm animate-pulse">
+<div class="flex items-center justify-between">
+<div class="h-3 w-24 rounded bg-surface-container-high"></div>
+<div class="w-6 h-6 rounded bg-surface-container-high"></div>
+</div>
+<div class="h-7 w-28 rounded bg-surface-container-highest"></div>
+<div class="h-3.5 w-20 rounded bg-surface-container-high"></div>
+</div>
+<div class="bg-surface-container p-space-md rounded-xl flex flex-col gap-space-sm animate-pulse">
+<div class="flex items-center justify-between">
+<div class="h-3 w-20 rounded bg-surface-container-high"></div>
+<div class="w-6 h-6 rounded bg-surface-container-high"></div>
+</div>
+<div class="h-7 w-24 rounded bg-surface-container-highest"></div>
+<div class="h-3.5 w-16 rounded bg-surface-container-high"></div>
+</div>
+<div class="bg-surface-container p-space-md rounded-xl flex flex-col gap-space-sm animate-pulse">
+<div class="flex items-center justify-between">
+<div class="h-3 w-28 rounded bg-surface-container-high"></div>
+<div class="w-6 h-6 rounded bg-surface-container-high"></div>
+</div>
+<div class="h-7 w-20 rounded bg-surface-container-highest"></div>
+<div class="h-3.5 w-24 rounded bg-surface-container-high"></div>
+</div>
+</div>
+<!-- Wireframe Graph Skeleton + Ledger Table Skeleton -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-md pt-space-xs">
+<!-- Graph wireframe (7 cols) -->
+<div class="md:col-span-7 bg-surface-container p-space-md rounded-xl flex flex-col gap-space-md justify-between">
+<div class="flex justify-between items-center">
+<div class="h-4 w-36 rounded bg-surface-container-high animate-pulse"></div>
+<div class="h-4 w-20 rounded bg-surface-container-high animate-pulse"></div>
+</div>
+<!-- SVG Wireframe Line Chart -->
+<div class="h-36 w-full flex items-end gap-3 px-2 pt-4">
+<div class="h-[20%] flex-1 bg-surface-container-high rounded-t animate-pulse"></div>
+<div class="h-[45%] flex-1 bg-surface-container-high rounded-t animate-pulse"></div>
+<div class="h-[30%] flex-1 bg-surface-container-high rounded-t animate-pulse"></div>
+<div class="h-[65%] flex-1 bg-surface-container-high rounded-t animate-pulse"></div>
+<div class="h-[50%] flex-1 bg-surface-container-high rounded-t animate-pulse"></div>
+<div class="h-[80%] flex-1 bg-primary-container/40 rounded-t animate-pulse"></div>
+<div class="h-[95%] flex-1 bg-primary-container/60 rounded-t animate-pulse"></div>
+<div class="h-[75%] flex-1 bg-surface-container-high rounded-t animate-pulse"></div>
+<div class="h-[60%] flex-1 bg-surface-container-high rounded-t animate-pulse"></div>
+<div class="h-[85%] flex-1 bg-surface-container-high rounded-t animate-pulse"></div>
+</div>
+</div>
+<!-- Table rows skeleton (5 cols) -->
+<div class="md:col-span-5 bg-surface-container p-space-md rounded-xl flex flex-col gap-space-sm justify-between">
+<div class="h-4 w-32 rounded bg-surface-container-high animate-pulse"></div>
+<div class="flex flex-col gap-2">
+<div class="h-8 rounded bg-surface-container-high/60 animate-pulse flex items-center justify-between px-3">
+<div class="h-3 w-28 rounded bg-surface-container-highest"></div>
+<div class="h-3 w-14 rounded bg-surface-container-highest"></div>
+</div>
+<div class="h-8 rounded bg-surface-container-high/60 animate-pulse flex items-center justify-between px-3">
+<div class="h-3 w-32 rounded bg-surface-container-highest"></div>
+<div class="h-3 w-16 rounded bg-surface-container-highest"></div>
+</div>
+<div class="h-8 rounded bg-surface-container-high/60 animate-pulse flex items-center justify-between px-3">
+<div class="h-3 w-24 rounded bg-surface-container-highest"></div>
+<div class="h-3 w-12 rounded bg-surface-container-highest"></div>
+</div>
+<div class="h-8 rounded bg-surface-container-high/60 animate-pulse flex items-center justify-between px-3">
+<div class="h-3 w-36 rounded bg-surface-container-highest"></div>
+<div class="h-3 w-20 rounded bg-surface-container-highest"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: 8 COMPLETE OPERATIONAL EMPTY STATES -->
+<section class="px-space-xl py-space-xl flex flex-col gap-space-xl" id="panel-empty">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-caps text-label-caps uppercase text-primary tracking-wider">Katalog Status Kosong</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">8 Skenario Operasional KA POS (Action-Oriented)</h2>
+<p class="font-body-md text-body-md text-secondary">
+          Setiap kartu menyajikan status nihil secara spesifik, mengeliminasi kebingungan kru melalui ajakan bertindak (CTA) tunggal yang jelas.
+        </p>
+</div>
+<div class="text-right">
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">Kondisi Aktif: 8 dari 8 Terverifikasi</span>
+</div>
+</div>
+<!-- 8 Grid Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-lg">
+<!-- 1. No Transactions -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-lg hover:shadow-lg transition-all">
+<div class="flex flex-col gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[32px]">receipt_long</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps uppercase text-secondary">POS Terminal / Kasir</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Belum Ada Transaksi Hari Ini</h3>
+<p class="font-body-md text-body-md text-secondary">
+              Laci kasir siap menerima transaksi pertama. Mulai pesanan meja santap di tempat atau pesanan bawa pulang.
+            </p>
+</div>
+</div>
+<button class="w-full h-12 rounded-lg bg-primary-container hover:bg-orange-600 text-on-primary font-headline-sm text-headline-sm transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ Buka Kasir POS (F1)</span>
+</button>
+</div>
+<!-- 2. No Products in Category -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-lg hover:shadow-lg transition-all">
+<div class="flex flex-col gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[32px]">fastfood</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps uppercase text-secondary">Manajemen Katalog</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Katalog Produk Kosong</h3>
+<p class="font-body-md text-body-md text-secondary">
+              Kategori menu ini belum memiliki produk aktif atau seluruh varian SKU sedang dinonaktifkan dari panel pusat.
+            </p>
+</div>
+</div>
+<button class="w-full h-12 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline-sm text-headline-sm transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add_box</span>
+<span>+ Tambah Produk Menu</span>
+</button>
+</div>
+<!-- 3. No Inventory Items -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-lg hover:shadow-lg transition-all">
+<div class="flex flex-col gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-secondary-fixed">
+<span class="material-symbols-outlined text-[32px]">inventory_2</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps uppercase text-secondary">Gudang &amp; Bahan Baku</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Inventaris Belum Tercatat</h3>
+<p class="font-body-md text-body-md text-secondary">
+              Data bahan baku gudang belum diinput atau parameter filter pencarian saat ini tidak menemukan kecocokan batch.
+            </p>
+</div>
+</div>
+<button class="w-full h-12 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline-sm text-headline-sm transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">post_add</span>
+<span>+ Catat Stok Awal</span>
+</button>
+</div>
+<!-- 4. No Recipes / BOM -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-lg hover:shadow-lg transition-all">
+<div class="flex flex-col gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[32px]">menu_book</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps uppercase text-secondary">Costing &amp; Resep (BOM)</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Belum Ada Komposisi Resep</h3>
+<p class="font-body-md text-body-md text-secondary">
+              Menu terpilih belum dipetakan resepnya. HPP real-time dan margin kotor belum dapat dihitung otomatis oleh sistem.
+            </p>
+</div>
+</div>
+<button class="w-full h-12 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline-sm text-headline-sm transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">science</span>
+<span>+ Buat Resep Baru</span>
+</button>
+</div>
+<!-- 5. No KDS Orders (All Cooked) -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-lg hover:shadow-lg transition-all">
+<div class="flex flex-col gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[32px]">check_circle</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps uppercase text-secondary">Dapur KDS Real-Time</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Dapur Bersih, Tidak Ada Antrean</h3>
+<p class="font-body-md text-body-md text-secondary">
+              Semua pesanan sate &amp; bakaran telah selesai dimasak dan disajikan. Bersiap untuk tiket pesanan berikutnya.
+            </p>
+</div>
+</div>
+<button class="w-full h-12 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-tertiary font-headline-sm text-headline-sm transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span>Periksa Riwayat Masak</span>
+</button>
+</div>
+<!-- 6. No Active Shift -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-lg hover:shadow-lg transition-all">
+<div class="flex flex-col gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[32px]">lock_clock</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps uppercase text-secondary">Sesi Kasir &amp; Laci</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Belum Ada Shift Berjalan</h3>
+<p class="font-body-md text-body-md text-secondary">
+              Kasir belum membuka laci kasir dan menghitung modal awal hari ini. Masukkan nominal kas awal untuk bertransaksi.
+            </p>
+</div>
+</div>
+<button class="w-full h-12 rounded-lg bg-primary-container hover:bg-orange-600 text-on-primary font-headline-sm text-headline-sm transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">key</span>
+<span>Buka Shift Kasir Sekarang</span>
+</button>
+</div>
+<!-- 7. No Reports in Period -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-lg hover:shadow-lg transition-all">
+<div class="flex flex-col gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[32px]">date_range</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps uppercase text-secondary">Laporan Rekonsiliasi</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Tidak Ada Data Laporan Tersedia</h3>
+<p class="font-body-md text-body-md text-secondary">
+              Tidak ada rekonsiliasi atau transaksi dalam rentang tanggal yang dipilih. Ubah filter periode atau outlet.
+            </p>
+</div>
+</div>
+<button class="w-full h-12 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline-sm text-headline-sm transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">filter_alt_off</span>
+<span>Atur Ulang Filter Tanggal</span>
+</button>
+</div>
+<!-- 8. No Bluetooth / LAN Printers Discovered -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-lg hover:shadow-lg transition-all">
+<div class="flex flex-col gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[32px]">print_disabled</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps uppercase text-secondary">Hardware Peripheral</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Tidak Ada Printer Ditemukan</h3>
+<p class="font-body-md text-body-md text-secondary">
+              Pastikan printer thermal Bluetooth/LAN dalam posisi menyala, lampu indikator biru aktif, dan dalam jangkauan 5m.
+            </p>
+</div>
+</div>
+<button class="w-full h-12 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-headline-sm text-headline-sm transition-all flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">bluetooth_searching</span>
+<span>Pindai Ulang Bluetooth</span>
+</button>
+</div>
+</div>
+</section>
+<!-- SECTION 3: PROGRESS & LOADER MICRO-TOKENS -->
+<section class="px-space-xl py-space-xl flex flex-col gap-space-xl" id="panel-indicators">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-caps text-label-caps uppercase text-primary tracking-wider">Komponen Mikro Interaktif</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Progress Indicators &amp; Button Loading States</h2>
+<p class="font-body-md text-body-md text-secondary">
+        Elemen feedback visual beresolusi tinggi saat memproses cetak struk, sinkronisasi offline-first SQLite, dan mutasi data kas.
+      </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Variant A: Linear Progress Bar with Dynamic Sync Percent -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-md shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">Sinkronisasi Background</span>
+<span class="font-label-numeric-md text-label-numeric-md text-primary" id="sync-val">68%</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">Proses upload delta SQLite lokal ke cloud server.</p>
+<div class="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden mt-space-xs">
+<div class="bg-primary-container h-full rounded-full transition-all duration-300" id="sync-bar" style="width: 68%;"></div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+            142 dari 208 Record
+          </span>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-body-sm text-body-sm" onclick="simulateSyncProgress()">
+            Simulasi Sync
+          </button>
+</div>
+</div>
+<!-- Variant B: Circular Thermal Flame Spinners -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-md shadow-md">
+<div class="flex flex-col gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Circular Spinners (Flame)</span>
+<p class="font-body-sm text-body-sm text-secondary">Variasi ukuran aksen oranye termal tanpa lag repaint.</p>
+<div class="flex items-center justify-around py-space-md">
+<!-- Mini Spinner -->
+<div class="flex flex-col items-center gap-2">
+<svg class="animate-spin h-6 w-6 text-primary-container" fill="none" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+<path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+</svg>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">24px</span>
+</div>
+<!-- Standard Spinner -->
+<div class="flex flex-col items-center gap-2">
+<svg class="animate-spin h-9 w-9 text-primary-container" fill="none" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+<path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+</svg>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary">36px (Default)</span>
+</div>
+<!-- Large Spinner -->
+<div class="flex flex-col items-center gap-2">
+<svg class="animate-spin h-12 w-12 text-tertiary" fill="none" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+<path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+</svg>
+<span class="font-label-numeric-sm text-label-numeric-sm text-tertiary">48px KDS</span>
+</div>
+</div>
+</div>
+<div class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-numeric-sm text-label-numeric-sm text-secondary text-center">
+          GPU hardware accelerated via CSS transform
+        </div>
+</div>
+<!-- Variant C: Button Loading States -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col justify-between gap-space-md shadow-md">
+<div class="flex flex-col gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Button State Mutators</span>
+<p class="font-body-sm text-body-sm text-secondary">Pencegahan 'double-tap' saat finalisasi pembayaran pesanan.</p>
+<div class="flex flex-col gap-space-sm pt-space-xs">
+<!-- Interactive triggerable button -->
+<button class="h-14 w-full rounded-xl bg-primary-container hover:bg-orange-600 text-on-primary font-headline-sm text-headline-sm flex items-center justify-center gap-2 transition-all shadow-sm" id="btn-pay-demo" onclick="triggerBtnLoading()">
+<span class="material-symbols-outlined text-[20px]" id="btn-pay-icon">payments</span>
+<span id="btn-pay-text">Proses Bayar Rp 185.000</span>
+</button>
+<!-- Disabled secondary button state -->
+<button class="h-12 w-full rounded-xl bg-surface-container-high opacity-50 cursor-not-allowed text-secondary font-headline-sm text-headline-sm flex items-center justify-center gap-2" disabled="">
+<svg class="animate-spin h-4 w-4 text-secondary" fill="none" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+<path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+</svg>
+<span>Mencetak Struk Thermal (ESC/POS)...</span>
+</button>
+</div>
+</div>
+<span class="font-body-sm text-body-sm text-secondary">
+          Klik tombol oranye di atas untuk menguji transisi state interaktif.
+        </span>
+</div>
+</div>
+</section>
+<!-- Technical Implementation Guidance Note -->
+<div class="px-space-xl pb-space-xl">
+<div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<span class="p-3 rounded-xl bg-surface-container-high text-primary">
+<span class="material-symbols-outlined text-[24px]">terminal</span>
+</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">Standar Integrasi Vue 3 / React KA POS Core</span>
+<span class="font-body-sm text-body-sm text-secondary">
+            Gunakan wrapper komponen <code class="font-label-numeric-sm text-label-numeric-sm text-primary">&lt;KaSkeletonState :is-loading="fetching" :empty="items.length === 0"&gt;</code> untuk mematuhi aturan CLS &lt; 0.05.
+          </span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-md py-1.5 rounded-lg bg-surface-container-high font-label-numeric-sm text-label-numeric-sm text-secondary">
+          Target FPS: 60fps (AOSP / iOS)
+        </span>
+</div>
+</div>
+</div>
+<!-- Interactive State Controller Script -->
+<script>
+    function switchStateTab(tab) {
+      const pSkeletons = document.getElementById('panel-skeletons');
+      const pEmpty = document.getElementById('panel-empty');
+      const pIndicators = document.getElementById('panel-indicators');
+      
+      const bSkeletons = document.getElementById('btn-tab-skeletons');
+      const bEmpty = document.getElementById('btn-tab-empty');
+      const bIndicators = document.getElementById('btn-tab-indicators');
+
+      // Reset tabs styling
+      [bSkeletons, bEmpty, bIndicators].forEach(btn => {
+        btn.className = "px-space-md py-space-sm rounded-lg font-headline-sm text-headline-sm text-secondary transition-all hover:text-on-surface flex items-center gap-2";
+      });
+
+      if (tab === 'skeletons') {
+        pSkeletons.classList.remove('hidden');
+        pEmpty.classList.remove('hidden');
+        pIndicators.classList.remove('hidden');
+        bSkeletons.className = "px-space-md py-space-sm rounded-lg font-headline-sm text-headline-sm transition-all bg-primary-container text-on-primary shadow-sm flex items-center gap-2";
+        pSkeletons.scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'empty') {
+        bEmpty.className = "px-space-md py-space-sm rounded-lg font-headline-sm text-headline-sm transition-all bg-primary-container text-on-primary shadow-sm flex items-center gap-2";
+        pEmpty.scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'indicators') {
+        bIndicators.className = "px-space-md py-space-sm rounded-lg font-headline-sm text-headline-sm transition-all bg-primary-container text-on-primary shadow-sm flex items-center gap-2";
+        pIndicators.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    let isShimmerPaused = false;
+    function toggleShimmerPause() {
+      const elements = document.querySelectorAll('.animate-pulse');
+      isShimmerPaused = !isShimmerPaused;
+      elements.forEach(el => {
+        if (isShimmerPaused) {
+          el.style.animationPlayState = 'paused';
+        } else {
+          el.style.animationPlayState = 'running';
+        }
+      });
+      const lbl = document.getElementById('label-toggle-pulse');
+      if (lbl) {
+        lbl.textContent = isShimmerPaused ? 'Lanjutkan Animasi Pulse' : 'Jeda Animasi Pulse';
+      }
+    }
+
+    function simulateSyncProgress() {
+      const bar = document.getElementById('sync-bar');
+      const val = document.getElementById('sync-val');
+      let current = 20;
+      bar.style.width = '20%';
+      val.innerText = '20%';
+
+      const interval = setInterval(() => {
+        current += 15;
+        if (current >= 100) {
+          current = 100;
+          bar.style.width = '100%';
+          val.innerText = '100% (Selesai)';
+          clearInterval(interval);
+          setTimeout(() => {
+            bar.style.width = '68%';
+            val.innerText = '68%';
+          }, 2000);
+        } else {
+          bar.style.width = current + '%';
+          val.innerText = current + '%';
+        }
+      }, 250);
+    }
+
+    function triggerBtnLoading() {
+      const btn = document.getElementById('btn-pay-demo');
+      const txt = document.getElementById('btn-pay-text');
+      const icon = document.getElementById('btn-pay-icon');
+      
+      btn.disabled = true;
+      btn.classList.add('opacity-80', 'cursor-wait');
+      icon.outerHTML = '<svg id="btn-pay-icon" class="animate-spin h-5 w-5 text-on-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+      txt.innerText = 'Mengotorisasi QRIS / EDC...';
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-80', 'cursor-wait');
+        const spinner = document.getElementById('btn-pay-icon');
+        spinner.outerHTML = '<span id="btn-pay-icon" class="material-symbols-outlined text-[20px]">check_circle</span>';
+        txt.innerText = 'Pembayaran Berhasil!';
+        btn.classList.remove('bg-primary-container');
+        btn.classList.add('bg-tertiary-container');
+
+        setTimeout(() => {
+          const check = document.getElementById('btn-pay-icon');
+          check.outerHTML = '<span id="btn-pay-icon" class="material-symbols-outlined text-[20px]">payments</span>';
+          txt.innerText = 'Proses Bayar Rp 185.000';
+          btn.classList.add('bg-primary-container');
+          btn.classList.remove('bg-tertiary-container');
+        }, 2200);
+      }, 1800);
+    }
+  </script>
+</div></main></div></body></html>

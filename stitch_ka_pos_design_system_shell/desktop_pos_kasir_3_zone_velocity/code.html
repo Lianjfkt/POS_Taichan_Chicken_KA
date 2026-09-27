@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-tertiary":"#003824","tertiary-container":"#00b07a","surface-container-high":"#262a35","on-primary-fixed":"#341100","on-surface-variant":"#e0c0b1","inverse-on-surface":"#2c303b","surface-container-low":"#171b26","surface-tint":"#ffb690","surface-variant":"#313540","outline-variant":"#584237","secondary-container":"#3e495d","error-container":"#93000a","inverse-surface":"#dfe2f1","surface-bright":"#353944","background":"#0f131d","on-secondary-fixed-variant":"#3c475a","tertiary-fixed":"#6ffbbe","on-primary-container":"#582200","on-primary":"#552100","on-primary-fixed-variant":"#783200","surface-dim":"#0f131d","secondary-fixed-dim":"#bcc7de","surface-container-highest":"#313540","tertiary-fixed-dim":"#4edea3","on-error-container":"#ffdad6","tertiary":"#4edea3","primary-fixed":"#ffdbca","primary-fixed-dim":"#ffb690","on-tertiary-fixed-variant":"#005236","on-surface":"#dfe2f1","surface-container-lowest":"#0a0e18","outline":"#a78b7d","secondary-fixed":"#d8e3fb","error":"#ffb4ab","on-error":"#690005","primary":"#ffb690","surface-container":"#1c1f2a","surface":"#0f131d","on-secondary-fixed":"#111c2d","primary-container":"#f97316","inverse-primary":"#9d4300","on-background":"#dfe2f1","on-secondary-container":"#aeb9d0","on-tertiary-fixed":"#002113","secondary":"#bcc7de","on-tertiary-container":"#003b26","on-secondary":"#263143"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xl":"2rem","space-xs":"0.25rem","gutter":"1rem","margin":"1rem","space-sm":"0.5rem","gutter-mobile":"0.5rem","space-lg":"1.5rem","space-md":"1rem","margin-mobile":"0.75rem"},"fontFamily":{"label-caps":["Plus Jakarta Sans"],"label-numeric-md":["Space Mono"],"headline-sm":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"label-numeric-sm":["Space Mono"],"body-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"label-numeric-lg":["Space Mono"],"headline-lg":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},"fontSize":{"label-caps":["11px",{"lineHeight":"16px","letterSpacing":"0.06em","fontWeight":"700"}],"label-numeric-md":["16px",{"lineHeight":"20px","fontWeight":"700"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"headline-xl-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-numeric-sm":["13px",{"lineHeight":"16px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-numeric-lg":["22px",{"lineHeight":"28px","fontWeight":"700"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased select-none"><aside class="fixed left-0 top-0 h-full w-[88px] bg-surface-container-lowest z-50 flex flex-col items-center justify-between py-space-md shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="flex flex-col items-center gap-space-md w-full"><div class="h-12 w-12 rounded-xl bg-surface-container flex items-center justify-center p-space-xs"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPfE4FKQtcppoxuHhbOfRAxAuh1UD8GGhnTJinbSVtTsyZZUUWnak1pMl1ah8hckGWIdK-6wGXgAPIl5WelVJPLs9ZzGWb8LQg4FnpZqmnpRVfAnSGZ0-MOqDzYNKngpO5t-wqyYbPbn4iTR-6MDAzzo0LXkHrnqC-mbkCguyrtEJvIthNjQEAgjmqfCbF0aj6lUvN3sJck3FGnDK6ml0CdvlEz1xVDw3T7Ox3LJuUvnn3TyZ92W2NDQ"/></div><div class="h-[1px] w-10 bg-surface-variant"></div><nav class="flex flex-col items-center gap-space-sm w-full px-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm rounded-xl"><a aria-current="page" class="w-full flex flex-col items-center justify-center py-space-sm transition-all bg-primary-container text-on-primary-container font-headline-sm rounded-xl" data-path="pos-kasir" href="#"><span class="material-symbols-outlined text-[24px]">point_of_sale</span><span class="font-label-caps text-label-caps mt-1">POS</span></a><a class="w-full flex flex-col items-center justify-center py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="shift-kas" href="#"><span class="material-symbols-outlined text-[24px]">payments</span><span class="font-label-caps text-label-caps mt-1 text-center">Shift/Kas</span></a><a class="w-full flex flex-col items-center justify-center py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="update-stok" href="#"><span class="material-symbols-outlined text-[24px]">inventory_2</span><span class="font-label-caps text-label-caps mt-1 text-center">Stok</span></a></nav></div><div class="flex flex-col items-center gap-space-sm w-full px-space-xs"><a class="w-full flex flex-col items-center justify-center py-space-sm rounded-xl text-on-surface-variant hover:bg-error-container hover:text-on-error-container transition-all" data-path="kunci-layar" href="#"><span class="material-symbols-outlined text-[22px]">lock</span><span class="font-label-caps text-label-caps mt-1">Kunci</span></a></div></aside><div class="pl-[88px]"><header class="fixed top-0 left-[88px] right-0 h-14 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.3)] z-40"><div class="h-14 w-full px-space-md flex items-center justify-between"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqnB039Z18mx0t8zqVRYAcgdgxyk5hMP2bt3l1cWiNjiiZY1upo4g0tgDxb47J-1btY1SSExIMpU1KsdJUE_evtIaGEJXGcr8lSTGFVNFZmxHzzyCZ6pQzAbOyawJqW7lfE8p2qG7YGRuz-FlA3a8Y0M9z7ttdFebuZZRXYK7cR3IEfJz3uEor0zdTv5pJxHEx1bYMzZR-WuxAvlE7PhoTzzGQxjI1DBk1vlPsAfmLktGAhDusP44Vgg"/><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">KA POS</span><span class="font-label-caps text-label-caps px-space-xs py-0.5 rounded bg-surface-container-high text-primary">v3.0</span></div><div class="h-4 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5 text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-primary">storefront</span><span class="font-body-sm text-body-sm font-semibold text-on-surface">Taichan Tebet #01</span></div><div class="flex items-center gap-1.5 px-space-sm py-1 rounded-full bg-tertiary-container/20 text-tertiary"><span class="inline-block w-2 h-2 rounded-full bg-tertiary animate-pulse"></span><span class="font-label-numeric-sm text-label-numeric-sm tracking-wide">ONLINE • Sinkron 12:40</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container"><span class="material-symbols-outlined text-[18px] text-on-surface-variant">badge</span><span class="font-body-sm text-body-sm text-on-surface">Kasir: <strong class="text-primary-fixed">Budi Santoso</strong> (Shift Pagi)</span></div><a class="flex items-center gap-1.5 px-space-sm py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface transition-all" data-path="kunci-layar" href="#"><span class="material-symbols-outlined text-[18px] text-error">screen_lock_rotation</span><span class="font-label-caps text-label-caps">Kunci Layar</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-14 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- Operational Top Header Bar -->
+<div class="w-full bg-surface-container-lowest px-space-md py-space-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-sm shadow-md">
+<!-- Left Section: Order Mode Selector & Table Quick Picker -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- Order Type Switcher -->
+<div class="inline-flex p-1 bg-surface-container-low rounded-xl gap-1" id="order-type-group">
+<button class="px-space-md py-2 rounded-lg font-headline-sm text-headline-sm transition-all flex items-center gap-1.5 bg-primary-container text-on-primary-container shadow-sm" id="btn-dine-in" onclick="setOrderType('dine-in')" type="button">
+<span class="material-symbols-outlined text-[18px]">table_restaurant</span>
+          Dine In
+        </button>
+<button class="px-space-md py-2 rounded-lg font-headline-sm text-headline-sm transition-all flex items-center gap-1.5 text-secondary hover:text-on-surface hover:bg-surface-container" id="btn-take-away" onclick="setOrderType('take-away')" type="button">
+<span class="material-symbols-outlined text-[18px]">takeout_dining</span>
+          Take Away
+        </button>
+<button class="px-space-md py-2 rounded-lg font-headline-sm text-headline-sm transition-all flex items-center gap-1.5 text-secondary hover:text-on-surface hover:bg-surface-container" id="btn-online" onclick="setOrderType('online')" type="button">
+<span class="material-symbols-outlined text-[18px]">two_wheeler</span>
+          Online / Ojol
+        </button>
+</div>
+<!-- Dine In: Nomor Meja Quick Selector -->
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-xl" id="table-selector-container">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">pin</span>
+<input class="w-16 bg-surface-container-lowest text-on-surface font-label-numeric-md text-label-numeric-md px-2 py-1 rounded text-center focus:outline-none focus:ring-1 focus:ring-primary-container" id="table-input" placeholder="No. Meja..." type="text" value="08"/>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2 py-1 rounded text-body-sm font-label-caps bg-surface-container text-secondary hover:text-primary transition" onclick="selectQuickTable('01')" type="button">M-01</button>
+<button class="px-2 py-1 rounded text-body-sm font-label-caps bg-surface-container text-secondary hover:text-primary transition" onclick="selectQuickTable('02')" type="button">M-02</button>
+<button class="px-2 py-1 rounded text-body-sm font-label-caps bg-surface-container text-secondary hover:text-primary transition" onclick="selectQuickTable('04')" type="button">M-04</button>
+<button class="px-2 py-1 rounded text-body-sm font-label-caps bg-primary-container text-on-primary-container font-bold transition" onclick="selectQuickTable('08')" type="button">M-08</button>
+<button class="px-2 py-1 rounded text-body-sm font-label-caps bg-surface-container text-secondary hover:text-primary transition" onclick="selectQuickTable('12')" type="button">M-12</button>
+</div>
+</div>
+</div>
+<!-- Center/Right: Universal Search & Offline Sync Simulator -->
+<div class="flex items-center gap-space-sm flex-1 max-w-xl justify-end">
+<!-- Search Input -->
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-secondary">search</span>
+<input class="w-full h-11 pl-10 pr-9 bg-surface-container-low text-on-surface font-body-md text-body-md rounded-xl placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-primary-container shadow-inner" id="pos-search" placeholder="Cari menu (Ctrl+F) atau scan barcode..." type="text"/>
+<button class="absolute right-2.5 top-1/2 -translate-y-1/2 text-secondary hover:text-on-surface" onclick="document.getElementById('pos-search').value=''" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Sync Status Simulator Button -->
+<button class="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container text-secondary hover:bg-surface-container-high transition-all text-left shrink-0" id="sync-status-btn" onclick="toggleSyncState()" type="button">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(78,222,163,0.8)]" id="sync-dot"></span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps leading-none text-tertiary" id="sync-title">ONLINE</span>
+<span class="font-body-sm text-[11px] leading-tight text-secondary" id="sync-subtitle">Semua sinkron</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Main POS Operational Split: Zone A (Category Rail), Zone B (Product Grid), Zone C (Persistent Cart) -->
+<div class="flex flex-1 w-full overflow-hidden bg-surface">
+<!-- ZONE A: Category Selector Rail -->
+<aside class="w-48 bg-surface-container-low flex flex-col p-space-sm gap-2 shrink-0">
+<div class="px-2 py-1">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Kategori Menu</span>
+</div>
+<!-- Category Buttons -->
+<div class="flex flex-col gap-1.5 flex-1 overflow-y-auto">
+<button class="category-pill w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md text-secondary hover:bg-surface-container hover:text-on-surface transition-all text-left" onclick="filterCategory('all', this)" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
+<span>Semua</span>
+</div>
+<span class="font-label-numeric-sm text-[11px] px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary">42</span>
+</button>
+<button class="category-pill active-cat w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md bg-primary-container text-on-primary-container shadow-sm transition-all text-left" onclick="filterCategory('taichan', this)" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">local_fire_department</span>
+<span>Taichan</span>
+</div>
+<span class="font-label-numeric-sm text-[11px] px-1.5 py-0.5 rounded bg-on-primary-fixed text-primary font-bold">14</span>
+</button>
+<button class="category-pill w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md text-secondary hover:bg-surface-container hover:text-on-surface transition-all text-left" onclick="filterCategory('crispy', this)" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">set_meal</span>
+<span>Ayam Crispy</span>
+</div>
+<span class="font-label-numeric-sm text-[11px] px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary">8</span>
+</button>
+<button class="category-pill w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md text-secondary hover:bg-surface-container hover:text-on-surface transition-all text-left" onclick="filterCategory('wings', this)" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">kebab_dining</span>
+<span>Wings</span>
+</div>
+<span class="font-label-numeric-sm text-[11px] px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary">6</span>
+</button>
+<button class="category-pill w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md text-secondary hover:bg-surface-container hover:text-on-surface transition-all text-left" onclick="filterCategory('paket', this)" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">lunch_dining</span>
+<span>Paket Hemat</span>
+</div>
+<span class="font-label-numeric-sm text-[11px] px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary">5</span>
+</button>
+<button class="category-pill w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md text-secondary hover:bg-surface-container hover:text-on-surface transition-all text-left" onclick="filterCategory('minuman', this)" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">local_drink</span>
+<span>Minuman &amp; Es</span>
+</div>
+<span class="font-label-numeric-sm text-[11px] px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary">7</span>
+</button>
+<button class="category-pill w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md text-secondary hover:bg-surface-container hover:text-on-surface transition-all text-left" onclick="filterCategory('addon', this)" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">ramen_dining</span>
+<span>Add-ons</span>
+</div>
+<span class="font-label-numeric-sm text-[11px] px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary">8</span>
+</button>
+</div>
+<!-- Quick Toggles / Hot Filters -->
+<div class="mt-auto pt-2 flex flex-col gap-1.5">
+<span class="font-label-caps text-label-caps text-secondary px-2">Shortcut Filter</span>
+<button class="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary font-headline-sm text-body-sm transition" onclick="quickFilterHighlight('laris')" type="button">
+<span>🔥 Paling Laris</span>
+</button>
+<button class="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-tertiary font-headline-sm text-body-sm transition" onclick="quickFilterHighlight('promo')" type="button">
+<span class="material-symbols-outlined text-[16px]">percent</span>
+<span>Promo Hari Ini</span>
+</button>
+</div>
+</aside>
+<!-- ZONE B: Center High-Velocity Product Grid -->
+<section class="flex-1 flex flex-col p-space-md overflow-y-auto">
+<!-- Section Title & Keyboard Helper Bar -->
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface">Pilihan Menu Taichan</span>
+<span class="font-body-sm text-body-sm text-secondary">(10 item ditampilkan)</span>
+</div>
+<div class="flex items-center gap-2 text-secondary font-label-caps text-label-caps">
+<span class="px-2 py-0.5 rounded bg-surface-container">Shortcut [1-9] Langsung Tambah</span>
+<span class="px-2 py-0.5 rounded bg-surface-container">[F10] Bayar</span>
+</div>
+</div>
+<!-- Product Cards Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5" id="product-grid">
+<!-- Item 1: Sate Taichan Paha -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98] focus:outline-none" onclick="quickAddToCart('Sate Taichan Paha (10 Tsk)', 28000, 'Sambal Taichan Original')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Close-up juicy grilled chicken taichan skewers with chili oil seeds and lime wedge on dark charcoal plate, warm culinary restaurant lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBq6m_UMY1bOzaOVXyX5k5N237Fe-8S0mo6HDMRnMpim_JXBkBnXBOWQgRCJQPZq17jSsnrC212I6Ldh5x5hynfGYeXMDdIyX07LxTbL8X82X0AeeRBQ2YxLVhAzRFkhbQ4LAk25xFC04xzrpWWEmcZ88SThACP_YaXjmU49mN3fE0gRubSySp-sX-XrB9-PHCcwaa_JHslCuiLNeHc0zum4eiAKcSHGEYd82zA64bqtWAlv6iI3uUmzw"/>
+<div class="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container font-label-caps text-label-caps shadow">
+<span class="material-symbols-outlined text-[13px]">local_fire_department</span>
+              Terlaris
+            </div>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [1]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Sate Taichan Paha (10 Tsk)</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-secondary">Aman (140 porsi)</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp28.000</span>
+<button class="w-9 h-9 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center hover:brightness-110 active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 2: Sate Taichan Kulit Crispy -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98]" onclick="quickAddToCart('Sate Taichan Kulit Crispy', 26000, 'Bakar Kering')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Golden crisp deep fried and charcoal finished chicken skin skewers with spicy chili dipping seasoning, dark moody aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCC21C3yU6qyxRC25JLT8LtchUlzq6btq-F1DEBi8XikdnREkkfZyxesJYMTM2sxhjoqWBwxqnR-YqZPjuS4SeHKCPdQDkOFZ0lbk-uhlT86Fao8UmInq1NJxmMPwdvBH66gHiTUFU1-CZI2wyqs63hAbnKWnAJuFy9XKV9cz9g3S1fzIC1Z7-Wg9Yulx-RJjW3jYK3Wa2tqE1VEq9KBT6LKJyZOrb5G3vp9SQ_lWz0UCi6dotJ2Zbiw"/>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [2]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Sate Taichan Kulit Crispy</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-secondary">Aman (65 porsi)</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp26.000</span>
+<button class="w-9 h-9 rounded-xl bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container flex items-center justify-center active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 3: Sate Taichan Campur (Low Stock Warning) -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98]" onclick="quickAddToCart('Sate Taichan Campur (Daging+Kulit)', 27000, 'Standar')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Mixed skewers of tender chicken breast and crispy chicken skin arranged neatly beside taichan lime dip" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3KeTkGBFFqRQnR32XgbbO-XBkYybuPPdZuU5KBrCEhqoQcJ78XhLENAmmt8LnaaH4JQG-UN10E9Q02GQk_ykhLq5AgY9j3FFP9Tel_viaou1CK1G9kCxWc4xohWXcRljVFl9n3l4tJSmtY-A5Q3OY9Og2UCR1eMLwuuumsKzxk_qyUv6aw4FL9jku2Pj4TlTKKdygANBpbpJOaaZdO7xhTi7xYA7Yf2K1O5Wzx-2YwlIqAjC1dKmuPw"/>
+<div class="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-caps text-[10px] shadow">
+<span class="material-symbols-outlined text-[12px]">warning</span>
+              Sisa 8 Porsi
+            </div>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [3]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Sate Taichan Campur</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+<span class="font-body-sm text-body-sm text-error font-medium">Stok Menipis (8)</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp27.000</span>
+<button class="w-9 h-9 rounded-xl bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container flex items-center justify-center active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 4: Sate Taichan Dada -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98]" onclick="quickAddToCart('Sate Taichan Dada (10 Tsk)', 26000, 'Original')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Lean white meat chicken satay skewers garnished with fried shallots and chili garlic oil dipping dish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD684DjpQ5QfCnpq5TuTMGKtAoLvxjIrQvndOfeCu79XAsZVoIarEblvX_H2eV8b5mDVTtZP60wBFOoDJC4fdv-GQNEjGsXb50WPB6Emd4T7PtIhX2OovGWakifE9ZNEGp8gAwEdcAdMy-mhwMmkGA6De2wKEe7N039kUFkv_tutjtMa3xQEXfJxhSSYlNU5SnYbmgYctoBcbZ37z0zBGkcLta8SONF9ZZd30AwvRhZaLwZQqBUhlc6Ew"/>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [4]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Sate Taichan Dada (10 Tsk)</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-secondary">Aman (90 porsi)</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp26.000</span>
+<button class="w-9 h-9 rounded-xl bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container flex items-center justify-center active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 5: Wings Sambal Taichan -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98]" onclick="quickAddToCart('Wings Sambal Taichan (4 Pcs)', 32000, 'Pedas Sedang')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Deep fried crispy chicken wings coated in hot fiery Indonesian taichan chili glaze on black plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAI1dsWJPvMqQct1bw1OGknPh-Dl8FVO2Fjg_8xS19hDlBZKnUMMxM2RC7JOg3uO3beVwxmnzF-4SQitsMxggAU3UMNuTVKMI0-lNrLWe1GKrlZzkVgeVINubBeGU1Abl3BHH5vTcfmf60ik9md4E6HvOkkkJkMKurDE_xzLu880B-sCyfcwV9if0v-QtYR3oTPO-n1IWaeA6YF98QjN5nEQVlli6L4Dl3c_29z-24HPif0P-PZkVLzbg"/>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [5]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Wings Sambal Taichan (4 Pcs)</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-secondary">Aman (35 porsi)</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp32.000</span>
+<button class="w-9 h-9 rounded-xl bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container flex items-center justify-center active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 6: Paket Nasi Taichan Komplit -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98]" onclick="quickAddToCart('Paket Nasi Taichan Komplit', 34000, 'Nasi Hangat + Sambal Pol')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Platter of steamed fragrant jasmine rice surrounded by grilled chicken skewers, crispy skins, fresh cucumber slices and lime" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzQCOJj7C3SFBfYJMi0WeTuD35K5orV4lFH2U1yIu3oa2a_fxaWz1TbN04zfxToFJG8wA6EGDJgvWmKfbJ73bS8IKJWsf2FRBCiRmnrkKHsPKMxRU95rO_2THkpoZb1_wAI-VMAr79IyB-czxyzKv6Klm0S1QcEdwCmqkvjCCbNvs8AwKXwI-vm3GuLE69x1-ZbMRyY-X-JbtYJzjtMWOwlMqWdAKHFQIidgdPWkV-6atiCyHQe8Ikiw"/>
+<div class="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary text-on-tertiary font-label-caps text-label-caps shadow">
+              Paket
+            </div>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [6]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Paket Nasi Taichan Komplit</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-secondary">Aman (80 porsi)</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp34.000</span>
+<button class="w-9 h-9 rounded-xl bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container flex items-center justify-center active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 7: Sate Taichan Telur Gulung (Out of stock state) -->
+<div class="relative flex flex-col bg-surface-container/40 rounded-2xl overflow-hidden opacity-50 cursor-not-allowed select-none">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover grayscale" data-alt="Rolled omelette eggs on bamboo satay sticks stacked on a tray, subdued tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAysAzmrzbXLxl0IRcM-qoHL_eRm1qN_MLtwbwx3zF9ocfasaYpXijHmkcpWmf5h8mX6m1UFKQNwiOjnAbOO62zc7LkVXV5oaOgzOEKSg9-cRuKTbURa-DOOivV3gPYLoG8L5uqzBtvnMPW3fhENQvVG1S9CvkC9jqGV5p2L3v8EgaPLmrzFHuL9fVK8K8hEH5X13lCCljLYJ0O6g-nrJR-PKj80y6F_rQrzb8ZqT6zOGv0hnenHduaVg"/>
+<div class="absolute inset-0 bg-surface-container-lowest/70 flex items-center justify-center">
+<span class="px-2.5 py-1 rounded bg-error-container text-on-error-container font-label-caps text-label-caps tracking-wider">STOK HABIS</span>
+</div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-secondary line-clamp-1">Sate Telur Gulung</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span class="font-body-sm text-body-sm text-error">Stok Habis</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-secondary line-through">Rp18.000</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">block</span>
+</div>
+</div>
+</div>
+<!-- Item 8: Es Teh Manis Jumbo -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98]" onclick="quickAddToCart('Es Teh Manis Jumbo', 6000, 'Normal Ice')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Tall clear glass of cold Indonesian iced sweet jasmine tea with condensation droplets and mint leaf, dark backdrop" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB33t7rYoNovA6qiVa2YF8dRpgeSV2qgcMLOfKFVuPQI7R_oh2Bd1eVUX6XAXxHkbXTcTf1v6MtNLl28Ib6ZyNTLkdXoM_XYVaUtRjSiUrPp9VL3o7jq908_D2-nSQM3wOLhj7hbnYZ7obi3HOfswBKZeBxYR2fCMzSVEnazxpc1Gj9MQ01R4iFi5cCxlsnXgae_fRtFBjut4iqEbhxEbm2YbxWXeu9Dm2DKV6KA7dlbezeWLxwpkbJYA"/>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [7]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Es Teh Manis Jumbo</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-secondary">Aman</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp6.000</span>
+<button class="w-9 h-9 rounded-xl bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container flex items-center justify-center active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 9: Es Jeruk Murni -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98]" onclick="quickAddToCart('Es Jeruk Murni', 12000, 'Segar Manis')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Chilled freshly squeezed sweet orange juice with crushed ice in tumbler glass on dark table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi3V9HNJJ3K6WS0_u9j3bp9C7UqL5pGRf5hd6nMozDoAG-VHveqrnShiu8_mdyFNTlGBz1Ed2T7YNZqHPxaIVwHHGpKAMxs5cVKEwcI8ePwfrJt3qjL6plZYFwUDEYivcNfogr4wjO5bjeBZuVkirZ8pyeUsUhZHq0ZXegro3TK_wHfyRmYvGgTVu1Y16Xh6UTS-sJz93XQYhHyi3vkfkpIDFSRlh5Zu3j4n_5ivFZ1jsk5DFLlIJxxw"/>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [8]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Es Jeruk Murni</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-secondary">Aman</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp12.000</span>
+<button class="w-9 h-9 rounded-xl bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container flex items-center justify-center active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item 10: Lontong Daun Spesial -->
+<div class="group relative flex flex-col bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-150 cursor-pointer active:scale-[0.98]" onclick="quickAddToCart('Lontong Daun Spesial', 5000, 'Potong 6')">
+<div class="relative w-full aspect-[4/3] bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Traditional Indonesian rice cakes wrapped in fragrant green banana leaves sliced into neat cylinders on plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUqRY8Oxtr9dauPhG-GY9Kdv-nmjJPP5WiNrl6-t4nMm84Xtyyok8qr9pwmL0aULh_V3NSVb5BQ4AZg7HIMbOVkJ_rrgTq0GjGpVp3n4UmyBecedTgoKwhGs7qdXpufsn3XZLEJQEeOkpTAGL3Qm-6DZ-GK9-YGstUCS0kJuvAZm989zEQ_FqmOedTUGXMbuPaYi_j_o5Z8jedS5cOzTa3F3DrZxD5tsqX3gA-OtV1iwYQmC5PGqFxdQ"/>
+<div class="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-numeric-sm text-label-numeric-sm">
+              [9]
+            </div>
+</div>
+<div class="p-3 flex flex-col flex-1 justify-between gap-2">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface line-clamp-1 group-hover:text-primary transition-colors">Lontong Daun Spesial</h4>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm text-secondary">Aman</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp5.000</span>
+<button class="w-9 h-9 rounded-xl bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container flex items-center justify-center active:scale-95 shadow transition" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ZONE C: Persistent Cart Rail (380px fixed width) -->
+<aside class="w-[380px] bg-surface-container-low flex flex-col shrink-0 shadow-2xl z-20">
+<!-- Cart Header & Order Meta -->
+<div class="p-space-sm bg-surface-container-lowest flex flex-col gap-2 shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Pesanan Aktif</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-numeric-sm text-[12px] text-primary" id="cart-order-badge">Meja 08</span>
+</div>
+<span class="font-label-numeric-sm text-[12px] text-secondary">#TC-8821</span>
+</div>
+<!-- Quick Cart Utility Bar -->
+<div class="grid grid-cols-3 gap-1.5">
+<button class="flex items-center justify-center gap-1 py-1 px-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-secondary hover:text-on-surface text-[11px] font-label-caps transition" onclick="repeatLastItem()" type="button">
+<span class="material-symbols-outlined text-[14px]">replay</span>
+            Ulangi
+          </button>
+<button class="flex items-center justify-center gap-1 py-1 px-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-secondary hover:text-on-surface text-[11px] font-label-caps transition" onclick="holdCurrentCart()" type="button">
+<span class="material-symbols-outlined text-[14px]">pause_circle</span>
+            Tahan
+          </button>
+<button class="flex items-center justify-center gap-1 py-1 px-2 rounded-lg bg-error-container/30 hover:bg-error-container text-error hover:text-on-error text-[11px] font-label-caps transition" onclick="clearCart()" type="button">
+<span class="material-symbols-outlined text-[14px]">delete</span>
+            Kosongkan
+          </button>
+</div>
+</div>
+<!-- Cart Line Items (Scrollable Area) -->
+<div class="flex-1 overflow-y-auto p-space-sm flex flex-col gap-2" id="cart-item-list">
+<!-- Item Row 1 -->
+<div class="cart-line-item flex flex-col p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition group" data-id="1">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-primary-container/20 text-primary font-label-numeric-sm text-center flex items-center justify-center font-bold">2</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface line-clamp-1">Sate Taichan Paha (10 Tsk)</span>
+<span class="font-label-numeric-sm text-[12px] text-secondary">@ Rp28.000</span>
+</div>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface">Rp56.000</span>
+</div>
+<!-- Modifiers & Controls -->
+<div class="flex items-center justify-between mt-2 pt-1">
+<div class="flex items-center gap-1 text-[11px] text-secondary font-body-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">tune</span>
+<span class="truncate max-w-[170px]">Sambal Ekstra Pedas, Jeruk 2x</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95" onclick="modifyQty(1, -1)" type="button">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95" onclick="modifyQty(1, 1)" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-error-container/20 text-error hover:bg-error-container hover:text-on-error-container flex items-center justify-center ml-1" onclick="removeItem(this)" type="button">
+<span class="material-symbols-outlined text-[16px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item Row 2 -->
+<div class="cart-line-item flex flex-col p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition group" data-id="2">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-primary-container/20 text-primary font-label-numeric-sm text-center flex items-center justify-center font-bold">1</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface line-clamp-1">Sate Taichan Kulit Crispy</span>
+<span class="font-label-numeric-sm text-[12px] text-secondary">@ Rp26.000</span>
+</div>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface">Rp26.000</span>
+</div>
+<!-- Modifiers & Controls -->
+<div class="flex items-center justify-between mt-2 pt-1">
+<div class="flex items-center gap-1 text-[11px] text-secondary font-body-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">tune</span>
+<span>Bakar Kering Renyah</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95" onclick="modifyQty(2, -1)" type="button">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95" onclick="modifyQty(2, 1)" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-error-container/20 text-error hover:bg-error-container hover:text-on-error-container flex items-center justify-center ml-1" onclick="removeItem(this)" type="button">
+<span class="material-symbols-outlined text-[16px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item Row 3 -->
+<div class="cart-line-item flex flex-col p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition group" data-id="3">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-primary-container/20 text-primary font-label-numeric-sm text-center flex items-center justify-center font-bold">2</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface line-clamp-1">Es Teh Manis Jumbo</span>
+<span class="font-label-numeric-sm text-[12px] text-secondary">@ Rp6.000</span>
+</div>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface">Rp12.000</span>
+</div>
+<!-- Modifiers & Controls -->
+<div class="flex items-center justify-between mt-2 pt-1">
+<div class="flex items-center gap-1 text-[11px] text-secondary font-body-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">tune</span>
+<span>Less Sugar, Normal Ice</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95" onclick="modifyQty(3, -1)" type="button">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95" onclick="modifyQty(3, 1)" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-error-container/20 text-error hover:bg-error-container hover:text-on-error-container flex items-center justify-center ml-1" onclick="removeItem(this)" type="button">
+<span class="material-symbols-outlined text-[16px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Item Row 4 -->
+<div class="cart-line-item flex flex-col p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition group" data-id="4">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-lg bg-primary-container/20 text-primary font-label-numeric-sm text-center flex items-center justify-center font-bold">2</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface line-clamp-1">Lontong Daun Spesial</span>
+<span class="font-label-numeric-sm text-[12px] text-secondary">@ Rp5.000</span>
+</div>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface">Rp10.000</span>
+</div>
+<!-- Modifiers & Controls -->
+<div class="flex items-center justify-between mt-2 pt-1">
+<div class="flex items-center gap-1 text-[11px] text-secondary font-body-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">tune</span>
+<span>Potong 6 Rata</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95" onclick="modifyQty(4, -1)" type="button">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95" onclick="modifyQty(4, 1)" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-error-container/20 text-error hover:bg-error-container hover:text-on-error-container flex items-center justify-center ml-1" onclick="removeItem(this)" type="button">
+<span class="material-symbols-outlined text-[16px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Table Notes Row -->
+<div class="px-space-sm py-1">
+<button class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-surface-container text-secondary hover:text-on-surface text-body-sm transition" onclick="promptTableNotes()" type="button">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+<span id="order-note-display">Catatan: Sambal dipisah jeruk nipis...</span>
+</div>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<!-- Cart Financial Calculation Pane -->
+<div class="p-space-sm bg-surface-container-lowest flex flex-col gap-2 shadow-2xl">
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-secondary font-body-sm">Subtotal (7 Item)</span>
+<span class="font-label-numeric-sm text-on-surface" id="calc-subtotal">Rp104.000</span>
+</div>
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-tertiary flex items-center gap-1 font-body-sm">
+<span class="material-symbols-outlined text-[14px]">loyalty</span>
+              Diskon Member (10%)
+            </span>
+<span class="font-label-numeric-sm text-tertiary" id="calc-discount">-Rp10.400</span>
+</div>
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-secondary font-body-sm">PB1 / Pajak Resto (10%)</span>
+<span class="font-label-numeric-sm text-on-surface" id="calc-tax">Rp9.360</span>
+</div>
+<div class="h-[1px] bg-surface-variant my-1"></div>
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Total Pembayaran</span>
+<span class="font-body-sm text-[11px] text-tertiary">Sudah Termasuk Pajak</span>
+</div>
+<span class="font-label-numeric-lg text-[24px] text-primary" id="calc-total">Rp102.960</span>
+</div>
+</div>
+<!-- Quick Payment Tender Badges -->
+<div class="flex items-center gap-1.5 pt-1 overflow-x-auto pb-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-numeric-sm text-[12px] font-bold shrink-0 transition" onclick="selectTender(102960)" type="button">
+            Pas (103k)
+          </button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-numeric-sm text-[12px] shrink-0 transition" onclick="selectTender(105000)" type="button">
+            105k
+          </button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-numeric-sm text-[12px] shrink-0 transition" onclick="selectTender(150000)" type="button">
+            150k
+          </button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-numeric-sm text-[12px] shrink-0 transition" onclick="selectTender(200000)" type="button">
+            200k
+          </button>
+<button class="px-2.5 py-1.5 rounded-lg bg-secondary-container text-secondary-fixed font-headline-sm text-body-sm flex items-center gap-1 shrink-0 transition" onclick="triggerQrisModal()" type="button">
+<span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+            QRIS
+          </button>
+</div>
+<!-- Main Conversion Action Button (F10) -->
+<button class="w-full h-14 bg-primary-container text-on-primary-container rounded-2xl font-headline-md text-headline-sm font-bold flex items-center justify-between px-space-md shadow-lg shadow-primary-container/30 hover:brightness-110 active:scale-[0.98] transition" id="btn-pay-primary" onclick="processPaymentModal()" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[24px]">payments</span>
+<span>Bayar Sekarang (F10)</span>
+</div>
+<span class="material-symbols-outlined text-[24px]">arrow_forward</span>
+</button>
+</div>
+</aside>
+</div>
+<!-- Interactive Modal: Payment Dialog (Hidden by Default) -->
+<div class="fixed inset-0 z-50 bg-background/80 backdrop-blur-md hidden items-center justify-center p-space-md" id="payment-modal">
+<div class="w-full max-w-lg bg-surface-container rounded-2xl p-space-lg shadow-2xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-sm border-b border-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[28px]">payments</span>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Proses Pembayaran</h3>
+</div>
+<button class="text-secondary hover:text-on-surface" onclick="closePaymentModal()" type="button">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-xl flex items-center justify-between">
+<span class="text-secondary font-headline-sm">Total Tagihan:</span>
+<span class="font-label-numeric-lg text-[26px] text-primary" id="modal-bill-amount">Rp102.960</span>
+</div>
+<!-- Payment Method Tabs -->
+<div class="grid grid-cols-3 gap-2">
+<button class="modal-pay-tab py-2.5 rounded-xl bg-primary-container text-on-primary-container font-headline-sm flex flex-col items-center gap-1 shadow" onclick="setPayMethod('Tunai', this)" type="button">
+<span class="material-symbols-outlined text-[20px]">attach_money</span>
+          Tunai (Cash)
+        </button>
+<button class="modal-pay-tab py-2.5 rounded-xl bg-surface-container-high text-secondary hover:text-on-surface font-headline-sm flex flex-col items-center gap-1" onclick="setPayMethod('QRIS', this)" type="button">
+<span class="material-symbols-outlined text-[20px]">qr_code_2</span>
+          QRIS Instan
+        </button>
+<button class="modal-pay-tab py-2.5 rounded-xl bg-surface-container-high text-secondary hover:text-on-surface font-headline-sm flex flex-col items-center gap-1" onclick="setPayMethod('Debit', this)" type="button">
+<span class="material-symbols-outlined text-[20px]">credit_card</span>
+          Debit / EDC
+        </button>
+</div>
+<!-- Cash Received Input & Change Display -->
+<div class="flex flex-col gap-2" id="cash-calculator-section">
+<label class="font-label-caps text-label-caps text-secondary">UANG TUNAI DITERIMA</label>
+<input class="w-full h-12 px-space-md bg-surface-container-lowest text-on-surface font-label-numeric-lg text-[22px] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-container" id="received-cash-input" oninput="calculateChange()" type="text" value="105.000"/>
+<div class="flex items-center justify-between px-2 pt-1 font-body-md">
+<span class="text-secondary">Kembalian:</span>
+<span class="font-label-numeric-md text-tertiary" id="change-display">Rp2.040</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="grid grid-cols-2 gap-3 pt-2">
+<button class="h-12 rounded-xl bg-surface-container-high text-on-surface font-headline-sm" onclick="closePaymentModal()" type="button">
+          Kembali (Esc)
+        </button>
+<button class="h-12 rounded-xl bg-primary-container text-on-primary-container font-headline-sm font-bold shadow-lg shadow-primary-container/20 flex items-center justify-center gap-2" onclick="finalizeTransaction()" type="button">
+<span class="material-symbols-outlined text-[20px]">print</span>
+          Cetak Struk &amp; Selesai
+        </button>
+</div>
+</div>
+</div>
+<!-- Notification Toast for POS Actions -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl bg-surface-container-highest text-on-surface font-body-sm shadow-xl flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-200 z-50" id="pos-toast">
+<span class="material-symbols-outlined text-tertiary text-[20px]" id="toast-icon">check_circle</span>
+<span id="toast-msg">Item ditambahkan ke pesanan</span>
+</div>
+<!-- Client-side Interactive Behaviors for High-Speed Touch POS -->
+<script>
+    let isOfflineSimulated = false;
+    let currentTable = '08';
+    let currentOrderType = 'Dine In';
+
+    function showToast(message, icon = 'check_circle') {
+      const toast = document.getElementById('pos-toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+      if (!toast) return;
+      toastMsg.textContent = message;
+      toastIcon.textContent = icon;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+        toast.classList.remove('opacity-100');
+      }, 1600);
+    }
+
+    function setOrderType(type) {
+      const btnDine = document.getElementById('btn-dine-in');
+      const btnTake = document.getElementById('btn-take-away');
+      const btnOnline = document.getElementById('btn-online');
+      const tblContainer = document.getElementById('table-selector-container');
+      const badge = document.getElementById('cart-order-badge');
+
+      [btnDine, btnTake, btnOnline].forEach(b => {
+        b.className = "px-space-md py-2 rounded-lg font-headline-sm text-headline-sm transition-all flex items-center gap-1.5 text-secondary hover:text-on-surface hover:bg-surface-container";
+      });
+
+      if (type === 'dine-in') {
+        btnDine.className = "px-space-md py-2 rounded-lg font-headline-sm text-headline-sm transition-all flex items-center gap-1.5 bg-primary-container text-on-primary-container shadow-sm";
+        tblContainer.classList.remove('hidden');
+        tblContainer.classList.add('flex');
+        currentOrderType = 'Dine In';
+        badge.textContent = `Meja ${currentTable}`;
+      } else if (type === 'take-away') {
+        btnTake.className = "px-space-md py-2 rounded-lg font-headline-sm text-headline-sm transition-all flex items-center gap-1.5 bg-primary-container text-on-primary-container shadow-sm";
+        tblContainer.classList.add('hidden');
+        tblContainer.classList.remove('flex');
+        currentOrderType = 'Take Away';
+        badge.textContent = 'Bungkus / Take Away';
+      } else {
+        btnOnline.className = "px-space-md py-2 rounded-lg font-headline-sm text-headline-sm transition-all flex items-center gap-1.5 bg-primary-container text-on-primary-container shadow-sm";
+        tblContainer.classList.add('hidden');
+        tblContainer.classList.remove('flex');
+        currentOrderType = 'Online Delivery';
+        badge.textContent = 'GoFood / Shopee';
+      }
+      showToast(`Tipe Pesanan diubah: ${currentOrderType}`);
+    }
+
+    function selectQuickTable(num) {
+      currentTable = num;
+      const input = document.getElementById('table-input');
+      if (input) input.value = num;
+      const badge = document.getElementById('cart-order-badge');
+      if (badge && currentOrderType === 'Dine In') {
+        badge.textContent = `Meja ${num}`;
+      }
+      showToast(`Meja dialihkan ke Meja ${num}`);
+    }
+
+    function toggleSyncState() {
+      isOfflineSimulated = !isOfflineSimulated;
+      const dot = document.getElementById('sync-dot');
+      const title = document.getElementById('sync-title');
+      const subtitle = document.getElementById('sync-subtitle');
+
+      if (isOfflineSimulated) {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-error shadow-[0_0_8px_rgba(255,180,171,0.8)]";
+        title.className = "font-label-caps text-label-caps leading-none text-error";
+        title.textContent = "OFFLINE";
+        subtitle.textContent = "2 Transaksi antre sinkron";
+        showToast("Mode Offline aktif (data tersimpan di lokal)", "cloud_off");
+      } else {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(78,222,163,0.8)]";
+        title.className = "font-label-caps text-label-caps leading-none text-tertiary";
+        title.textContent = "ONLINE";
+        subtitle.textContent = "Semua sinkron";
+        showToast("Kembali Online! 2 Transaksi berhasil disinkronkan", "sync");
+      }
+    }
+
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.category-pill').forEach(b => {
+        b.className = "category-pill w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md text-secondary hover:bg-surface-container hover:text-on-surface transition-all text-left";
+      });
+      btn.className = "category-pill active-cat w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-headline-sm text-body-md bg-primary-container text-on-primary-container shadow-sm transition-all text-left";
+      showToast(`Filter Kategori: ${btn.querySelector('span:last-of-type').textContent}`);
+    }
+
+    function quickFilterHighlight(type) {
+      showToast(type === 'laris' ? "Menampilkan menu Paling Laris 🔥" : "Menampilkan Promo Berjalan Hari Ini 🏷️");
+    }
+
+    function quickAddToCart(name, price, note) {
+      const cartList = document.getElementById('cart-item-list');
+      const newId = Date.now();
+      const div = document.createElement('div');
+      div.className = "cart-line-item flex flex-col p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition group animate-fadeIn";
+      div.dataset.id = newId;
+      div.innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-primary-container/20 text-primary font-label-numeric-sm text-center flex items-center justify-center font-bold">1</span>
+            <div class="flex flex-col">
+              <span class="font-headline-sm text-body-md text-on-surface line-clamp-1">${name}</span>
+              <span class="font-label-numeric-sm text-[12px] text-secondary">@ Rp${price.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+          <span class="font-label-numeric-md text-label-numeric-md text-on-surface">Rp${price.toLocaleString('id-ID')}</span>
+        </div>
+        <div class="flex items-center justify-between mt-2 pt-1">
+          <div class="flex items-center gap-1 text-[11px] text-secondary font-body-sm">
+            <span class="material-symbols-outlined text-[14px] text-primary">tune</span>
+            <span class="truncate max-w-[170px]">${note}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="modifyQty('${newId}', -1)" class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95">
+              <span class="material-symbols-outlined text-[16px]">remove</span>
+            </button>
+            <button type="button" onclick="modifyQty('${newId}', 1)" class="w-7 h-7 rounded-lg bg-surface-container-lowest text-secondary hover:text-on-surface flex items-center justify-center active:scale-95">
+              <span class="material-symbols-outlined text-[16px]">add</span>
+            </button>
+            <button type="button" onclick="removeItem(this)" class="w-7 h-7 rounded-lg bg-error-container/20 text-error hover:bg-error-container hover:text-on-error-container flex items-center justify-center ml-1">
+              <span class="material-symbols-outlined text-[16px]">delete_outline</span>
+            </button>
+          </div>
+        </div>
+      `;
+      cartList.prepend(div);
+      showToast(`+1 ${name}`);
+    }
+
+    function modifyQty(id, delta) {
+      showToast(delta > 0 ? "Jumlah item ditambah (+1)" : "Jumlah item dikurangi (-1)");
+    }
+
+    function removeItem(btn) {
+      const row = btn.closest('.cart-line-item');
+      if (row) {
+        row.remove();
+        showToast("Item dihapus dari keranjang", "delete");
+      }
+    }
+
+    function repeatLastItem() {
+      quickAddToCart('Sate Taichan Paha (10 Tsk)', 28000, 'Ulangi Terakhir');
+    }
+
+    function holdCurrentCart() {
+      showToast("Pesanan Meja 08 disimpan sementara (Hold) #TC-8821", "bookmark");
+    }
+
+    function clearCart() {
+      const cartList = document.getElementById('cart-item-list');
+      cartList.innerHTML = `<div class="p-8 text-center text-secondary font-body-md">Keranjang pesanan kosong. Pilih menu di sebelah kiri.</div>`;
+      showToast("Keranjang dikosongkan", "delete_sweep");
+    }
+
+    function promptTableNotes() {
+      const noteDisplay = document.getElementById('order-note-display');
+      const current = noteDisplay.textContent.replace('Catatan: ', '');
+      const updated = prompt("Masukkan Catatan Khusus untuk Kitchen / Bar:", current);
+      if (updated !== null && updated.trim() !== "") {
+        noteDisplay.textContent = `Catatan: ${updated.trim()}`;
+        showToast("Catatan dapur diperbarui");
+      }
+    }
+
+    function selectTender(amount) {
+      const input = document.getElementById('received-cash-input');
+      if (input) input.value = amount.toLocaleString('id-ID');
+      processPaymentModal();
+    }
+
+    function triggerQrisModal() {
+      processPaymentModal();
+      const qrisTab = document.querySelectorAll('.modal-pay-tab')[1];
+      if (qrisTab) setPayMethod('QRIS', qrisTab);
+    }
+
+    function processPaymentModal() {
+      const modal = document.getElementById('payment-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      calculateChange();
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('payment-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function setPayMethod(method, btn) {
+      document.querySelectorAll('.modal-pay-tab').forEach(b => {
+        b.className = "modal-pay-tab py-2.5 rounded-xl bg-surface-container-high text-secondary hover:text-on-surface font-headline-sm flex flex-col items-center gap-1";
+      });
+      btn.className = "modal-pay-tab py-2.5 rounded-xl bg-primary-container text-on-primary-container font-headline-sm flex flex-col items-center gap-1 shadow";
+
+      const cashCalc = document.getElementById('cash-calculator-section');
+      if (method === 'QRIS' || method === 'Debit') {
+        cashCalc.classList.add('opacity-30', 'pointer-events-none');
+      } else {
+        cashCalc.classList.remove('opacity-30', 'pointer-events-none');
+      }
+      showToast(`Metode pembayaran: ${method}`);
+    }
+
+    function calculateChange() {
+      const rawInput = document.getElementById('received-cash-input').value.replace(/\D/g, '');
+      const bill = 102960;
+      const given = parseInt(rawInput, 10) || 0;
+      const change = Math.max(0, given - bill);
+      document.getElementById('change-display').textContent = `Rp${change.toLocaleString('id-ID')}`;
+    }
+
+    function finalizeTransaction() {
+      closePaymentModal();
+      showToast("Transaksi Berhasil! Struk #TC-8821 sedang dicetak 🖨️", "task_alt");
+    }
+
+    // Keyboard Shortcuts: 1-9 for instant items, F10 for payment
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'F10') {
+        e.preventDefault();
+        processPaymentModal();
+      } else if (e.key === 'Escape') {
+        closePaymentModal();
+      } else if (['1','2','3','4','5','6'].includes(e.key) && document.activeElement.tagName !== 'INPUT') {
+        const itemMap = {
+          '1': ['Sate Taichan Paha (10 Tsk)', 28000, 'Original'],
+          '2': ['Sate Taichan Kulit Crispy', 26000, 'Bakar Kering'],
+          '3': ['Sate Taichan Campur', 27000, 'Standar'],
+          '4': ['Sate Taichan Dada (10 Tsk)', 26000, 'Original'],
+          '5': ['Wings Sambal Taichan (4 Pcs)', 32000, 'Pedas Sedang'],
+          '6': ['Paket Nasi Taichan Komplit', 34000, 'Komplit']
+        };
+        const item = itemMap[e.key];
+        if (item) quickAddToCart(item[0], item[1], item[2]);
+      }
+    });
+  </script>
+</div></main></div></body></html>

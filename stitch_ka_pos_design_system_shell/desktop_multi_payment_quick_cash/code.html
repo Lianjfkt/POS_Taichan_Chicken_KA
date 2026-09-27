@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"secondary":"#bcc7de","surface-dim":"#0f131d","on-error-container":"#ffdad6","on-primary":"#552100","on-primary-fixed-variant":"#783200","tertiary-fixed-dim":"#4edea3","on-primary-container":"#582200","primary":"#ffb690","primary-fixed-dim":"#ffb690","surface":"#0f131d","on-error":"#690005","secondary-container":"#3e495d","surface-variant":"#313540","error":"#ffb4ab","on-tertiary-container":"#003b26","surface-container-low":"#171b26","on-tertiary-fixed-variant":"#005236","inverse-surface":"#dfe2f1","background":"#0f131d","surface-bright":"#353944","on-secondary-fixed-variant":"#3c475a","on-surface-variant":"#e0c0b1","tertiary-container":"#00b07a","on-background":"#dfe2f1","primary-fixed":"#ffdbca","surface-tint":"#ffb690","on-tertiary":"#003824","on-tertiary-fixed":"#002113","inverse-primary":"#9d4300","on-secondary-container":"#aeb9d0","inverse-on-surface":"#2c303b","on-secondary-fixed":"#111c2d","tertiary-fixed":"#6ffbbe","on-secondary":"#263143","on-surface":"#dfe2f1","on-primary-fixed":"#341100","secondary-fixed":"#d8e3fb","outline":"#a78b7d","outline-variant":"#584237","error-container":"#93000a","primary-container":"#f97316","surface-container":"#1c1f2a","surface-container-lowest":"#0a0e18","secondary-fixed-dim":"#bcc7de","surface-container-highest":"#313540","surface-container-high":"#262a35","tertiary":"#4edea3"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","gutter-mobile":"0.5rem","margin-mobile":"0.75rem","space-lg":"1.5rem","gutter":"1rem","margin":"1rem","space-xl":"2rem","space-xs":"0.25rem","space-sm":"0.5rem"},"fontFamily":{"label-caps":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-numeric-lg":["Space Mono"],"label-numeric-md":["Space Mono"],"body-md":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-numeric-sm":["Space Mono"]},"fontSize":{"label-caps":["11px",{"lineHeight":"16px","letterSpacing":"0.06em","fontWeight":"700"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"label-numeric-lg":["22px",{"lineHeight":"28px","fontWeight":"700"}],"label-numeric-md":["16px",{"lineHeight":"20px","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"headline-xl-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-numeric-sm":["13px",{"lineHeight":"16px","fontWeight":"400"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between p-space-md shadow-[0_1px_8px_rgba(0,0,0,0.5)]"><div class="flex flex-col gap-space-lg"><div class="flex items-center gap-space-sm px-space-xs"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_cvwoCahTHyiEW9Mkove9AEoSL28pclemy-895pURE_ZJtw0Dpas7ZT9V8LwHObzpPbHdwLiDvEt9LcCgNuEmZbVl73mGRHiM7I9ZwDC-xGr3mKeQs5pbN6kGTGbU29cSzqPpKm4vFGwcEgTjCjn_8_2wsopsjDif5jmK3su1ispyW0omiJ2IgE45LH6MbuK2iUfVqgiOwHnO3wL8hVybQwLZr2IhNnfKplk4P7FVG_x71P4R6TRYxA"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">KA POS</span><span class="font-label-caps text-label-caps text-primary tracking-widest uppercase">Terminal POS</span></div></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-headline-sm"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary font-headline-sm" data-path="kasir" href="#"><span class="material-symbols-outlined text-[20px]">point_of_sale</span><span class="font-headline-sm text-headline-sm">Kasir</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="pesanan-aktif" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span class="font-headline-sm text-headline-sm">Pesanan Aktif</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="kitchen-display-system" href="#"><span class="material-symbols-outlined text-[20px]">skillet</span><span class="font-headline-sm text-headline-sm">Dapur KDS</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="riwayat-transaksi" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="font-headline-sm text-headline-sm">Riwayat</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="laporan-shift" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span><span class="font-headline-sm text-headline-sm">Laporan Shift</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="pengaturan" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span class="font-headline-sm text-headline-sm">Pengaturan</span></a></nav></div><div class="flex flex-col gap-space-sm pt-space-md bg-surface-container-low p-space-sm rounded-lg"><div class="flex items-center justify-between"><span class="font-label-caps text-label-caps text-on-surface-variant">Status Koneksi</span><div class="flex items-center gap-space-xs bg-tertiary-container/20 px-space-xs py-[2px] rounded-full"><span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span><span class="font-label-numeric-sm text-label-numeric-sm text-tertiary font-bold uppercase">Online</span></div></div><div class="flex items-center justify-between text-on-surface-variant"><span class="font-body-sm text-body-sm">Cloud Sync</span><span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">0s lalu</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl z-40 flex items-center justify-between px-space-lg shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXStCkasyMQ6Ft3sffeJmOloO6ObaetJ3Kp3Zkv1g623wTiTDpRmwgxzcBrdQI4QzblaFjfiAXvV261fIof8soWpD5dNa9c-Vwd1qfDQCMLldtSP8wu3LbXFmAWuOyCjGFFtzP57rNfDVR18-tv_6ouzuSR0uIjdDLO0mtaSIJZAuriKG4CuDXB1O_aU6UkXCHuDgsymX-F-iuFvvw9U6ueLpQp484RwFNFjiNTwxqYT_1vrBsF-i9xA"/><nav class="flex items-center gap-space-md" data-active-classes="text-primary font-bold"><a aria-current="page" class="transition-colors text-primary font-bold" data-path="kasir" href="#">Dine In</a><a aria-current="page" class="transition-colors text-primary font-bold" data-path="kasir" href="#">Take Away</a><a aria-current="page" class="transition-colors text-primary font-bold" data-path="kasir" href="#">Delivery Online</a></nav></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded-full"><span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span><span class="font-body-sm text-body-sm text-on-surface">Sinkron Terhubung</span></div><div class="h-6 w-px bg-surface-variant"></div><div class="flex items-center gap-space-sm"><div class="text-right flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface leading-tight">Budi Santoso</span><span class="font-body-sm text-body-sm text-on-surface-variant leading-none">Kasir - Reguler</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<div class="p-space-lg flex flex-col gap-space-lg w-full max-w-[1600px] mx-auto">
+<!-- Top Metadata Context Strip -->
+<div class="flex flex-wrap items-center justify-between gap-space-md bg-surface-container-low p-space-md rounded-xl shadow-md">
+<div class="flex flex-wrap items-center gap-space-md">
+<div class="flex items-center gap-space-xs bg-surface-container-highest px-space-sm py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-primary text-[18px]">receipt</span>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface">#TC-8821</span>
+</div>
+<div class="flex items-center gap-space-xs bg-primary-container/15 px-space-sm py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-primary text-[18px]">table_restaurant</span>
+<span class="font-headline-sm text-headline-sm text-primary">Meja #08</span>
+<span class="font-label-caps text-label-caps text-primary/80 uppercase ml-1">Dine In</span>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+<span class="font-body-md text-body-md text-on-surface">Kasir: Budi Santoso</span>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">14:32 WIB</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Shift 1 • Terminal POS-01</span>
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+</div>
+</div>
+<!-- Main Workspace: Split Structure -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- Left Rail (5 cols): Order Breakdown + Payment Channel Switcher -->
+<div class="xl:col-span-5 flex flex-col gap-space-lg">
+<!-- Order Bill Summary Card -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">shopping_cart_checkout</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Ringkasan Pesanan</h2>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-on-surface-variant bg-surface-container px-space-xs py-0.5 rounded">4 Menu</span>
+</div>
+<!-- Line Items List -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between p-space-xs bg-surface-container rounded-lg">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-label-numeric-sm text-label-numeric-sm px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">2x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Sate Taichan Paha</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Level Pedas 3 • Sambal Bawang</span>
+</div>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface shrink-0">Rp56.000</span>
+</div>
+<div class="flex items-center justify-between p-space-xs bg-surface-container rounded-lg">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-label-numeric-sm text-label-numeric-sm px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">1x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Kulit Crispy</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ekstra Bumbu Gurih</span>
+</div>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface shrink-0">Rp26.000</span>
+</div>
+<div class="flex items-center justify-between p-space-xs bg-surface-container rounded-lg">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-label-numeric-sm text-label-numeric-sm px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">2x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Es Teh Jumbo</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Less Sugar (Gula Sedang)</span>
+</div>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface shrink-0">Rp20.000</span>
+</div>
+<div class="flex items-center justify-between p-space-xs bg-surface-container rounded-lg">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-label-numeric-sm text-label-numeric-sm px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">2x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Lontong Daun</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Potong 4</span>
+</div>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface shrink-0">Rp16.000</span>
+</div>
+</div>
+<!-- Ledger Totals -->
+<div class="flex flex-col gap-space-xs pt-space-xs bg-surface-container-lowest p-space-sm rounded-lg">
+<div class="flex items-center justify-between text-on-surface-variant font-body-md text-body-md">
+<span>Subtotal Menu</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">Rp118.000</span>
+</div>
+<div class="flex items-center justify-between text-tertiary font-body-md text-body-md">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">stars</span>
+                Diskon Member KA-Gold (10%)
+              </span>
+<span class="font-label-numeric-sm text-label-numeric-sm font-bold">-Rp11.800</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-md text-body-md">
+<span>PB1 Restoran (10%)</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">Rp10.620</span>
+</div>
+<div class="pt-space-xs mt-space-xs flex items-center justify-between">
+<div>
+<span class="font-label-caps text-label-caps text-primary uppercase block">Total Bayar (Nett)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Termasuk Pajak &amp; Diskon</span>
+</div>
+<span class="font-label-numeric-lg text-label-numeric-lg text-primary tracking-tight font-bold">Rp116.820</span>
+</div>
+</div>
+</div>
+<!-- Payment Method Selector 4 Cards Grid -->
+<div class="flex flex-col gap-space-sm">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Pilih Metode Pembayaran</span>
+<div class="grid grid-cols-2 gap-space-sm" id="paymentMethodGrid">
+<!-- 1. Tunai (Active default) -->
+<button class="flex flex-col gap-space-xs p-space-md rounded-xl text-left transition-all bg-surface-container-high shadow-lg relative overflow-hidden group" id="btn-cash" onclick="selectPaymentMethod('cash')" type="button">
+<div class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-primary" id="badge-cash"></div>
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">payments</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Tunai (Cash)</span>
+<span class="font-body-sm text-body-sm text-primary">Kalkulasi Kembalian</span>
+</button>
+<!-- 2. QRIS -->
+<button class="flex flex-col gap-space-xs p-space-md rounded-xl text-left transition-all bg-surface-container-low hover:bg-surface-container text-on-surface shadow relative overflow-hidden" id="btn-qris" onclick="selectPaymentMethod('qris')" type="button">
+<div class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-transparent" id="badge-qris"></div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest text-on-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">qr_code_2</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">QRIS Dinamis</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">BCA, GoPay, Shopee, OVO</span>
+</button>
+<!-- 3. Debit / EDC -->
+<button class="flex flex-col gap-space-xs p-space-md rounded-xl text-left transition-all bg-surface-container-low hover:bg-surface-container text-on-surface shadow relative overflow-hidden" id="btn-edc" onclick="selectPaymentMethod('edc')" type="button">
+<div class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-transparent" id="badge-edc"></div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest text-on-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">point_of_sale</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Debit / EDC</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mandiri, BCA, BRI</span>
+</button>
+<!-- 4. Transfer Bank -->
+<button class="flex flex-col gap-space-xs p-space-md rounded-xl text-left transition-all bg-surface-container-low hover:bg-surface-container text-on-surface shadow relative overflow-hidden" id="btn-transfer" onclick="selectPaymentMethod('transfer')" type="button">
+<div class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-transparent" id="badge-transfer"></div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest text-on-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">account_balance</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Transfer VA</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Cek Mutasi Otomatis</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Panel (7 cols): Active Method Workstation -->
+<div class="xl:col-span-7 flex flex-col gap-space-lg">
+<!-- MODE 1: CASH SETTLEMENT WORKBENCH -->
+<div class="flex flex-col gap-space-lg" id="cash-panel">
+<!-- Big Cash Target Display -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Nominal Pembayaran Tunai</span>
+<span class="font-body-sm text-body-sm text-on-surface">Pilih nominal cepat atau gunakan tombol angka</span>
+</div>
+<button class="px-space-sm py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm flex items-center gap-1 transition-colors" onclick="resetCashAmount()" type="button">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+                Reset
+              </button>
+</div>
+<!-- Quick Denomination Pill Buttons -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-space-xs">
+<button class="quick-chip p-space-sm rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors text-left flex flex-col" onclick="setCashAmount(116820)" type="button">
+<span class="font-label-caps text-label-caps text-tertiary">Uang Pas</span>
+<span class="font-label-numeric-sm text-label-numeric-sm">116.820</span>
+</button>
+<button class="quick-chip p-space-sm rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors text-left flex flex-col" onclick="setCashAmount(120000)" type="button">
+<span class="font-label-caps text-label-caps text-on-surface-variant">+ Rp3.180</span>
+<span class="font-label-numeric-sm text-label-numeric-sm">120.000</span>
+</button>
+<button class="quick-chip p-space-sm rounded-lg bg-primary-container text-on-primary-container transition-colors text-left flex flex-col shadow-sm" id="chip-150" onclick="setCashAmount(150000)" type="button">
+<span class="font-label-caps text-label-caps text-on-primary-container font-bold">Dipilih</span>
+<span class="font-label-numeric-sm text-label-numeric-sm font-bold">150.000</span>
+</button>
+<button class="quick-chip p-space-sm rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors text-left flex flex-col" onclick="setCashAmount(200000)" type="button">
+<span class="font-label-caps text-label-caps text-on-surface-variant">+ Rp83.180</span>
+<span class="font-label-numeric-sm text-label-numeric-sm">200.000</span>
+</button>
+<button class="p-space-sm rounded-lg bg-surface-container-lowest/50 text-on-surface-variant/40 text-left flex flex-col cursor-not-allowed" disabled="" type="button">
+<span class="font-label-caps text-label-caps text-error">Kurang</span>
+<span class="font-label-numeric-sm text-label-numeric-sm line-through">100.000</span>
+</button>
+</div>
+<!-- Direct Amount Input Bar & Visual Touch Numpad Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-md pt-space-xs">
+<!-- Left: Current Tendered & Numpad -->
+<div class="md:col-span-7 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between bg-surface-container-lowest p-space-sm rounded-lg">
+<span class="font-body-md text-body-md text-on-surface-variant">Uang Diterima:</span>
+<div class="flex items-baseline gap-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary font-bold">Rp</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-on-surface font-bold" id="cashInputDisplay">150.000</span>
+</div>
+</div>
+<!-- 3x4 Touch Numpad -->
+<div class="grid grid-cols-3 gap-space-xs">
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('1')" type="button">1</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('2')" type="button">2</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('3')" type="button">3</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('4')" type="button">4</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('5')" type="button">5</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('6')" type="button">6</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('7')" type="button">7</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('8')" type="button">8</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('9')" type="button">9</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('00')" type="button">00</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface font-label-numeric-md text-label-numeric-md transition-all" onclick="numpadInput('0')" type="button">0</button>
+<button class="h-12 rounded-lg bg-surface-container hover:bg-surface-container-high active:scale-95 text-on-surface flex items-center justify-center transition-all" onclick="numpadBackspace()" type="button">
+<span class="material-symbols-outlined text-[20px]">backspace</span>
+</button>
+</div>
+</div>
+<!-- Right: GIANT CHANGE DISPLAY HIGHLIGHT BOX -->
+<div class="md:col-span-5 flex flex-col justify-between bg-surface-container-highest/60 p-space-md rounded-xl shadow-inner">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-tertiary uppercase tracking-wider">Kembalian Kasir</span>
+<span class="material-symbols-outlined text-tertiary text-[18px]">verified</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-numeric-lg text-[34px] leading-tight text-tertiary font-bold tracking-tight" id="cashChangeDisplay">Rp33.180</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Status: Pembayaran Terpenuhi</span>
+</div>
+</div>
+<!-- Currency Distribution Breakdown Helper -->
+<div class="bg-surface-container-lowest/80 p-space-sm rounded-lg flex flex-col gap-1 mt-space-sm">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Rekomendasi Pecahan:</span>
+<div class="flex flex-col text-on-surface font-label-numeric-sm text-label-numeric-sm gap-0.5" id="denominationHelper">
+<div class="flex justify-between"><span>1x Rp20.000</span><span class="text-on-surface-variant">Rp20.000</span></div>
+<div class="flex justify-between"><span>1x Rp10.000</span><span class="text-on-surface-variant">Rp10.000</span></div>
+<div class="flex justify-between"><span>3x Rp1.000</span><span class="text-on-surface-variant">Rp3.000</span></div>
+<div class="flex justify-between text-tertiary"><span>1x Koin Rp180 (Bulat Rp200)</span><span class="text-on-surface-variant">Rp180</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- MODE 2: QRIS INTERACTIVE PREVIEW PANEL (Hidden by default, shown when QRIS tab clicked) -->
+<div class="hidden flex-col gap-space-md bg-surface-container-low rounded-xl p-space-md shadow-lg" id="qris-panel">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[24px]">qr_code_scanner</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">QRIS Dinamis Multi-Payment</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant">NMID: ID102008892019 • KA POS Terminal 01</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded-full">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-tertiary font-bold" id="qrisTimer">04:58</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-md items-center">
+<!-- Simulated QR SVG -->
+<div class="md:col-span-5 flex flex-col items-center justify-center p-space-md bg-surface-container rounded-xl">
+<div class="p-space-sm bg-white rounded-lg shadow-md flex items-center justify-center">
+<svg class="w-48 h-48" fill="none" viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<!-- QR Code Mock Geometry -->
+<rect fill="white" height="100" width="100"></rect>
+<!-- Position Markers Top-Left -->
+<rect fill="#0A0E18" height="24" width="24" x="10" y="10"></rect>
+<rect fill="white" height="16" width="16" x="14" y="14"></rect>
+<rect fill="#F97316" height="8" width="8" x="18" y="18"></rect>
+<!-- Position Markers Top-Right -->
+<rect fill="#0A0E18" height="24" width="24" x="66" y="10"></rect>
+<rect fill="white" height="16" width="16" x="70" y="14"></rect>
+<rect fill="#F97316" height="8" width="8" x="74" y="18"></rect>
+<!-- Position Markers Bottom-Left -->
+<rect fill="#0A0E18" height="24" width="24" x="10" y="66"></rect>
+<rect fill="white" height="16" width="16" x="14" y="70"></rect>
+<rect fill="#F97316" height="8" width="8" x="18" y="74"></rect>
+<!-- Data matrix blocks -->
+<rect fill="#0A0E18" height="6" width="6" x="38" y="12"></rect>
+<rect fill="#0A0E18" height="6" width="6" x="48" y="12"></rect>
+<rect fill="#0A0E18" height="8" width="8" x="42" y="24"></rect>
+<rect fill="#0A0E18" height="12" width="6" x="54" y="20"></rect>
+<rect fill="#0A0E18" height="6" width="8" x="12" y="38"></rect>
+<rect fill="#0A0E18" height="6" width="10" x="24" y="42"></rect>
+<rect fill="#F97316" height="24" width="24" x="38" y="38"></rect>
+<rect fill="white" height="16" width="16" x="42" y="42"></rect>
+<circle cx="50" cy="50" fill="#F97316" r="5"></circle>
+<rect fill="#0A0E18" height="8" width="8" x="66" y="38"></rect>
+<rect fill="#0A0E18" height="6" width="12" x="78" y="42"></rect>
+<rect fill="#0A0E18" height="10" width="8" x="38" y="66"></rect>
+<rect fill="#0A0E18" height="6" width="12" x="50" y="70"></rect>
+<rect fill="#0A0E18" height="24" width="6" x="66" y="66"></rect>
+<rect fill="#0A0E18" height="14" width="14" x="76" y="76"></rect>
+<rect fill="#0A0E18" height="10" width="12" x="48" y="80"></rect>
+</svg>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface mt-space-sm font-bold">Rp116.820</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Menunggu Pelanggan Scan...</span>
+</div>
+<!-- QR Status & Control Simulator -->
+<div class="md:col-span-7 flex flex-col gap-space-md">
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col gap-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Simulasi Status Webhook QRIS:</span>
+<div class="flex flex-wrap gap-space-xs">
+<button class="px-space-sm py-1 rounded bg-surface-container-highest text-on-surface text-body-sm font-body-sm hover:bg-surface-bright" onclick="setQrisStatus('Menunggu')" type="button">Menunggu</button>
+<button class="px-space-sm py-1 rounded bg-tertiary-container/30 text-tertiary text-body-sm font-body-sm font-bold hover:bg-tertiary-container/50" onclick="setQrisStatus('Sukses')" type="button">Sukses</button>
+<button class="px-space-sm py-1 rounded bg-error-container/40 text-error text-body-sm font-body-sm hover:bg-error-container/60" onclick="setQrisStatus('Gagal')" type="button">Gagal</button>
+<button class="px-space-sm py-1 rounded bg-surface-variant text-on-surface-variant text-body-sm font-body-sm" onclick="setQrisStatus('Kedaluwarsa')" type="button">Kedaluwarsa</button>
+</div>
+</div>
+<div class="flex flex-col gap-1 p-space-sm bg-surface-container-lowest rounded-lg">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Status Gateway:</span>
+<span class="font-bold text-tertiary flex items-center gap-1" id="qrisStatusTag">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                    Menunggu Pembayaran
+                  </span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Ref ID Transaksi:</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">QRIS-20231024-8821</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Kanal:</span>
+<span class="text-on-surface">ShopeePay / GoPay / Dana / LinkAja</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- MODE 3 & 4: EDC & Bank Transfer Placeholder View -->
+<div class="hidden flex-col gap-space-md bg-surface-container-low rounded-xl p-space-md shadow-lg" id="edc-panel">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[28px]">credit_card</span>
+<div class="flex flex-col">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Terminal EDC Perbankan</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Gesek atau Masukkan Kartu Debit / Kredit pada Mesin EDC terpasang</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-space-sm pt-space-xs">
+<div class="p-space-sm bg-surface-container rounded-lg flex flex-col items-center gap-1 text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">BCA EDC</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-tertiary">Siap (ID: 088)</span>
+</div>
+<div class="p-space-sm bg-surface-container rounded-lg flex flex-col items-center gap-1 text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">Mandiri EDC</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-tertiary">Siap (ID: 042)</span>
+</div>
+<div class="p-space-sm bg-surface-container rounded-lg flex flex-col items-center gap-1 text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">BRI EDC</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-on-surface-variant">Standby</span>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container-lowest rounded-lg flex items-center justify-between">
+<span class="text-on-surface-variant font-body-sm text-body-sm">Masukkan No. Approval / Trace:</span>
+<input class="bg-surface-container px-space-sm py-1.5 rounded text-on-surface font-label-numeric-sm text-label-numeric-sm w-44 text-right focus:outline-none focus:ring-1 focus:ring-primary" placeholder="6 digit trace EDC" type="text"/>
+</div>
+</div>
+<div class="hidden flex-col gap-space-md bg-surface-container-low rounded-xl p-space-md shadow-lg" id="transfer-panel">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[28px]">account_balance</span>
+<div class="flex flex-col">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Virtual Account &amp; Transfer Bank</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Sistem verifikasi otomatis mutasi rekening</span>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-lowest rounded-lg flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Nomor Rekening VA BCA:</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-primary font-bold">8277 0882 1000 8821</span>
+</div>
+<button class="px-space-sm py-1.5 rounded bg-surface-container hover:bg-surface-bright text-on-surface font-body-sm text-body-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span> Salin
+            </button>
+</div>
+</div>
+<!-- Checkout Bottom Control Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-md bg-surface-container-low p-space-md rounded-xl shadow-lg mt-auto">
+<button class="px-space-lg py-space-md rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high transition-all flex items-center gap-space-xs font-headline-sm text-headline-sm" onclick="history.back()" type="button">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+<span>Batal / Ubah Pesanan</span>
+</button>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-space-md rounded-xl bg-surface-container-highest hover:bg-surface-bright text-on-surface flex items-center gap-space-xs font-headline-sm text-headline-sm transition-all" onclick="printReceiptMock()" type="button">
+<span class="material-symbols-outlined text-[20px]">print</span>
+<span>Cetak Bill Sementara</span>
+</button>
+<button class="px-space-xl py-space-md rounded-xl bg-primary-container hover:bg-primary-container/90 text-on-primary-container active:scale-95 transition-all shadow-lg flex items-center gap-space-sm min-h-[56px]" id="submitPaymentBtn" onclick="confirmSettlement()" type="button">
+<span class="material-symbols-outlined text-[24px]">task_alt</span>
+<div class="flex flex-col text-left">
+<span class="font-headline-sm text-headline-sm font-bold uppercase tracking-wide">Konfirmasi Bayar</span>
+<span class="font-label-caps text-[10px] text-on-primary-container/80 tracking-widest leading-none">Shortcut: Tombol [F10]</span>
+</div>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Notification Toast Container -->
+<div class="fixed bottom-6 right-6 hidden bg-surface-container-highest border border-tertiary/20 text-on-surface px-space-md py-space-sm rounded-xl shadow-2xl items-center gap-space-sm z-50 transition-all" id="toast">
+<span class="material-symbols-outlined text-tertiary text-[24px]">check_circle</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold" id="toastTitle">Pembayaran Berhasil!</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="toastMessage">Struk #TC-8821 otomatis dikirim ke printer kasir &amp; KDS.</span>
+</div>
+</div>
+</div>
+<script>
+  let grandTotal = 116820;
+  let currentCashTendered = 150000;
+  let activeMethod = 'cash';
+
+  function formatIDR(val) {
+    return 'Rp' + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  function updateCashCalculations() {
+    const inputDisplay = document.getElementById('cashInputDisplay');
+    const changeDisplay = document.getElementById('cashChangeDisplay');
+    const helper = document.getElementById('denominationHelper');
+    const submitBtn = document.getElementById('submitPaymentBtn');
+
+    inputDisplay.innerText = currentCashTendered.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    const diff = currentCashTendered - grandTotal;
+
+    if (diff < 0) {
+      changeDisplay.innerText = 'Kurang ' + formatIDR(Math.abs(diff));
+      changeDisplay.className = 'font-label-numeric-lg text-[32px] leading-tight text-error font-bold tracking-tight';
+      helper.innerHTML = '<span class="text-error font-body-sm">Nominal belum mencukupi total belanja.</span>';
+      submitBtn.classList.add('opacity-50', 'pointer-events-none');
+    } else {
+      changeDisplay.innerText = formatIDR(diff);
+      changeDisplay.className = 'font-label-numeric-lg text-[34px] leading-tight text-tertiary font-bold tracking-tight';
+      submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+
+      // Breakdown calculation
+      let rem = diff;
+      const b20k = Math.floor(rem / 20000); rem %= 20000;
+      const b10k = Math.floor(rem / 10000); rem %= 10000;
+      const b5k  = Math.floor(rem / 5000);  rem %= 5000;
+      const b2k  = Math.floor(rem / 2000);  rem %= 2000;
+      const b1k  = Math.floor(rem / 1000);  rem %= 1000;
+
+      let html = '';
+      if (b20k > 0) html += `<div class="flex justify-between"><span>${b20k}x Rp20.000</span><span class="text-on-surface-variant">${formatIDR(b20k * 20000)}</span></div>`;
+      if (b10k > 0) html += `<div class="flex justify-between"><span>${b10k}x Rp10.000</span><span class="text-on-surface-variant">${formatIDR(b10k * 10000)}</span></div>`;
+      if (b5k > 0)  html += `<div class="flex justify-between"><span>${b5k}x Rp5.000</span><span class="text-on-surface-variant">${formatIDR(b5k * 5000)}</span></div>`;
+      if (b2k > 0)  html += `<div class="flex justify-between"><span>${b2k}x Rp2.000</span><span class="text-on-surface-variant">${formatIDR(b2k * 2000)}</span></div>`;
+      if (b1k > 0)  html += `<div class="flex justify-between"><span>${b1k}x Rp1.000</span><span class="text-on-surface-variant">${formatIDR(b1k * 1000)}</span></div>`;
+      if (rem > 0)  html += `<div class="flex justify-between text-tertiary"><span>Koin/Sisa: ${formatIDR(rem)}</span><span class="text-on-surface-variant">${formatIDR(rem)}</span></div>`;
+      if (diff === 0) html = '<div class="text-tertiary font-body-sm">Uang Pas. Tidak ada kembalian.</div>';
+
+      helper.innerHTML = html;
+    }
+  }
+
+  function setCashAmount(amt) {
+    currentCashTendered = amt;
+    updateCashCalculations();
+  }
+
+  function resetCashAmount() {
+    currentCashTendered = 0;
+    updateCashCalculations();
+  }
+
+  function numpadInput(char) {
+    let s = currentCashTendered.toString();
+    if (s === '0') s = '';
+    s += char;
+    currentCashTendered = parseInt(s, 10) || 0;
+    updateCashCalculations();
+  }
+
+  function numpadBackspace() {
+    let s = currentCashTendered.toString();
+    s = s.slice(0, -1);
+    currentCashTendered = parseInt(s, 10) || 0;
+    updateCashCalculations();
+  }
+
+  function selectPaymentMethod(method) {
+    activeMethod = method;
+    const methods = ['cash', 'qris', 'edc', 'transfer'];
+
+    methods.forEach(m => {
+      const btn = document.getElementById('btn-' + m);
+      const badge = document.getElementById('badge-' + m);
+      const panel = document.getElementById(m + '-panel');
+
+      if (m === method) {
+        btn.classList.add('bg-surface-container-high', 'shadow-lg');
+        btn.classList.remove('bg-surface-container-low');
+        badge.classList.remove('bg-transparent');
+        badge.classList.add('bg-primary');
+        if (panel) {
+          panel.classList.remove('hidden');
+          panel.classList.add('flex');
+        }
+      } else {
+        btn.classList.remove('bg-surface-container-high', 'shadow-lg');
+        btn.classList.add('bg-surface-container-low');
+        badge.classList.add('bg-transparent');
+        badge.classList.remove('bg-primary');
+        if (panel) {
+          panel.classList.remove('flex');
+          panel.classList.add('hidden');
+        }
+      }
+    });
+
+    const submitBtn = document.getElementById('submitPaymentBtn');
+    submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+  }
+
+  function setQrisStatus(status) {
+    const tag = document.getElementById('qrisStatusTag');
+    if (status === 'Sukses') {
+      tag.innerHTML = '<span class="w-2 h-2 rounded-full bg-tertiary"></span> Pembayaran Lunas (Sukses)';
+      tag.className = 'font-bold text-tertiary flex items-center gap-1';
+    } else if (status === 'Gagal') {
+      tag.innerHTML = '<span class="w-2 h-2 rounded-full bg-error"></span> Pembayaran Gagal / Ditolak';
+      tag.className = 'font-bold text-error flex items-center gap-1';
+    } else if (status === 'Kedaluwarsa') {
+      tag.innerHTML = '<span class="w-2 h-2 rounded-full bg-on-surface-variant"></span> Sesi QRIS Kedaluwarsa';
+      tag.className = 'font-bold text-on-surface-variant flex items-center gap-1';
+    } else {
+      tag.innerHTML = '<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span> Menunggu Pembayaran';
+      tag.className = 'font-bold text-tertiary flex items-center gap-1';
+    }
+  }
+
+  function confirmSettlement() {
+    showToast('Pembayaran Berhasil Diselesaikan!', 'Struk transaksi #TC-8821 otomatis dicetak & tiket dikirim ke KDS.');
+  }
+
+  function printReceiptMock() {
+    showToast('Mencetak Bill Sementara...', 'Printer Kasir Thermal 80mm mencetak draft Meja #08.');
+  }
+
+  function showToast(title, msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastTitle').innerText = title;
+    document.getElementById('toastMessage').innerText = msg;
+    toast.classList.remove('hidden');
+    toast.classList.add('flex');
+    setTimeout(() => {
+      toast.classList.remove('flex');
+      toast.classList.add('hidden');
+    }, 3800);
+  }
+
+  // Keyboard shortcut handler for POS F10 / Enter
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'F10') {
+      e.preventDefault();
+      confirmSettlement();
+    }
+  });
+
+  // Dynamic QRIS countdown mockup
+  let qrisSeconds = 298;
+  setInterval(() => {
+    if (qrisSeconds > 0) {
+      qrisSeconds--;
+      const m = Math.floor(qrisSeconds / 60).toString().padStart(2, '0');
+      const s = (qrisSeconds % 60).toString().padStart(2, '0');
+      const timerEl = document.getElementById('qrisTimer');
+      if (timerEl) timerEl.innerText = `${m}:${s}`;
+    }
+  }, 1000);
+</script></main></div></body></html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"secondary":"#bcc7de","surface-dim":"#0f131d","on-error-container":"#ffdad6","on-primary":"#552100","on-primary-fixed-variant":"#783200","tertiary-fixed-dim":"#4edea3","on-primary-container":"#582200","primary":"#ffb690","primary-fixed-dim":"#ffb690","surface":"#0f131d","on-error":"#690005","secondary-container":"#3e495d","surface-variant":"#313540","error":"#ffb4ab","on-tertiary-container":"#003b26","surface-container-low":"#171b26","on-tertiary-fixed-variant":"#005236","inverse-surface":"#dfe2f1","background":"#0f131d","surface-bright":"#353944","on-secondary-fixed-variant":"#3c475a","on-surface-variant":"#e0c0b1","tertiary-container":"#00b07a","on-background":"#dfe2f1","primary-fixed":"#ffdbca","surface-tint":"#ffb690","on-tertiary":"#003824","on-tertiary-fixed":"#002113","inverse-primary":"#9d4300","on-secondary-container":"#aeb9d0","inverse-on-surface":"#2c303b","on-secondary-fixed":"#111c2d","tertiary-fixed":"#6ffbbe","on-secondary":"#263143","on-surface":"#dfe2f1","on-primary-fixed":"#341100","secondary-fixed":"#d8e3fb","outline":"#a78b7d","outline-variant":"#584237","error-container":"#93000a","primary-container":"#f97316","surface-container":"#1c1f2a","surface-container-lowest":"#0a0e18","secondary-fixed-dim":"#bcc7de","surface-container-highest":"#313540","surface-container-high":"#262a35","tertiary":"#4edea3"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","gutter-mobile":"0.5rem","margin-mobile":"0.75rem","space-lg":"1.5rem","gutter":"1rem","margin":"1rem","space-xl":"2rem","space-xs":"0.25rem","space-sm":"0.5rem"},"fontFamily":{"label-caps":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-numeric-lg":["Space Mono"],"label-numeric-md":["Space Mono"],"body-md":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-numeric-sm":["Space Mono"]},"fontSize":{"label-caps":["11px",{"lineHeight":"16px","letterSpacing":"0.06em","fontWeight":"700"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"label-numeric-lg":["22px",{"lineHeight":"28px","fontWeight":"700"}],"label-numeric-md":["16px",{"lineHeight":"20px","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"headline-xl-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-numeric-sm":["13px",{"lineHeight":"16px","fontWeight":"400"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between p-space-md shadow-[0_1px_8px_rgba(0,0,0,0.5)]"><div class="flex flex-col gap-space-lg"><div class="flex items-center gap-space-sm px-space-xs"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeDGu9lyC9K_wP1KPgNYahyQ09DDOUa-JM1o_nOSm7KDxAE_9z81B0NbJ9D5oaUSOkGJqlgSvyWNVBh1a5TT8WCyznMe7JZUW4XcJX335DyGaPTTbYe93_ryBatq4p5cYNjT7ybntwVjCsD5CZEyREaIYVNYR7j5YPCUihfMLsmheoiUf6AosJLpLZnyXFuWmfsEscdTQt1eezBlRrWx8JPETb7Vm7t8wM4j5W7LwjHWw5lGo1xCfz5Q"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">KA POS</span><span class="font-label-caps text-label-caps text-primary tracking-widest uppercase">Terminal POS</span></div></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-headline-sm"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary font-headline-sm" data-path="kasir" href="#"><span class="material-symbols-outlined text-[20px]">point_of_sale</span><span class="font-headline-sm text-headline-sm">Kasir</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="pesanan-aktif" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span class="font-headline-sm text-headline-sm">Pesanan Aktif</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="kitchen-display-system" href="#"><span class="material-symbols-outlined text-[20px]">skillet</span><span class="font-headline-sm text-headline-sm">Dapur KDS</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="riwayat-transaksi" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="font-headline-sm text-headline-sm">Riwayat</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="laporan-shift" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span><span class="font-headline-sm text-headline-sm">Laporan Shift</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="pengaturan" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span class="font-headline-sm text-headline-sm">Pengaturan</span></a></nav></div><div class="flex flex-col gap-space-sm pt-space-md bg-surface-container-low p-space-sm rounded-lg"><div class="flex items-center justify-between"><span class="font-label-caps text-label-caps text-on-surface-variant">Status Koneksi</span><div class="flex items-center gap-space-xs bg-tertiary-container/20 px-space-xs py-[2px] rounded-full"><span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span><span class="font-label-numeric-sm text-label-numeric-sm text-tertiary font-bold uppercase">Online</span></div></div><div class="flex items-center justify-between text-on-surface-variant"><span class="font-body-sm text-body-sm">Cloud Sync</span><span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">0s lalu</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl z-40 flex items-center justify-between px-space-lg shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmxjdsByyjKKoyDf6EsJdyeoKlc9fBkNRTtiWhQTES1ZaC89QPTs6JJGX6LzjSOuSQ1ZAuFT4MZiFbb4ffFPcUWWMFu28RfuXt2ZKnXeXfxUZqkD2nFLmAwrLalHEPchI7iP2voEIe_qyCauSxnTN_imF7Bi2L34yzP76eE_3fYs9woLtszuFrmG89BjHBe6L9AhgiDetu6pjRHUw6KDEAQ6IUjlvRayt6LrVn2eYPRjEodrdQmyxkeg"/><nav class="flex items-center gap-space-md" data-active-classes="text-primary font-bold"><a aria-current="page" class="transition-colors text-primary font-bold" data-path="kasir" href="#">Dine In</a><a aria-current="page" class="transition-colors text-primary font-bold" data-path="kasir" href="#">Take Away</a><a aria-current="page" class="transition-colors text-primary font-bold" data-path="kasir" href="#">Delivery Online</a></nav></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded-full"><span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span><span class="font-body-sm text-body-sm text-on-surface">Sinkron Terhubung</span></div><div class="h-6 w-px bg-surface-variant"></div><div class="flex items-center gap-space-sm"><div class="text-right flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface leading-tight">Budi Santoso</span><span class="font-body-sm text-body-sm text-on-surface-variant leading-none">Kasir - Reguler</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-screen"><div class="flex flex-col w-full relative">
+<!-- POS Main Layout (Background Workspace) -->
+<div class="flex w-full h-[calc(100vh-4rem)] overflow-hidden">
+<!-- Central Menu Grid / Catalog Stream -->
+<div class="flex-1 flex flex-col min-w-0 bg-surface">
+<!-- Search, Categories, and Filtering Bar -->
+<div class="flex flex-col gap-space-md p-space-lg bg-surface-container-low shadow-sm">
+<div class="flex items-center justify-between gap-space-md">
+<div class="relative flex-1 max-w-lg">
+<span class="material-symbols-outlined absolute left-space-md top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full h-12 bg-surface-container-lowest text-on-surface pl-12 pr-space-md rounded-lg font-body-md focus:outline-none focus:ring-2 focus:ring-primary-container placeholder:text-secondary-container" placeholder="Cari sate, rice bowl, add-on, atau ketik SKU..." type="text" value="taichan"/>
+<button class="absolute right-space-sm top-1/2 -translate-y-1/2 w-8 h-8 rounded-md bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center bg-surface-container rounded-lg p-1 gap-1">
+<button class="px-space-md py-1.5 rounded bg-surface-bright text-on-surface font-headline-sm text-body-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+                Semua
+              </button>
+<button class="px-space-md py-1.5 rounded text-on-surface-variant hover:text-on-surface font-headline-sm text-body-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">local_fire_department</span>
+                Favorit
+              </button>
+</div>
+<div class="h-8 w-px bg-surface-variant"></div>
+<button class="h-10 px-space-md rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-body-sm flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+              Filter
+            </button>
+</div>
+</div>
+<!-- Quick Categories -->
+<div class="flex items-center gap-space-sm overflow-x-auto pb-1">
+<button class="px-space-md py-2 rounded-full bg-primary-container text-on-primary-container font-headline-sm text-body-sm whitespace-nowrap shadow-sm">
+            Sate Taichan (14)
+          </button>
+<button class="px-space-md py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-headline-sm text-body-sm whitespace-nowrap transition-colors">
+            Nasi &amp; Lontong (6)
+          </button>
+<button class="px-space-md py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-headline-sm text-body-sm whitespace-nowrap transition-colors">
+            Gorengan &amp; Kulit (8)
+          </button>
+<button class="px-space-md py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-headline-sm text-body-sm whitespace-nowrap transition-colors">
+            Minuman Dingin (12)
+          </button>
+<button class="px-space-md py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface font-headline-sm text-body-sm whitespace-nowrap transition-colors">
+            Ekstra Sambal (5)
+          </button>
+</div>
+</div>
+<!-- Food Menu Grid (Blurs lightly under overlay) -->
+<div class="flex-1 overflow-y-auto p-space-lg grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-space-md">
+<!-- Card 1: Active Focus Item -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-lg ring-2 ring-primary-container cursor-pointer transition-all">
+<div class="relative w-full aspect-square bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Close up shot of Indonesian sate taichan chicken skewers grilled to juicy white perfection, sprinkled with coarse sea salt, served with fiery vibrant sambal chili paste and half fresh key limes on a modern matte black slate plate in a warm atmospheric moody dining scene" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqXPoMRNGoIhaTpWm1gATFvsbMCNOKKMBkllaZDFYeMt-igWI2T3uHOGteh-bH5tb3pw3lrLPsWnNBISiqBG4gwGrIPFHUZMnm0Sb6b2M5NJvvYyAbv7cjzaSpXflmWynczpTeb556tdsPMhdFBlbMNo7mKUvAObWgaZYUFjang79KiodqUfKD8LmCjZeoaNswqBRBoN7VhlSuFBMUcu3aMvAaPps_G-i1ieQh5VrM-d-eIfCZLTZa2g"/>
+<span class="absolute top-space-sm left-space-sm px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container font-label-caps text-label-caps shadow-md uppercase tracking-wider">
+              Terlaris
+            </span>
+<div class="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</div>
+</div>
+<div class="p-space-sm flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface truncate">Sate Taichan Paha (10 Tsk)</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp28.000</span>
+<span class="font-body-sm text-body-sm text-tertiary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Ready 42
+              </span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-md hover:bg-surface-container transition-all">
+<div class="relative w-full aspect-square bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Succulent grilled chicken breast satay taichan skewers arranged symmetrically on dark basalt stone surface with small ceramic dipping bowls of lime and extra hot Taichan red crushed chili oil in low moody restaurant lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7yU963Pifm_w6qAWdCqHzUEmTUbMYbsaTUoNZ0fltp_2iVsOz_ekyycR5Ch1Km6nb8FOdCstW_4bNbOZgU2oIUuqvlGffnMIp8SeekZ7KcfciqqegyJJH0Pd2po6eMnhVh9TsYCweOXqS8R1GSriSbBUNLgArgpXNEMCWOlNKfUESaePWDhD6j-fSmoJdl3ozmyCTUUksw1V96CWPUua91KHykCJoQO_1VSZCCBmx970G-gfZIc3NSA"/>
+<div class="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-surface-container-highest text-on-surface hover:bg-primary-container hover:text-on-primary flex items-center justify-center shadow-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</div>
+</div>
+<div class="p-space-sm flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface truncate">Sate Taichan Dada (10 Tsk)</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp26.000</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ready 18</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-md hover:bg-surface-container transition-all">
+<div class="relative w-full aspect-square bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Crispy golden fried chicken skin satay skewers seasoned with seasoned salt and crushed Taichan chili garlic on dark wooden rustic tray, high contrast editorial dark photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmjfArgs_o2zBcfW4QPh4J5TJs7KBPe59r2QhiYC_zS51Dp3zEbzWBuRnc0rTn4cP4CUm1CsU1u_MF_qZtadSi7iwvETeCOu3wQoVUh4ld_j_Abe3NgX7DDY-0nZMURkwIi9KsikMSubAy7uIjQMPw9MnR4MPG-cmC52Y3p2AmvY6JzoFS_GUjpCD_oN6irEFGe6d28BIBzoNulM_69bUw-QuLnKlaQ71qa11d1O1uFiDRc3xuZ0vm9g"/>
+<span class="absolute top-space-sm left-space-sm px-2 py-0.5 rounded-full bg-surface-container-highest text-secondary font-label-caps text-label-caps">
+              Crispy
+            </span>
+<div class="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-surface-container-highest text-on-surface hover:bg-primary-container hover:text-on-primary flex items-center justify-center shadow-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</div>
+</div>
+<div class="p-space-sm flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface truncate">Sate Kulit Krispi (5 Tsk)</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp18.000</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ready 25</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl overflow-hidden shadow-md hover:bg-surface-container transition-all">
+<div class="relative w-full aspect-square bg-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Indonesian rice cake lontong wrapped in green banana leaves sliced into neat cylinders sprinkled with crispy shallots and savory seasoning in an artisan dark stoneware bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7rwg4q40VlFnVccBcJovddDrnEdJKPBDTIoyvtFPPxPPY_af_gAcQ66HD40C_r1V0FnwXgxju30sunCMwrLxQPcG4LZgJeTVGC1A3VLlve3bZJWL0sx_gGnuLnglNtX8bIycUQ13zP5gCE11Ro1wHvkPFv0TBI0z6WUBinrb6nm9HIkv9fxOq95yLJ01V65rRVLZA9Y4gYJwMXxL-ATSz2-Zi2pNkRD2jqFDYuF-gEBSzLdnVQfXRUg"/>
+<div class="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-surface-container-highest text-on-surface hover:bg-primary-container hover:text-on-primary flex items-center justify-center shadow-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</div>
+</div>
+<div class="p-space-sm flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface truncate">Lontong Daun Spesial</h3>
+<div class="flex items-center justify-between mt-1">
+<span class="font-label-numeric-md text-label-numeric-md text-primary">Rp5.000</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ready 60</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Persistent Cart Panel (Split Right Rail) -->
+<div class="w-96 bg-surface-container-lowest flex flex-col shadow-[0_0_24px_rgba(0,0,0,0.6)]">
+<!-- Cart Header -->
+<div class="p-space-md bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-label-numeric-sm font-bold">#TC-8821</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-container/30 text-tertiary font-label-caps uppercase">Dine In</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 14:28 WIB
+          </span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Nomor Meja</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface leading-tight">Meja 08</h2>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Pelanggan</span>
+<p class="font-headline-sm text-headline-sm text-on-surface">Arya Pratama</p>
+</div>
+</div>
+</div>
+<!-- Cart Item Stream -->
+<div class="flex-1 overflow-y-auto p-space-md flex flex-col gap-space-sm divide-y-0">
+<!-- Cart Line 1 -->
+<div class="p-space-sm rounded-lg bg-surface-container flex flex-col gap-1">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded bg-primary-container text-on-primary-container font-label-numeric-sm font-bold flex items-center justify-center">1x</span>
+<span class="font-headline-sm text-body-md text-on-surface font-semibold">Sate Kulit Krispi</span>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary font-bold">Rp18.000</span>
+</div>
+<div class="pl-8 flex flex-col text-on-surface-variant font-body-sm text-body-sm">
+<span>• Bumbu Asin Gurih</span>
+<span>• Ekstra Jeruk Nipis (+Rp2.000)</span>
+</div>
+</div>
+<!-- Cart Line 2 -->
+<div class="p-space-sm rounded-lg bg-surface-container flex flex-col gap-1">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded bg-primary-container text-on-primary-container font-label-numeric-sm font-bold flex items-center justify-center">2x</span>
+<span class="font-headline-sm text-body-md text-on-surface font-semibold">Es Jeruk Murni</span>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary font-bold">Rp20.000</span>
+</div>
+<div class="pl-8 flex flex-col text-on-surface-variant font-body-sm text-body-sm">
+<span>• Less Sugar (50%)</span>
+<span>• Es Batu Normal</span>
+</div>
+</div>
+<!-- Active Item Pending Addition Indicator -->
+<div class="p-space-sm rounded-lg bg-primary-container/10 border-l-4 border-primary-container flex flex-col gap-1 animate-pulse">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded bg-primary-container text-on-primary-container font-label-numeric-sm font-bold flex items-center justify-center">2x</span>
+<span class="font-headline-sm text-body-md text-primary font-semibold">Sate Taichan Paha (Menyesuaikan...)</span>
+</div>
+</div>
+<span class="pl-8 font-body-sm text-body-sm text-on-surface-variant">Sedang kustomisasi modifier...</span>
+</div>
+</div>
+<!-- Cart Payment Breakdown Summary -->
+<div class="p-space-md bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex justify-between items-center text-on-surface-variant font-body-sm">
+<span>Subtotal Item (3 menu)</span>
+<span class="font-label-numeric-sm text-on-surface">Rp38.000</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant font-body-sm">
+<span>PB1 Restoran (10%)</span>
+<span class="font-label-numeric-sm text-on-surface">Rp3.800</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant font-body-sm">
+<span>Service Charge</span>
+<span class="font-label-numeric-sm text-tertiary">GRATIS</span>
+</div>
+<div class="h-px bg-surface-variant my-1"></div>
+<div class="flex justify-between items-baseline">
+<span class="font-headline-sm text-body-md text-on-surface">Estimasi Tagihan</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-primary">Rp41.800</span>
+</div>
+<button class="w-full h-12 mt-2 rounded-lg bg-surface-container-highest text-secondary flex items-center justify-center gap-space-sm font-headline-sm text-headline-sm cursor-not-allowed opacity-60" disabled="">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+          Proses Pembayaran
+        </button>
+</div>
+</div>
+</div>
+<!-- Focused Center Modal Overlay Backdrop -->
+<div class="fixed inset-0 z-50 bg-surface-container-lowest/80 backdrop-blur-md flex items-center justify-center p-space-md" id="modifier-modal-backdrop">
+<!-- Modal Card Container -->
+<div class="relative w-full max-w-2xl max-h-[942px] bg-surface-container-low rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+<!-- Top Action Bar / Header -->
+<div class="px-space-lg py-space-md bg-surface-container flex items-center justify-between shadow-sm z-10">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-primary-container/15 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[22px]">tune</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-on-surface leading-tight">Kustomisasi Menu</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pilih tingkat pedas, pelengkap, &amp; catatan dapur</p>
+</div>
+</div>
+<button class="flex items-center gap-space-xs px-2.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface transition-colors" onclick="document.getElementById('modifier-modal-backdrop').classList.add('hidden')" title="Tutup (Esc)">
+<span class="font-label-numeric-sm text-[11px] bg-surface-container-lowest px-1.5 py-0.5 rounded text-secondary uppercase font-mono">Esc</span>
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Scrollable Modifier Body -->
+<div class="flex-1 overflow-y-auto px-space-lg py-space-md flex flex-col gap-space-lg">
+<!-- Product Spotlight Preview Header -->
+<div class="flex items-center gap-space-md p-space-md rounded-xl bg-surface-container shadow-inner">
+<div class="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-surface-container-lowest shadow-md">
+<img class="w-full h-full object-cover" data-alt="Juicy grilled Indonesian taichan chicken thigh skewers skewered in bamboo sticks cooked over charcoal with shiny chili salt and sliced limes on dark slate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZkSbUX9TKPj_M1OE0rfFvsCoKFOePPR-fuabavmxJMXl--7HaevUH6RxhzLFQK9USDmsawT86i6JiBgJbiFFAbCsuKjbIrj00UCFlOJpfzqwWY3JHXHW8ITm2m7wB8n6lm_x7lLfGKO18lEiK5UQAQufDxMFQXWb4Tm6aZFzFbVy5cWlXwJrE4f9C0EZ0EhjCrJo82uUDMJdmC9vBHXi6OcIXwc2hcggEXiIGjbRMKGQi7dxXdygj4w"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container font-label-caps text-label-caps font-bold">
+                Terlaris
+              </span>
+<span class="font-label-numeric-sm text-body-sm text-on-surface-variant">SKU-TCH-01</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface truncate mt-0.5">Sate Taichan Paha (10 Tsk)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Potongan daging paha juicy, minyak bawang spesial, dan jeruk nipis segar.</p>
+</div>
+<div class="text-right shrink-0">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase block">Harga Dasar</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-primary font-bold">Rp28.000</span>
+</div>
+</div>
+<!-- SECTION 1: LEVEL PEDAS (Single Choice Radio / Pill Grid) -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wide">1. Level Pedas</span>
+<span class="px-2 py-0.5 rounded bg-primary-container/20 text-primary-container font-label-caps text-[10px] font-bold">Wajib (Pilih 1)</span>
+</div>
+<span class="font-body-sm text-body-sm text-secondary">Tersedia 4 pilihan</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-sm">
+<!-- Option: Tidak Pedas -->
+<label class="group relative flex flex-col p-space-sm rounded-xl bg-surface-container hover:bg-surface-container-high cursor-pointer transition-all">
+<input class="sr-only peer" name="spice_level" type="radio" value="0"/>
+<div class="flex items-center justify-between mb-1">
+<span class="font-headline-sm text-body-md text-on-surface font-semibold group-hover:text-primary transition-colors">Tidak Pedas</span>
+<span class="w-4 h-4 rounded-full border-2 border-surface-variant peer-checked:border-primary-container peer-checked:bg-primary-container transition-all flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-lowest opacity-0 peer-checked:opacity-100"></span>
+</span>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">+Rp0</span>
+</label>
+<!-- Option: Sedang -->
+<label class="group relative flex flex-col p-space-sm rounded-xl bg-surface-container hover:bg-surface-container-high cursor-pointer transition-all">
+<input class="sr-only peer" name="spice_level" type="radio" value="1"/>
+<div class="flex items-center justify-between mb-1">
+<span class="font-headline-sm text-body-md text-on-surface font-semibold group-hover:text-primary transition-colors">Sedang</span>
+<span class="w-4 h-4 rounded-full border-2 border-surface-variant peer-checked:border-primary-container peer-checked:bg-primary-container transition-all flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-lowest opacity-0 peer-checked:opacity-100"></span>
+</span>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">+Rp0</span>
+</label>
+<!-- Option: Pedas (Selected Flame Active) -->
+<label class="relative flex flex-col p-space-sm rounded-xl bg-primary-container/15 shadow-md ring-2 ring-primary-container cursor-pointer transition-all">
+<input checked="" class="sr-only peer" name="spice_level" type="radio" value="2"/>
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-1">
+<span class="font-headline-sm text-body-md text-primary font-bold">Pedas</span>
+<span class="material-symbols-outlined text-primary-container text-[16px]">local_fire_department</span>
+</div>
+<div class="w-5 h-5 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</div>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary font-bold">+Rp0 (Favorit)</span>
+</label>
+<!-- Option: Extra Pedas -->
+<label class="group relative flex flex-col p-space-sm rounded-xl bg-surface-container hover:bg-surface-container-high cursor-pointer transition-all">
+<input class="sr-only peer" name="spice_level" type="radio" value="3"/>
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-1">
+<span class="font-headline-sm text-body-md text-on-surface font-semibold group-hover:text-primary transition-colors">Extra Pedas</span>
+<span class="material-symbols-outlined text-error text-[16px]">whatshot</span>
+</div>
+<span class="w-4 h-4 rounded-full border-2 border-surface-variant peer-checked:border-primary-container peer-checked:bg-primary-container transition-all flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-lowest opacity-0 peer-checked:opacity-100"></span>
+</span>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary">+Rp2.000</span>
+</label>
+</div>
+</div>
+<!-- SECTION 2: TOPPING & ADD-ONS (Multiple Choice Checkbox Grid) -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wide">2. Topping &amp; Add-Ons</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-label-caps text-[10px]">Opsional</span>
+</div>
+<span class="font-body-sm text-body-sm text-secondary">Bisa pilih lebih dari satu</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+<!-- Addon 1: Ekstra Sambal Taichan (Checked) -->
+<label class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container-high ring-1 ring-primary-container/40 cursor-pointer hover:bg-surface-bright transition-all">
+<div class="flex items-center gap-space-sm">
+<div class="w-6 h-6 rounded-md bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div>
+<span class="font-headline-sm text-body-md text-on-surface font-semibold block">Ekstra Sambal Taichan</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">1 mangkuk sambal uleg segar</span>
+</div>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary font-bold">+Rp3.000</span>
+</label>
+<!-- Addon 2: Bawang Goreng Gurih -->
+<label class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container cursor-pointer hover:bg-surface-container-high transition-all">
+<div class="flex items-center gap-space-sm">
+<div class="w-6 h-6 rounded-md bg-surface-container-highest flex items-center justify-center text-transparent">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div>
+<span class="font-headline-sm text-body-md text-on-surface font-semibold block">Bawang Goreng Gurih</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Bawang merah Brebes kriuk</span>
+</div>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">+Rp2.000</span>
+</label>
+<!-- Addon 3: Jeruk Nipis Peras 2x (Checked) -->
+<label class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container-high ring-1 ring-primary-container/40 cursor-pointer hover:bg-surface-bright transition-all">
+<div class="flex items-center gap-space-sm">
+<div class="w-6 h-6 rounded-md bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div>
+<span class="font-headline-sm text-body-md text-on-surface font-semibold block">Jeruk Nipis Peras 2x</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">2 potong ekstra jeruk nipis</span>
+</div>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary font-bold">+Rp2.000</span>
+</label>
+<!-- Addon 4: Lontong Daun Spesial -->
+<label class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container cursor-pointer hover:bg-surface-container-high transition-all">
+<div class="flex items-center gap-space-sm">
+<div class="w-6 h-6 rounded-md bg-surface-container-highest flex items-center justify-center text-transparent">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div>
+<span class="font-headline-sm text-body-md text-on-surface font-semibold block">Lontong Daun Spesial</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">1 porsi lontong pulen potong</span>
+</div>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">+Rp5.000</span>
+</label>
+<!-- Addon 5: Kulit Ayam Crispy Tabur (Full Width span) -->
+<label class="md:col-span-2 flex items-center justify-between p-space-sm rounded-xl bg-surface-container cursor-pointer hover:bg-surface-container-high transition-all">
+<div class="flex items-center gap-space-sm">
+<div class="w-6 h-6 rounded-md bg-surface-container-highest flex items-center justify-center text-transparent">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-body-md text-on-surface font-semibold">Kulit Ayam Crispy Tabur</span>
+<span class="px-1.5 py-0.5 rounded bg-tertiary-container/30 text-tertiary font-label-caps text-[9px] uppercase">Renyah</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Topping taburan kulit krispi gurih di atas sate</span>
+</div>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">+Rp8.000</span>
+</label>
+</div>
+</div>
+<!-- SECTION 3: CATATAN PESANAN (Quick tags + Textarea) -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wide">3. Catatan Khusus Dapur</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ketik atau tap tag cepat</span>
+</div>
+<!-- Quick Chip Tags -->
+<div class="flex flex-wrap gap-space-xs">
+<button class="px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-bright text-secondary hover:text-on-surface font-body-sm text-body-sm transition-colors">
+              + tanpa bawang
+            </button>
+<button class="px-space-sm py-1 rounded-full bg-primary-container/20 text-primary font-headline-sm text-body-sm transition-colors">
+              ✓ saus dipisah
+            </button>
+<button class="px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-bright text-secondary hover:text-on-surface font-body-sm text-body-sm transition-colors">
+              + nasi sedikit
+            </button>
+<button class="px-space-sm py-1 rounded-full bg-surface-container hover:bg-surface-bright text-secondary hover:text-on-surface font-body-sm text-body-sm transition-colors">
+              + bakar kering
+            </button>
+<button class="px-space-sm py-1 rounded-full bg-primary-container/20 text-primary font-headline-sm text-body-sm transition-colors">
+              ✓ jeruk peras banyakin
+            </button>
+</div>
+<!-- Note Text Input Area -->
+<div class="relative w-full">
+<textarea class="w-full bg-surface-container-lowest text-on-surface p-space-sm rounded-xl font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary-container resize-none placeholder:text-secondary-container" placeholder="Contoh: Sambal dipisah, bakar agak kering..." rows="2">Sambal dipisah, jeruk peras banyakin</textarea>
+<span class="absolute bottom-2 right-3 font-label-numeric-sm text-[11px] text-on-surface-variant">36/120</span>
+</div>
+</div>
+</div>
+<!-- Footer Bar (Ergonomic Touch Bar) -->
+<div class="p-space-lg bg-surface-container flex items-center justify-between gap-space-md shadow-2xl z-10">
+<!-- Quantity Stepper Button -->
+<div class="flex items-center bg-surface-container-lowest rounded-xl p-1 shadow-inner">
+<button aria-label="Kurangi Jumlah" class="w-12 h-12 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+<div class="w-14 text-center">
+<span class="font-label-numeric-lg text-label-numeric-lg text-on-surface font-bold">2</span>
+<span class="block font-label-caps text-[9px] text-on-surface-variant uppercase -mt-1">Porsi</span>
+</div>
+<button aria-label="Tambah Jumlah" class="w-12 h-12 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Calculated Price Summary -->
+<div class="flex flex-col text-right">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Total Item (2 Porsi)</span>
+<div class="flex items-baseline justify-end gap-1">
+<span class="font-label-numeric-lg text-headline-xl text-primary font-bold">Rp66.000</span>
+</div>
+<span class="font-body-sm text-[11px] text-on-surface-variant">(Rp33.000 / porsi lengkap)</span>
+</div>
+<!-- Primary CTA Trigger -->
+<button class="h-14 px-space-xl rounded-xl bg-primary-container hover:bg-on-primary-container text-on-primary font-headline-sm text-headline-sm flex items-center gap-space-sm shadow-xl hover:shadow-primary-container/20 active:scale-98 transition-all" onclick="document.getElementById('modifier-modal-backdrop').classList.add('hidden')">
+<span class="material-symbols-outlined text-[22px]">shopping_bag</span>
+<span>Tambah ke Pesanan</span>
+<span class="hidden md:inline-block font-label-numeric-sm text-[11px] bg-on-primary/20 px-1.5 py-0.5 rounded text-on-primary font-mono ml-1">↵ Enter</span>
+</button>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"secondary":"#bcc7de","surface-dim":"#0f131d","on-error-container":"#ffdad6","on-primary":"#552100","on-primary-fixed-variant":"#783200","tertiary-fixed-dim":"#4edea3","on-primary-container":"#582200","primary":"#ffb690","primary-fixed-dim":"#ffb690","surface":"#0f131d","on-error":"#690005","secondary-container":"#3e495d","surface-variant":"#313540","error":"#ffb4ab","on-tertiary-container":"#003b26","surface-container-low":"#171b26","on-tertiary-fixed-variant":"#005236","inverse-surface":"#dfe2f1","background":"#0f131d","surface-bright":"#353944","on-secondary-fixed-variant":"#3c475a","on-surface-variant":"#e0c0b1","tertiary-container":"#00b07a","on-background":"#dfe2f1","primary-fixed":"#ffdbca","surface-tint":"#ffb690","on-tertiary":"#003824","on-tertiary-fixed":"#002113","inverse-primary":"#9d4300","on-secondary-container":"#aeb9d0","inverse-on-surface":"#2c303b","on-secondary-fixed":"#111c2d","tertiary-fixed":"#6ffbbe","on-secondary":"#263143","on-surface":"#dfe2f1","on-primary-fixed":"#341100","secondary-fixed":"#d8e3fb","outline":"#a78b7d","outline-variant":"#584237","error-container":"#93000a","primary-container":"#f97316","surface-container":"#1c1f2a","surface-container-lowest":"#0a0e18","secondary-fixed-dim":"#bcc7de","surface-container-highest":"#313540","surface-container-high":"#262a35","tertiary":"#4edea3"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","gutter-mobile":"0.5rem","margin-mobile":"0.75rem","space-lg":"1.5rem","gutter":"1rem","margin":"1rem","space-xl":"2rem","space-xs":"0.25rem","space-sm":"0.5rem"},"fontFamily":{"label-caps":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-numeric-lg":["Space Mono"],"label-numeric-md":["Space Mono"],"body-md":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-numeric-sm":["Space Mono"]},"fontSize":{"label-caps":["11px",{"lineHeight":"16px","letterSpacing":"0.06em","fontWeight":"700"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"label-numeric-lg":["22px",{"lineHeight":"28px","fontWeight":"700"}],"label-numeric-md":["16px",{"lineHeight":"20px","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"headline-xl-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-numeric-sm":["13px",{"lineHeight":"16px","fontWeight":"400"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between p-space-md shadow-[0_1px_8px_rgba(0,0,0,0.5)]"><div class="flex flex-col gap-space-lg"><div class="flex items-center gap-space-sm px-space-xs"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRYxPQ4GNumQQimicw0sx4meE7h1oWfNcZ50eCtGHSrm55l6UTypNjZloU-5pm_1hgy9zpLYHyLaI-7K1o4zwMj1l_nXlCi1FJLWazUxxAfVcAy3cPz_EXjx89Qfmun-ABqDPi5b2KnNA9zSw3vrFWn31kuHLivpIR51VTwXxI6da4UnoyacEXOLx14GaDhM7mQDPdxn2IAI8IePmUtU4Ts8SGRlVRu5x4ijJ2XJ2R3AtqAn_5eo8_0Q"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">KA POS</span><span class="font-label-caps text-label-caps text-primary tracking-widest uppercase">Terminal POS</span></div></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-headline-sm"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="kasir" href="#"><span class="material-symbols-outlined text-[20px]">point_of_sale</span><span class="font-headline-sm text-headline-sm">Kasir</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="pesanan-aktif" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span class="font-headline-sm text-headline-sm">Pesanan Aktif</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="kitchen-display-system" href="#"><span class="material-symbols-outlined text-[20px]">skillet</span><span class="font-headline-sm text-headline-sm">Dapur KDS</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="riwayat-transaksi" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="font-headline-sm text-headline-sm">Riwayat</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="laporan-shift" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span><span class="font-headline-sm text-headline-sm">Laporan Shift</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="pengaturan" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span class="font-headline-sm text-headline-sm">Pengaturan</span></a></nav></div><div class="flex flex-col gap-space-sm pt-space-md bg-surface-container-low p-space-sm rounded-lg"><div class="flex items-center justify-between"><span class="font-label-caps text-label-caps text-on-surface-variant">Status Koneksi</span><div class="flex items-center gap-space-xs bg-tertiary-container/20 px-space-xs py-[2px] rounded-full"><span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span><span class="font-label-numeric-sm text-label-numeric-sm text-tertiary font-bold uppercase">Online</span></div></div><div class="flex items-center justify-between text-on-surface-variant"><span class="font-body-sm text-body-sm">Cloud Sync</span><span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">0s lalu</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl z-40 flex items-center justify-between px-space-lg shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDloP6EYZ7Xsa4y018E0FE5a4_YyGGU0scOnhiTw1C7AoX7yTvRTLoUPKf82KEjbPjKkaU97Ed3xYqe3YXpLq1W4u9V6NxW61rPnxzb3wJ1j1lS4fG3LnM-_1Q7ImK2XsS4zzRjex-4NKT85QcvLL9g_P94LWOhzUPG1thxVKeqzwWFFJjBnBpJomla3ZuUQKOwlMHOefrPdgSUVt4rwrVXQkWXmXONPYN3mmdpTOl1-J2QERGcQcBKmA"/><nav class="flex items-center gap-space-md" data-active-classes="text-primary font-bold"><a class="transition-colors text-on-surface-variant" data-path="kasir" href="#">Dine In</a><a class="transition-colors text-on-surface-variant" data-path="kasir" href="#">Take Away</a><a class="transition-colors text-on-surface-variant" data-path="kasir" href="#">Delivery Online</a></nav></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded-full"><span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span><span class="font-body-sm text-body-sm text-on-surface">Sinkron Terhubung</span></div><div class="h-6 w-px bg-surface-variant"></div><div class="flex items-center gap-space-sm"><div class="text-right flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface leading-tight">Budi Santoso</span><span class="font-body-sm text-body-sm text-on-surface-variant leading-none">Kasir - Reguler</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<div class="p-space-lg max-w-[1600px] mx-auto w-full flex flex-col gap-space-lg">
+<!-- Top Operational Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-md bg-surface-container-low px-space-lg py-space-md rounded-xl shadow-md">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[28px]">print</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface">Terminal Cetak Struk</span>
+<span class="bg-surface-container-high text-on-surface-variant font-label-numeric-sm text-label-numeric-sm px-2 py-0.5 rounded">POS-01 (Kasir 1)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pratinjau struk transaksi pelanggan #TC-8821 · Pengaturan hardware thermal printer</p>
+</div>
+</div>
+<!-- Quick Status Badges -->
+<div class="flex items-center gap-space-sm flex-wrap">
+<div class="flex items-center gap-2 bg-tertiary-container/15 px-3 py-1.5 rounded-lg" id="printer-main-status-badge">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-tertiary font-bold">Epson TM-T82X • SIAP</span>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-lg text-on-surface-variant font-label-numeric-sm text-label-numeric-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary">wifi</span>
+<span>LAN 192.168.1.120</span>
+</div>
+<button class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high rounded-lg text-on-surface text-body-sm font-headline-sm transition-all flex items-center gap-1" onclick="simulateJob('ready')">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Reset Status</span>
+</button>
+</div>
+</div>
+<!-- Main Workspace: Split View Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT / PREVIEW SECTION (5 Cols on XL) -->
+<div class="xl:col-span-5 flex flex-col gap-space-md order-2 xl:order-1">
+<!-- Preview Controls Strip -->
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-space-sm rounded-xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">view_quilt</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Pratinjau Fisik</span>
+</div>
+<!-- Paper Width Toggle (80mm vs 58mm) -->
+<div class="inline-flex p-1 bg-surface-container-lowest rounded-lg">
+<button class="px-3 py-1 rounded text-body-sm font-headline-sm transition-all bg-primary-container text-on-primary shadow-sm flex items-center gap-1" id="toggle-80mm" onclick="setPaperWidth('80mm')">
+<span>80 mm</span>
+<span class="font-label-caps text-[9px] opacity-80">(Standard)</span>
+</button>
+<button class="px-3 py-1 rounded text-body-sm font-headline-sm transition-all text-on-surface-variant hover:text-on-surface flex items-center gap-1" id="toggle-58mm" onclick="setPaperWidth('58mm')">
+<span>58 mm</span>
+<span class="font-label-caps text-[9px] opacity-80">(Mobile)</span>
+</button>
+</div>
+</div>
+<!-- Realistic Thermal Paper Canvas -->
+<div class="relative bg-surface-container-lowest rounded-2xl p-6 sm:p-8 flex justify-center items-start overflow-hidden min-h-[720px] shadow-2xl">
+<!-- Background Ambient Glow -->
+<div class="absolute -top-24 -left-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-24 -right-24 w-72 h-72 bg-tertiary/10 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Paper Container with Dynamic Width -->
+<div class="transition-all duration-300 w-full max-w-[390px] relative bg-[#f7f8f9] text-[#111827] shadow-[0_20px_45px_rgba(0,0,0,0.6)] rounded-sm select-none font-label-numeric-sm text-[12px] leading-tight flex flex-col" id="thermal-receipt">
+<!-- Top Paper Serrated Jagged Tear Effect (SVG Pattern) -->
+<div class="w-full h-3 overflow-hidden text-[#f7f8f9] -mt-2">
+<svg class="w-full h-full" fill="currentColor" preserveaspectratio="none" viewbox="0 0 200 10">
+<polygon points="0,10 5,0 10,10 15,0 20,10 25,0 30,10 35,0 40,10 45,0 50,10 55,0 60,10 65,0 70,10 75,0 80,10 85,0 90,10 95,0 100,10 105,0 110,10 115,0 120,10 125,0 130,10 135,0 140,10 145,0 150,10 155,0 160,10 165,0 170,10 175,0 180,10 185,0 190,10 195,0 200,10"></polygon>
+</svg>
+</div>
+<!-- Receipt Content Body -->
+<div class="px-5 pt-3 pb-6 flex flex-col gap-3 font-label-numeric-sm text-neutral-900">
+<!-- Thermal Header -->
+<div class="flex flex-col items-center text-center">
+<!-- Receipt Logo Graphic -->
+<div class="w-12 h-12 bg-neutral-900 rounded-full flex items-center justify-center text-white mb-2 shadow-sm">
+<span class="material-symbols-outlined text-[26px]">local_fire_department</span>
+</div>
+<h2 class="font-headline-lg text-neutral-950 tracking-wider font-bold">KA TAICHAN &amp; CHICKEN</h2>
+<span class="font-label-caps text-[10px] tracking-widest text-neutral-700 uppercase">Spesialis Sate Bakar Arang &amp; Sambal Korek</span>
+<p class="mt-1 text-[11px] leading-4 text-neutral-600 max-w-[280px]">
+                  Outlet Tebet Barat #01<br/>
+                  Jl. Tebet Barat Dalam Raya No. 42, Jakarta Selatan<br/>
+                  Telp/WA: 0811-9872-2300
+                </p>
+</div>
+<!-- Thermal Dot Divider -->
+<div class="text-center tracking-widest text-neutral-400 select-none overflow-hidden whitespace-nowrap">
+                - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+              </div>
+<!-- Transaction Meta -->
+<div class="flex flex-col gap-1 text-[11px]">
+<div class="flex justify-between">
+<span class="text-neutral-600">No. Nota</span>
+<span class="font-bold text-neutral-950 font-label-numeric-md">#TC-8821</span>
+</div>
+<div class="flex justify-between">
+<span class="text-neutral-600">ID TRX</span>
+<span class="text-neutral-800">TRX-20250524-8821</span>
+</div>
+<div class="flex justify-between">
+<span class="text-neutral-600">Waktu</span>
+<span class="text-neutral-800">24/05/2025 14:35:12 WIB</span>
+</div>
+<div class="flex justify-between">
+<span class="text-neutral-600">Kasir</span>
+<span class="text-neutral-800">Budi Santoso</span>
+</div>
+<div class="flex justify-between items-center bg-neutral-200/60 px-2 py-1 rounded">
+<span class="font-bold uppercase text-[11px] text-neutral-900">Layanan</span>
+<span class="font-bold uppercase text-[12px] text-neutral-950 bg-neutral-900 text-white px-2 py-0.5 rounded">DINE IN • MEJA #08</span>
+</div>
+</div>
+<!-- Thermal Dot Divider -->
+<div class="text-center tracking-widest text-neutral-400 select-none overflow-hidden whitespace-nowrap">
+                - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+              </div>
+<!-- Order Line Items -->
+<div class="flex flex-col gap-2.5 text-[11px]">
+<!-- Item 1 -->
+<div class="flex flex-col">
+<div class="flex justify-between font-bold text-neutral-950">
+<span class="truncate">2x Sate Taichan Paha Ayam (10 tsk)</span>
+<span class="font-label-numeric-sm text-right shrink-0 ml-2">Rp64.000</span>
+</div>
+<div class="flex justify-between text-neutral-600 text-[10px] pl-3">
+<span>• Level Pedas: Level 3 (Korek Gurih)</span>
+<span>@32.000</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex flex-col">
+<div class="flex justify-between font-bold text-neutral-950">
+<span class="truncate">2x Lontong Daun Spesial</span>
+<span class="font-label-numeric-sm text-right shrink-0 ml-2">Rp16.000</span>
+</div>
+<div class="flex justify-between text-neutral-600 text-[10px] pl-3">
+<span>• Potong Bulat Sedang</span>
+<span>@8.000</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex flex-col">
+<div class="flex justify-between font-bold text-neutral-950">
+<span class="truncate">2x Es Jeruk Murni Kasturi</span>
+<span class="font-label-numeric-sm text-right shrink-0 ml-2">Rp22.000</span>
+</div>
+<div class="flex justify-between text-neutral-600 text-[10px] pl-3">
+<span>• Less Sugar • Less Ice</span>
+<span>@11.000</span>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="flex flex-col">
+<div class="flex justify-between font-bold text-neutral-950">
+<span class="truncate">1x Kulit Ayam Goreng Crispy</span>
+<span class="font-label-numeric-sm text-right shrink-0 ml-2">Rp18.000</span>
+</div>
+<div class="flex justify-between text-neutral-600 text-[10px] pl-3">
+<span>• Sambal Bawang Terpisah</span>
+<span>@18.000</span>
+</div>
+</div>
+</div>
+<!-- Thermal Dot Divider -->
+<div class="text-center tracking-widest text-neutral-400 select-none overflow-hidden whitespace-nowrap">
+                - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+              </div>
+<!-- Calculation Financials -->
+<div class="flex flex-col gap-1 text-[11px]">
+<div class="flex justify-between text-neutral-700">
+<span>Subtotal Item (7 porsi)</span>
+<span class="font-label-numeric-sm">Rp120.000</span>
+</div>
+<div class="flex justify-between text-neutral-800">
+<span class="flex items-center gap-1">Diskon KA-Gold (10%)</span>
+<span class="font-label-numeric-sm font-bold text-red-600">-Rp12.000</span>
+</div>
+<div class="flex justify-between text-neutral-700">
+<span>Resto PB1 (10%)</span>
+<span class="font-label-numeric-sm">Rp10.800</span>
+</div>
+<div class="flex justify-between text-neutral-700">
+<span>Pembulatan Sistem</span>
+<span class="font-label-numeric-sm">-Rp1.980</span>
+</div>
+<!-- Grand Total Highlight -->
+<div class="flex justify-between items-center py-2 my-1 border-t-2 border-b-2 border-neutral-900">
+<span class="font-headline-sm text-neutral-950 text-[14px]">TOTAL TAGIHAN</span>
+<span class="font-label-numeric-lg text-neutral-950 text-[18px]">Rp116.820</span>
+</div>
+</div>
+<!-- Payment Breakdown -->
+<div class="flex flex-col gap-1 text-[11px] bg-neutral-200/50 p-2 rounded">
+<div class="flex justify-between text-neutral-800">
+<span>Metode Pembayaran</span>
+<span class="font-bold">Tunai Fisik (Cash)</span>
+</div>
+<div class="flex justify-between text-neutral-800">
+<span>Uang Diterima</span>
+<span class="font-label-numeric-sm">Rp150.000</span>
+</div>
+<div class="flex justify-between font-bold text-neutral-950 text-[12px] pt-1 border-t border-neutral-300">
+<span>KEMBALIAN KASIR</span>
+<span class="font-label-numeric-md">Rp33.180</span>
+</div>
+</div>
+<!-- Footer Barcode & QR Code Segment -->
+<div class="flex flex-col items-center text-center gap-2 mt-2">
+<!-- Barcode SVG -->
+<div class="w-full flex justify-center py-1">
+<svg class="h-10 w-48 text-neutral-900" fill="currentColor" viewbox="0 0 160 35">
+<rect height="35" width="3" x="0" y="0"></rect>
+<rect height="35" width="1" x="5" y="0"></rect>
+<rect height="35" width="2" x="8" y="0"></rect>
+<rect height="35" width="4" x="13" y="0"></rect>
+<rect height="35" width="1" x="19" y="0"></rect>
+<rect height="35" width="3" x="22" y="0"></rect>
+<rect height="35" width="2" x="28" y="0"></rect>
+<rect height="35" width="1" x="33" y="0"></rect>
+<rect height="35" width="4" x="36" y="0"></rect>
+<rect height="35" width="2" x="43" y="0"></rect>
+<rect height="35" width="1" x="47" y="0"></rect>
+<rect height="35" width="3" x="50" y="0"></rect>
+<rect height="35" width="2" x="56" y="0"></rect>
+<rect height="35" width="4" x="61" y="0"></rect>
+<rect height="35" width="1" x="67" y="0"></rect>
+<rect height="35" width="3" x="71" y="0"></rect>
+<rect height="35" width="2" x="77" y="0"></rect>
+<rect height="35" width="4" x="81" y="0"></rect>
+<rect height="35" width="1" x="87" y="0"></rect>
+<rect height="35" width="3" x="91" y="0"></rect>
+<rect height="35" width="2" x="96" y="0"></rect>
+<rect height="35" width="3" x="100" y="0"></rect>
+<rect height="35" width="1" x="105" y="0"></rect>
+<rect height="35" width="4" x="109" y="0"></rect>
+<rect height="35" width="2" x="115" y="0"></rect>
+<rect height="35" width="2" x="120" y="0"></rect>
+<rect height="35" width="3" x="125" y="0"></rect>
+<rect height="35" width="1" x="131" y="0"></rect>
+<rect height="35" width="4" x="135" y="0"></rect>
+<rect height="35" width="2" x="142" y="0"></rect>
+<rect height="35" width="3" x="146" y="0"></rect>
+<rect height="35" width="1" x="152" y="0"></rect>
+<rect height="35" width="4" x="156" y="0"></rect>
+</svg>
+</div>
+<span class="font-label-numeric-sm text-[10px] text-neutral-600 tracking-wider">TRX-20250524-8821</span>
+<div class="mt-1 flex flex-col gap-1 text-[10px] text-neutral-600">
+<p class="font-bold text-neutral-900">Terima Kasih Atas Kunjungan Anda!</p>
+<p class="bg-neutral-200/80 px-2 py-1 rounded text-neutral-800">
+                    WiFi: <span class="font-bold">TAICHAN_GUEST</span> (Pass: <span class="font-bold">pedasnagih</span>)
+                  </p>
+<span class="text-[9px] text-neutral-500">Struk resmi KA POS v3.0 • Cloud Verified</span>
+</div>
+</div>
+</div>
+<!-- Bottom Paper Serrated Jagged Tear Effect (SVG Pattern) -->
+<div class="w-full h-3 overflow-hidden text-[#f7f8f9] -mb-2">
+<svg class="w-full h-full rotate-180" fill="currentColor" preserveaspectratio="none" viewbox="0 0 200 10">
+<polygon points="0,10 5,0 10,10 15,0 20,10 25,0 30,10 35,0 40,10 45,0 50,10 55,0 60,10 65,0 70,10 75,0 80,10 85,0 90,10 95,0 100,10 105,0 110,10 115,0 120,10 125,0 130,10 135,0 140,10 145,0 150,10 155,0 160,10 165,0 170,10 175,0 180,10 185,0 190,10 195,0 200,10"></polygon>
+</svg>
+</div>
+</div>
+<!-- Live Feed Ribbon Stamp on Preview -->
+<div class="absolute top-4 right-4 bg-surface-container-high/90 backdrop-blur px-2.5 py-1 rounded-md text-[11px] font-label-numeric-sm text-tertiary flex items-center gap-1 shadow">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-ping"></span>
+<span>WYSIWYG 203 DPI</span>
+</div>
+</div>
+</div>
+<!-- RIGHT / PRINT SETTINGS & HARDWARE MANAGEMENT (7 Cols on XL) -->
+<div class="xl:col-span-7 flex flex-col gap-space-lg order-1 xl:order-2">
+<!-- PRIMARY CALL-TO-ACTION SUITE -->
+<div class="bg-surface-container-low p-space-lg rounded-2xl shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">send</span>
+              Eksekusi Cetak &amp; Distribusi Nota
+            </span>
+<span class="text-on-surface-variant font-label-caps text-label-caps uppercase bg-surface-container px-2 py-1 rounded">Shift Siang</span>
+</div>
+<!-- Main Action Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<!-- Big Fire Primary Button -->
+<button class="sm:col-span-2 group relative overflow-hidden bg-primary-container hover:bg-orange-600 active:scale-[0.99] text-on-primary font-headline-md text-headline-md h-16 rounded-xl flex items-center justify-between px-space-lg shadow-lg transition-all" id="btn-print-main" onclick="triggerPrintProcess()">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-on-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">print</span>
+</div>
+<div class="flex flex-col text-left">
+<span class="font-headline-md leading-tight">Cetak Struk Sekarang</span>
+<span class="font-body-sm text-[12px] opacity-90 font-normal">Kirim instan ke antrean thermal printer default</span>
+</div>
+</div>
+<kbd class="hidden md:inline-flex bg-on-primary/20 text-on-primary px-3 py-1 rounded text-body-sm font-label-numeric-sm">Ctrl + P</kbd>
+</button>
+<!-- Secondary: Kirim WA Modal Trigger -->
+<button class="h-14 bg-surface-container hover:bg-surface-container-high text-on-surface font-headline-sm text-headline-sm rounded-xl px-space-md flex items-center justify-between transition-all" onclick="toggleWaModal(true)">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">chat</span>
+<span>Kirim WhatsApp</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">arrow_forward</span>
+</button>
+<!-- Secondary: Simpan PDF -->
+<button class="h-14 bg-surface-container hover:bg-surface-container-high text-on-surface font-headline-sm text-headline-sm rounded-xl px-space-md flex items-center justify-between transition-all" onclick="simulatePdfDownload()">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">picture_as_pdf</span>
+<span>Simpan Berkas PDF</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">download</span>
+</button>
+</div>
+</div>
+<!-- SETTINGS: COPIES, DESTINATION, & HARDWARE TOGGLES -->
+<div class="bg-surface-container-low p-space-lg rounded-2xl shadow-xl flex flex-col gap-space-lg">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+<!-- Quick Copies Selector -->
+<div class="flex flex-col gap-2">
+<label class="font-headline-sm text-headline-sm text-on-surface flex items-center justify-between">
+<span>Jumlah Lembar Cetak</span>
+<span class="font-label-numeric-sm text-primary text-body-sm" id="copies-indicator">1 Rangkap (Pelanggan)</span>
+</label>
+<div class="grid grid-cols-3 gap-2">
+<button class="copy-btn py-3 px-2 rounded-xl bg-primary-container text-on-primary font-headline-sm text-center transition-all flex flex-col items-center" onclick="setCopies(1, this)" type="button">
+<span class="font-label-numeric-md">1 Copy</span>
+<span class="font-body-sm text-[11px] opacity-80">Pelanggan</span>
+</button>
+<button class="copy-btn py-3 px-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-headline-sm text-center transition-all flex flex-col items-center" onclick="setCopies(2, this)" type="button">
+<span class="font-label-numeric-md">2 Copies</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">+Checker</span>
+</button>
+<button class="copy-btn py-3 px-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-headline-sm text-center transition-all flex flex-col items-center" onclick="setCopies(3, this)" type="button">
+<span class="font-label-numeric-md">3 Copies</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">+Bar &amp; Dapur</span>
+</button>
+</div>
+</div>
+<!-- Destination Printer Dropdown -->
+<div class="flex flex-col gap-2">
+<label class="font-headline-sm text-headline-sm text-on-surface flex items-center justify-between">
+<span>Perangkat Printer Tujuan</span>
+<span class="text-tertiary font-label-numeric-sm text-body-sm">2 Online</span>
+</label>
+<div class="relative">
+<select class="w-full h-12 pl-10 pr-10 bg-surface-container rounded-xl text-on-surface font-headline-sm text-body-md appearance-none focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer" id="printer-select" onchange="handlePrinterChange(this.value)">
+<option selected="" value="epson-lan">Epson TM-T82X (Thermal 80mm - USB/LAN)</option>
+<option value="zjiang-bt">Zjiang ZJ-5802 (Mobile Thermal 58mm - BT)</option>
+<option value="bixolon-wifi">Bixolon SRP-330II (Kitchen Bar - LAN)</option>
+<option value="offline-sim">Sunmi V2 PRO (Baterai Lemah - Offline)</option>
+</select>
+<span class="material-symbols-outlined absolute left-3 top-3 text-on-surface-variant text-[20px] pointer-events-none">print</span>
+<span class="material-symbols-outlined absolute right-3 top-3 text-on-surface-variant text-[20px] pointer-events-none">expand_more</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Port aktif: RAW 9100 / ESC-POS Command Set</p>
+</div>
+</div>
+<!-- Hardware Checkboxes / Switches -->
+<div class="pt-2 flex flex-col gap-space-sm">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Opsi Mekanikal Hardware (ESC/POS)</span>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+<!-- Option 1: Auto-cutter -->
+<label class="flex items-center gap-3 bg-surface-container p-3 rounded-xl cursor-pointer hover:bg-surface-container-high transition-colors">
+<input checked="" class="w-5 h-5 rounded accent-primary-container cursor-pointer" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface">Auto-Cutter</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Potong otomatis pisau</span>
+</div>
+</label>
+<!-- Option 2: Cash Drawer Kick -->
+<label class="flex items-center gap-3 bg-surface-container p-3 rounded-xl cursor-pointer hover:bg-surface-container-high transition-colors">
+<input checked="" class="w-5 h-5 rounded accent-primary-container cursor-pointer" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface">Buka Laci Uang</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Kick pin RJ-11 Drawer</span>
+</div>
+</label>
+<!-- Option 3: Print Digital QR -->
+<label class="flex items-center gap-3 bg-surface-container p-3 rounded-xl cursor-pointer hover:bg-surface-container-high transition-colors">
+<input checked="" class="w-5 h-5 rounded accent-primary-container cursor-pointer" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface">QR Struk Digital</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Cetak tautan e-receipt</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- PRINTER HARDWARE & ERROR STATES SIMULATION DECK -->
+<div class="bg-surface-container-low p-space-lg rounded-2xl shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">monitor_heart</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Simulasi &amp; Diagnostik Hardware Kasir</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Klik kartu status untuk uji coba respon antrean</span>
+</div>
+<!-- Dynamic Status Card Canvas -->
+<div class="relative overflow-hidden p-space-md rounded-xl bg-surface-container flex items-center justify-between transition-all duration-300" id="status-card-display">
+<!-- Ready State Default -->
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">check_circle</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-tertiary">Printer Terhubung &amp; Siap (Ready)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Suhu head thermal 32°C • Kertas 80mm penuh • Buffer 0 bytes</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-on-surface-variant font-label-numeric-sm text-label-numeric-sm">
+<span class="material-symbols-outlined text-[18px] text-tertiary">battery_charging_full</span>
+<span>100%</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-numeric-sm text-label-numeric-sm">
+<span class="material-symbols-outlined text-[18px] text-tertiary">network_wifi_3_bar</span>
+<span>-42 dBm</span>
+</div>
+</div>
+</div>
+<!-- Quick Test Hardware State Buttons (Operational Drill) -->
+<div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+<button class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-left flex flex-col gap-1 transition-colors" onclick="simulateJob('printing')">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-primary">State A</span>
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+</div>
+<span class="font-headline-sm text-[12px] text-on-surface">Sedang Cetak</span>
+</button>
+<button class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-left flex flex-col gap-1 transition-colors" onclick="simulateJob('success')">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-tertiary">State B</span>
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+</div>
+<span class="font-headline-sm text-[12px] text-on-surface">Cetak Selesai</span>
+</button>
+<button class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-left flex flex-col gap-1 transition-colors" onclick="simulateJob('offline')">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-error">State C</span>
+<span class="w-2 h-2 rounded-full bg-error"></span>
+</div>
+<span class="font-headline-sm text-[12px] text-on-surface">Tidak Tersedia</span>
+</button>
+<button class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-left flex flex-col gap-1 transition-colors" onclick="simulateJob('paper-mismatch')">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-amber-400">State D</span>
+<span class="w-2 h-2 rounded-full bg-amber-400"></span>
+</div>
+<span class="font-headline-sm text-[12px] text-on-surface">Kertas Salah</span>
+</button>
+<button class="p-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-left flex flex-col gap-1 transition-colors col-span-2 sm:col-span-1" onclick="simulateJob('bt-lost')">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-error">State E</span>
+<span class="w-2 h-2 rounded-full bg-error"></span>
+</div>
+<span class="font-headline-sm text-[12px] text-on-surface">Bluetooth Putus</span>
+</button>
+</div>
+<!-- Bottom Operational Action & Dismiss -->
+<div class="pt-2 flex items-center justify-between">
+<span class="text-on-surface-variant font-body-sm text-body-sm">Perlu bantuan teknis? Hubungi tim IT internal ext. 402</span>
+<button class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-xl font-headline-sm text-body-sm transition-all flex items-center gap-1" onclick="history.back()">
+<span class="material-symbols-outlined text-[18px]">close</span>
+<span>Tutup Panel</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL: KIRIM STRUK DIGITAL VIA WHATSAPP -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0e18]/80 backdrop-blur-md hidden transition-opacity" id="modal-whatsapp">
+<div class="bg-surface-container-low max-w-md w-full mx-4 rounded-2xl p-space-lg shadow-2xl flex flex-col gap-space-md border border-white/5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 rounded-full bg-tertiary/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[22px]">send</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface">Kirim Nota via WhatsApp</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1" onclick="toggleWaModal(false)">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+        Pelanggan Meja #08 akan menerima struk transaksi berformat e-receipt interaktif resmi dari bot KA POS WhatsApp Center.
+      </p>
+<div class="flex flex-col gap-1.5">
+<label class="font-headline-sm text-body-sm text-on-surface">Nomor WhatsApp Pelanggan</label>
+<div class="flex items-center bg-surface-container rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-tertiary">
+<span class="font-label-numeric-md text-on-surface-variant mr-2">+62</span>
+<input class="bg-transparent text-on-surface font-label-numeric-md w-full focus:outline-none" id="wa-phone-input" placeholder="8xx-xxxx-xxxx" type="tel" value="812-8920-1123"/>
+</div>
+</div>
+<div class="bg-surface-container p-3 rounded-xl flex items-center justify-between text-body-sm">
+<span class="text-on-surface-variant">Nominal Total Struk:</span>
+<span class="font-label-numeric-md text-tertiary font-bold">Rp116.820</span>
+</div>
+<div class="flex items-center gap-space-sm pt-2">
+<button class="w-1/2 py-3 bg-surface-container hover:bg-surface-container-high rounded-xl text-on-surface font-headline-sm transition-all" onclick="toggleWaModal(false)">
+          Batal
+        </button>
+<button class="w-1/2 py-3 bg-tertiary-container text-on-tertiary-container hover:brightness-110 rounded-xl font-headline-sm font-bold transition-all flex items-center justify-center gap-1" onclick="sendWaReceipt()">
+<span class="material-symbols-outlined text-[20px]">send</span>
+<span>Kirim Sekarang</span>
+</button>
+</div>
+</div>
+</div>
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div class="fixed bottom-6 right-6 z-50 transition-all duration-300 transform translate-y-24 opacity-0 pointer-events-none" id="toast-notification">
+<div class="flex items-center gap-3 px-space-md py-space-sm rounded-xl shadow-2xl bg-surface-container-high text-on-surface border border-white/10" id="toast-box">
+<span class="material-symbols-outlined text-tertiary text-[24px]" id="toast-icon">check_circle</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md text-on-surface" id="toast-title">Cetak Berhasil</span>
+<span class="font-body-sm text-[12px] text-on-surface-variant" id="toast-message">Struk #TC-8821 dikirim ke Epson TM-T82X</span>
+</div>
+</div>
+</div>
+<!-- CLIENT-SIDE LOGIC & EVENT HANDLERS -->
+<script>
+    // Paper Width Switcher
+    function setPaperWidth(width) {
+      const receipt = document.getElementById('thermal-receipt');
+      const btn80 = document.getElementById('toggle-80mm');
+      const btn58 = document.getElementById('toggle-58mm');
+
+      if (width === '58mm') {
+        receipt.classList.remove('max-w-[390px]');
+        receipt.classList.add('max-w-[280px]');
+        
+        btn58.className = "px-3 py-1 rounded text-body-sm font-headline-sm transition-all bg-primary-container text-on-primary shadow-sm flex items-center gap-1";
+        btn80.className = "px-3 py-1 rounded text-body-sm font-headline-sm transition-all text-on-surface-variant hover:text-on-surface flex items-center gap-1";
+        
+        showToast('Mode 58mm Aktif', 'Format disesuaikan untuk printer mobile / handheld EDC', 'info');
+      } else {
+        receipt.classList.remove('max-w-[280px]');
+        receipt.classList.add('max-w-[390px]');
+
+        btn80.className = "px-3 py-1 rounded text-body-sm font-headline-sm transition-all bg-primary-container text-on-primary shadow-sm flex items-center gap-1";
+        btn58.className = "px-3 py-1 rounded text-body-sm font-headline-sm transition-all text-on-surface-variant hover:text-on-surface flex items-center gap-1";
+        
+        showToast('Mode 80mm Aktif', 'Format standar kasir desktop / thermal POS', 'info');
+      }
+    }
+
+    // Copies Selector
+    function setCopies(count, element) {
+      const allButtons = document.querySelectorAll('.copy-btn');
+      allButtons.forEach(btn => {
+        btn.className = "copy-btn py-3 px-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-headline-sm text-center transition-all flex flex-col items-center";
+        const sub = btn.querySelector('.font-body-sm');
+        if (sub) sub.className = "font-body-sm text-[11px] text-on-surface-variant";
+      });
+
+      element.className = "copy-btn py-3 px-2 rounded-xl bg-primary-container text-on-primary font-headline-sm text-center transition-all flex flex-col items-center shadow-md";
+      const activeSub = element.querySelector('.font-body-sm');
+      if (activeSub) activeSub.className = "font-body-sm text-[11px] opacity-90";
+
+      const labels = {
+        1: "1 Rangkap (Pelanggan)",
+        2: "2 Rangkap (+Checker Dapur)",
+        3: "3 Rangkap (+Kitchen Bar)"
+      };
+      document.getElementById('copies-indicator').innerText = labels[count];
+    }
+
+    // Printer Selection Sync
+    function handlePrinterChange(val) {
+      if (val === 'zjiang-bt') {
+        setPaperWidth('58mm');
+        simulateJob('ready', 'Zjiang ZJ-5802 Terhubung (Bluetooth)');
+      } else if (val === 'offline-sim') {
+        simulateJob('offline');
+      } else {
+        setPaperWidth('80mm');
+        simulateJob('ready', 'Epson TM-T82X Siap (LAN)');
+      }
+    }
+
+    // State Diagnostics Simulation
+    function simulateJob(state, customMsg) {
+      const container = document.getElementById('status-card-display');
+      const badge = document.getElementById('printer-main-status-badge');
+
+      if (state === 'printing') {
+        container.innerHTML = `
+          <div class="flex flex-col w-full gap-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-[26px] animate-spin">refresh</span>
+                <div>
+                  <span class="font-headline-sm text-headline-sm text-primary">Sedang Mencetak Dokumen...</span>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">Mengirim 120 baris perintah ESC/POS ke buffer printer</p>
+                </div>
+              </div>
+              <span class="font-label-numeric-sm text-primary font-bold">65%</span>
+            </div>
+            <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+              <div class="h-full bg-primary rounded-full transition-all duration-700 w-2/3"></div>
+            </div>
+          </div>
+        `;
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span><span class="font-label-numeric-sm text-label-numeric-sm text-primary font-bold">MENCETAK...</span>`;
+        badge.className = "flex items-center gap-2 bg-primary/20 px-3 py-1.5 rounded-lg";
+
+      } else if (state === 'success') {
+        container.innerHTML = `
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-space-md">
+              <div class="w-10 h-10 rounded-full bg-tertiary-container/30 text-tertiary flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[24px]">done_all</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-headline-sm text-headline-sm text-tertiary">Cetak Berhasil &amp; Selesai</span>
+                <span class="font-body-sm text-body-sm text-on-surface-variant">Pisau auto-cutter selesai memotong &bull; Laci kasir terbuka</span>
+              </div>
+            </div>
+            <button onclick="simulateJob('ready')" class="px-3 py-1 bg-surface-container-high hover:bg-surface-bright rounded text-body-sm font-headline-sm text-on-surface">OK</button>
+          </div>
+        `;
+        showToast('Cetak Berhasil', 'Struk pesanan #TC-8821 berhasil dicetak lengkap.', 'success');
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span><span class="font-label-numeric-sm text-label-numeric-sm text-tertiary font-bold">BERHASIL</span>`;
+
+      } else if (state === 'offline') {
+        container.innerHTML = `
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-space-md">
+              <div class="w-10 h-10 rounded-full bg-error-container/40 text-error flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[24px]">power_off</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-headline-sm text-headline-sm text-error">Printer Tidak Tersedia (Offline)</span>
+                <span class="font-body-sm text-body-sm text-on-surface-variant">Kabel LAN terputus atau adaptor daya mati &bull; IP 192.168.1.120 RTO</span>
+              </div>
+            </div>
+            <button onclick="simulateJob('printing')" class="px-3 py-1.5 bg-error text-on-error hover:bg-red-500 rounded-lg text-body-sm font-headline-sm flex items-center gap-1 shadow">
+              <span class="material-symbols-outlined text-[16px]">replay</span>
+              <span>Coba Lagi</span>
+            </button>
+          </div>
+        `;
+        showToast('Koneksi Gagal', 'Printer offline. Periksa kabel daya & koneksi jaringan.', 'error');
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-error"></span><span class="font-label-numeric-sm text-label-numeric-sm text-error font-bold">OFFLINE</span>`;
+        badge.className = "flex items-center gap-2 bg-error-container/20 px-3 py-1.5 rounded-lg";
+
+      } else if (state === 'paper-mismatch') {
+        container.innerHTML = `
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-space-md">
+              <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[24px]">difference</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-headline-sm text-headline-sm text-amber-400">Peringatan: Ukuran Kertas Tidak Sesuai</span>
+                <span class="font-body-sm text-body-sm text-on-surface-variant">Job diatur 80mm tetapi sensor mendeteksi roll 58mm dipasang</span>
+              </div>
+            </div>
+            <button onclick="setPaperWidth('58mm')" class="px-3 py-1.5 bg-amber-500 text-neutral-950 font-bold hover:bg-amber-400 rounded-lg text-body-sm font-headline-sm">
+              Ubah ke 58mm
+            </button>
+          </div>
+        `;
+        showToast('Kertas Tidak Sesuai', 'Ukuran roll 58mm terdeteksi pada tugas cetak 80mm.', 'warning');
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span class="font-label-numeric-sm text-label-numeric-sm text-amber-400 font-bold">PERINGATAN</span>`;
+        badge.className = "flex items-center gap-2 bg-amber-500/20 px-3 py-1.5 rounded-lg";
+
+      } else if (state === 'bt-lost') {
+        container.innerHTML = `
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-space-md">
+              <div class="w-10 h-10 rounded-full bg-error-container/40 text-error flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[24px]">bluetooth_disabled</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-headline-sm text-headline-sm text-error">Bluetooth Terputus (Timeout)</span>
+                <span class="font-body-sm text-body-sm text-on-surface-variant">Sinyal pairing dengan ZJ-5802 hilang. Jarak melebihi jangkauan 10m</span>
+              </div>
+            </div>
+            <button onclick="simulateJob('ready', 'Bluetooth Terhubung Ulang')" class="px-3 py-1.5 bg-surface-container-high text-on-surface hover:bg-surface-bright rounded-lg text-body-sm font-headline-sm">
+              Pair Ulang
+            </button>
+          </div>
+        `;
+        showToast('Bluetooth Hilang', 'Sambungan printer mobile Bluetooth terputus.', 'error');
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-error"></span><span class="font-label-numeric-sm text-label-numeric-sm text-error font-bold">BT OFF</span>`;
+        badge.className = "flex items-center gap-2 bg-error-container/20 px-3 py-1.5 rounded-lg";
+
+      } else {
+        // Ready State
+        container.innerHTML = `
+          <div class="flex items-center gap-space-md">
+            <div class="w-10 h-10 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[24px]">check_circle</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="font-headline-sm text-headline-sm text-tertiary">Printer Terhubung &amp; Siap (Ready)</span>
+              <span class="font-body-sm text-body-sm text-on-surface-variant">${customMsg || 'Suhu head thermal 32&deg;C &bull; Kertas 80mm penuh &bull; Buffer 0 bytes'}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1 text-on-surface-variant font-label-numeric-sm text-label-numeric-sm">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">battery_charging_full</span>
+              <span>100%</span>
+            </div>
+            <div class="flex items-center gap-1 text-on-surface-variant font-label-numeric-sm text-label-numeric-sm">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">network_wifi_3_bar</span>
+              <span>-42 dBm</span>
+            </div>
+          </div>
+        `;
+        badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-tertiary animate-pulse"></span><span class="font-label-numeric-sm text-label-numeric-sm text-tertiary font-bold">${customMsg || 'Epson TM-T82X &bull; SIAP'}</span>`;
+        badge.className = "flex items-center gap-2 bg-tertiary-container/15 px-3 py-1.5 rounded-lg";
+      }
+    }
+
+    // Trigger Print Sequence
+    function triggerPrintProcess() {
+      simulateJob('printing');
+      setTimeout(() => {
+        simulateJob('success');
+      }, 1600);
+    }
+
+    // Keyboard Shortcut (Ctrl+P)
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        triggerPrintProcess();
+      }
+    });
+
+    // WhatsApp Modal Handlers
+    function toggleWaModal(show) {
+      const modal = document.getElementById('modal-whatsapp');
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function sendWaReceipt() {
+      const phone = document.getElementById('wa-phone-input').value;
+      toggleWaModal(false);
+      showToast('WhatsApp Terkirim', `Struk #TC-8821 dikirim ke +62 ${phone}`, 'success');
+    }
+
+    function simulatePdfDownload() {
+      showToast('Unduh PDF', 'Dokumen e-receipt-TC8821.pdf berhasil diunduh.', 'info');
+    }
+
+    // Notification Toast System
+    let toastTimeout;
+    function showToast(title, message, type = 'info') {
+      const toast = document.getElementById('toast-notification');
+      const toastTitle = document.getElementById('toast-title');
+      const toastMsg = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastTitle.innerText = title;
+      toastMsg.innerText = message;
+
+      if (type === 'success') {
+        toastIcon.innerText = 'check_circle';
+        toastIcon.className = 'material-symbols-outlined text-tertiary text-[24px]';
+      } else if (type === 'error') {
+        toastIcon.innerText = 'error';
+        toastIcon.className = 'material-symbols-outlined text-error text-[24px]';
+      } else if (type === 'warning') {
+        toastIcon.innerText = 'warning';
+        toastIcon.className = 'material-symbols-outlined text-amber-400 text-[24px]';
+      } else {
+        toastIcon.innerText = 'info';
+        toastIcon.className = 'material-symbols-outlined text-primary text-[24px]';
+      }
+
+      toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
+  </script>
+</div></main></div></body></html>

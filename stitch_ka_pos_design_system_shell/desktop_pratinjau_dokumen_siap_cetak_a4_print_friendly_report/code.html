@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-variant":"#313540","on-tertiary-fixed":"#002113","tertiary-fixed-dim":"#4edea3","on-surface":"#dfe2f1","on-primary":"#552100","error":"#ffb4ab","secondary":"#bcc7de","background":"#0f131d","on-secondary":"#263143","on-background":"#dfe2f1","on-primary-fixed":"#341100","primary-fixed":"#ffdbca","inverse-primary":"#9d4300","primary-container":"#f97316","on-primary-container":"#582200","tertiary-container":"#00b07a","surface-container":"#1c1f2a","secondary-container":"#3e495d","secondary-fixed-dim":"#bcc7de","tertiary":"#4edea3","inverse-surface":"#dfe2f1","outline":"#a78b7d","on-tertiary-fixed-variant":"#005236","error-container":"#93000a","secondary-fixed":"#d8e3fb","on-primary-fixed-variant":"#783200","on-secondary-fixed-variant":"#3c475a","on-error-container":"#ffdad6","on-tertiary-container":"#003b26","on-secondary-container":"#aeb9d0","surface-tint":"#ffb690","primary-fixed-dim":"#ffb690","on-error":"#690005","surface-container-high":"#262a35","outline-variant":"#584237","surface-bright":"#353944","on-secondary-fixed":"#111c2d","primary":"#ffb690","tertiary-fixed":"#6ffbbe","on-tertiary":"#003824","surface-container-low":"#171b26","surface-container-highest":"#313540","surface":"#0f131d","on-surface-variant":"#e0c0b1","inverse-on-surface":"#2c303b","surface-container-lowest":"#0a0e18","surface-dim":"#0f131d"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","gutter-mobile":"0.5rem","margin":"1rem","space-lg":"1.5rem","space-sm":"0.5rem","gutter":"1rem","space-xs":"0.25rem","space-xl":"2rem","margin-mobile":"0.75rem"},"fontFamily":{"headline-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"label-caps":["Plus Jakarta Sans"],"label-numeric-lg":["Space Mono"],"body-lg":["Plus Jakarta Sans"],"label-numeric-md":["Space Mono"],"headline-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"label-numeric-sm":["Space Mono"],"headline-xl-mobile":["Plus Jakarta Sans"]},"fontSize":{"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"label-caps":["11px",{"lineHeight":"16px","letterSpacing":"0.06em","fontWeight":"700"}],"label-numeric-lg":["22px",{"lineHeight":"28px","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"label-numeric-md":["16px",{"lineHeight":"20px","fontWeight":"700"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-numeric-sm":["13px",{"lineHeight":"16px","fontWeight":"400"}],"headline-xl-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-screen w-72 bg-surface-container-lowest z-50 flex flex-col shadow-[0_1px_8px_rgba(0,0,0,0.5)]"><div class="h-16 px-space-md flex items-center justify-between bg-surface-container-low"><div class="flex items-center gap-space-sm"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X4frgPtMayAw3UVejzC_Zx3lOyEzePs97XYB7gXuNVKDeD2PoruWVnoDai1Cu-9T_TgZIckCw0Xk6GggED7j3xMUUvhGnLPKyfei_OeDbgh6D5nTAAl3sUsL8l1ly7OQJnfkQuqnNJpBfdzXxrfDcZQtZgfIh1ZQJZoqMbID3LZxzf71GTGk-3LFOIq5AMOeQfTQw5ErvtroDTBriNnDa2jHSVtdx9iApQdQeiIQnhev7rRDy4sRX2sejt"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">KA POS</span><span class="font-label-caps text-label-caps text-primary tracking-wider uppercase mt-0.5">v3.0 F&amp;B Engine</span></div></div><span class="px-2 py-0.5 rounded-full bg-surface-container-high text-secondary font-label-caps text-label-caps uppercase">Core</span></div><div class="flex-1 overflow-y-auto px-space-sm py-space-md space-y-space-md"><div class="space-y-space-xs"><span class="px-space-sm font-label-caps text-label-caps text-secondary uppercase tracking-wider block">ANALISIS &amp; AUDIT</span><nav class="space-y-1" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm shadow-sm"><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="owner-dashboard" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span>Owner Dashboard</a><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="deep-analytics" href="#"><span class="material-symbols-outlined text-[20px]">query_stats</span>Deep Analytics</a><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="laporan-audit" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span>Laporan &amp; Audit</a></nav></div><div class="space-y-space-xs"><span class="px-space-sm font-label-caps text-label-caps text-secondary uppercase tracking-wider block">OPERASIONAL</span><nav class="space-y-1" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm shadow-sm"><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="kasir-stok-cepat" href="#"><span class="material-symbols-outlined text-[20px]">point_of_sale</span>Kasir &amp; Stok Cepat</a><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="pesanan-aktif" href="#"><span class="material-symbols-outlined text-[20px]">table_restaurant</span>Pesanan Aktif</a><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="dapur-kds" href="#"><span class="material-symbols-outlined text-[20px]">soup_kitchen</span>Dapur KDS</a><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="inventaris-stok" href="#"><span class="material-symbols-outlined text-[20px]">inventory_2</span>Inventaris &amp; Stok</a></nav></div><div class="space-y-space-xs"><span class="px-space-sm font-label-caps text-label-caps text-secondary uppercase tracking-wider block">SHIFT &amp; KASIR (MODEL A)</span><nav class="space-y-1" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm shadow-sm"><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="laporan-shift-kas" href="#"><span class="material-symbols-outlined text-[20px]">payments</span>Laporan Shift &amp; Kas</a><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="riwayat-shift-audit" href="#"><span class="material-symbols-outlined text-[20px]">history_edu</span>Riwayat Shift &amp; Audit</a></nav></div><div class="space-y-space-xs"><span class="px-space-sm font-label-caps text-label-caps text-secondary uppercase tracking-wider block">SISTEM</span><nav class="space-y-1" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm shadow-sm"><a class="flex items-center gap-3 px-space-sm py-2 rounded-lg text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="pengaturan" href="#"><span class="material-symbols-outlined text-[20px]">tune</span>Pengaturan</a></nav></div></div><div class="p-space-md bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-tertiary-container animate-pulse"></span><span class="font-label-numeric-sm text-label-numeric-sm text-tertiary">Cloud Sync OK</span></div><span class="font-label-numeric-sm text-label-numeric-sm text-secondary">Ping: 24ms</span></div></aside><div class="pl-72 flex flex-col min-h-screen"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-low/95 backdrop-blur-xl z-40 shadow-[0_1px_8px_rgba(0,0,0,0.3)]"><div class="w-full h-16 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface cursor-pointer hover:bg-surface-container"><span class="material-symbols-outlined text-primary-container text-[20px]">storefront</span><span class="font-headline-sm text-headline-sm text-on-surface">Taichan Tebet #01</span><span class="material-symbols-outlined text-secondary text-[18px]">expand_more</span></div><div class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-container"><span class="w-2 h-2 rounded-full bg-tertiary"></span><span class="font-label-caps text-label-caps text-tertiary uppercase">Online Realtime</span></div></div><div class="flex items-center gap-space-lg"><div class="hidden lg:flex items-center gap-2 text-secondary"><span class="material-symbols-outlined text-[18px]">schedule</span><span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">Senin, 24 Okt 2024 • 21:42 WIB</span></div><div class="flex items-center gap-3 pl-space-md border-l border-surface-container-high"><div class="flex flex-col text-right"><span class="font-headline-sm text-headline-sm text-on-surface">Hendra</span><span class="font-label-caps text-label-caps text-primary-container uppercase font-bold">OWNER</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div></header><main class="w-full pt-16 bg-background flex-1 px-space-lg py-space-lg"><div class="flex flex-col w-full">
+<!-- Control Header (Dark App Chrome) -->
+<div class="w-full bg-surface-container-low rounded-xl p-space-md shadow-xl mb-space-lg">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+<!-- Title & Operational Subtitle -->
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-container text-on-primary-container">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+</span>
+<h1 class="font-headline-md text-headline-md text-on-surface">Pratinjau Dokumen Siap Cetak (A4 Print-Friendly Mode)</h1>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-caps text-label-caps uppercase">Exec Standard</span>
+</div>
+<p class="font-body-md text-body-md text-secondary">
+          Format standar laporan keuangan manajemen &amp; audit F&amp;B. Menghilangkan elemen dekoratif berat demi efisiensi tinta dan keterbacaan cetak.
+        </p>
+</div>
+<!-- Action Primary CTAs -->
+<div class="flex flex-wrap items-center gap-2">
+<button class="px-space-md py-2.5 rounded-lg bg-primary-container hover:opacity-90 active:scale-95 text-on-primary-container font-headline-sm text-headline-sm flex items-center gap-2 shadow-md transition-all" onclick="window.print()">
+<span class="material-symbols-outlined text-[20px]">print</span>
+<span>Cetak Dokumen (Ctrl+P)</span>
+</button>
+<button class="px-space-md py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface font-headline-sm text-headline-sm flex items-center gap-2 transition-colors" id="btn-export-pdf">
+<span class="material-symbols-outlined text-[20px] text-primary">download</span>
+<span>Simpan PDF Resmi</span>
+</button>
+<button class="px-space-md py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface font-headline-sm text-headline-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[20px] text-tertiary">table_chart</span>
+<span>Export Excel</span>
+</button>
+<button class="px-3 py-2.5 rounded-lg bg-surface-container hover:bg-surface-variant text-secondary hover:text-on-surface transition-colors" title="Tutup &amp; Kembali">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+</div>
+<!-- Parameter Config Bar -->
+<div class="mt-space-md pt-space-md flex flex-wrap items-center justify-between gap-space-md bg-surface-container-lowest/50 p-space-sm rounded-lg">
+<div class="flex flex-wrap items-center gap-3">
+<!-- Paper Size Selection -->
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container">
+<span class="material-symbols-outlined text-secondary text-[18px]">description</span>
+<span class="font-label-caps text-label-caps text-secondary uppercase">Ukuran:</span>
+<select class="bg-transparent text-on-surface font-headline-sm text-body-md focus:outline-none cursor-pointer" id="select-paper-size">
+<option class="bg-surface-container-high text-on-surface" value="a4">A4 (210 × 297 mm) - Standar</option>
+<option class="bg-surface-container-high text-on-surface" value="letter">US Letter (216 × 279 mm)</option>
+<option class="bg-surface-container-high text-on-surface" value="legal">Folio / F4 (215 × 330 mm)</option>
+</select>
+</div>
+<!-- Orientation Switcher -->
+<div class="flex items-center bg-surface-container rounded-lg p-0.5">
+<button class="px-3 py-1 rounded bg-primary-container text-on-primary-container font-label-caps text-label-caps uppercase transition-colors flex items-center gap-1.5" id="btn-portrait">
+<span class="material-symbols-outlined text-[16px]">crop_portrait</span> Portrait
+          </button>
+<button class="px-3 py-1 rounded text-secondary hover:text-on-surface font-label-caps text-label-caps uppercase transition-colors flex items-center gap-1.5" id="btn-landscape">
+<span class="material-symbols-outlined text-[16px]">crop_landscape</span> Landscape
+          </button>
+</div>
+<!-- Ink Mode Toggle -->
+<div class="flex items-center bg-surface-container rounded-lg p-0.5">
+<button class="px-3 py-1 rounded bg-surface-container-high text-on-surface font-label-caps text-label-caps uppercase transition-colors flex items-center gap-1.5" id="ink-bw">
+<span class="material-symbols-outlined text-[16px]">contrast</span> Monokrom (Tinta Hemat)
+          </button>
+<button class="px-3 py-1 rounded text-secondary hover:text-on-surface font-label-caps text-label-caps uppercase transition-colors flex items-center gap-1.5" id="ink-color">
+<span class="material-symbols-outlined text-[16px]">palette</span> Warna Korporat
+          </button>
+</div>
+</div>
+<!-- Zoom and Display Ratios -->
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Skala Tampilan:</span>
+<div class="flex items-center bg-surface-container rounded-lg p-1">
+<button class="w-7 h-7 rounded hover:bg-surface-container-high flex items-center justify-center text-secondary hover:text-on-surface transition-colors" id="zoom-out" title="Zoom Out">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<span class="px-3 font-label-numeric-sm text-label-numeric-sm text-primary font-bold" id="zoom-display">100%</span>
+<button class="w-7 h-7 rounded hover:bg-surface-container-high flex items-center justify-center text-secondary hover:text-on-surface transition-colors" id="zoom-in" title="Zoom In">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container text-secondary hover:text-on-surface hover:bg-surface-container-high font-label-caps text-label-caps transition-colors uppercase" id="zoom-reset">
+          Fit Width
+        </button>
+</div>
+</div>
+</div>
+<!-- A4 Document Workspace Outer -->
+<div class="w-full bg-surface-container-lowest p-space-md xl:p-space-xl rounded-xl flex justify-center items-start overflow-x-auto">
+<!-- Printable A4 Paper Wrapper -->
+<div class="w-[820px] min-h-[1160px] bg-white text-slate-900 shadow-2xl rounded-none transition-transform duration-200 origin-top p-[18mm] flex flex-col justify-between select-text" id="a4-sheet" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+<!-- Top Section Container -->
+<div class="w-full flex flex-col">
+<!-- 1. KOP SURAT RESMI (Official Header) -->
+<div class="flex items-start justify-between pb-4">
+<!-- Left: Brand / Restaurant Identity -->
+<div class="space-y-1 max-w-[480px]">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold tracking-wider px-1.5 py-0.5 bg-slate-900 text-white rounded">KA POS v3.0</span>
+<span class="text-xs font-semibold uppercase tracking-widest text-slate-500">Culinary Management System</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight text-slate-900 leading-tight pt-1">
+              PT KULINARI ANUGERAH SEJAHTERA
+            </h2>
+<div class="text-xs font-bold text-slate-800">
+              OUTLET TAICHAN TEBET #01 • KODE UNIT: TBT-01-JKT
+            </div>
+<p class="text-[10px] leading-relaxed text-slate-600">
+              Jl. Tebet Barat Dalam Raya No. 42, RT 04/RW 03, Jakarta Selatan 12810<br/>
+              Telp: (021) 8370-9821 • Email: finance@taichantebet.co.id • NPWPD: 01.345.678.9-012.000
+            </p>
+</div>
+<!-- Right: Metadata Box -->
+<div class="bg-slate-100 p-3 rounded text-[10px] space-y-1 min-w-[210px]">
+<div class="text-[9px] font-bold uppercase tracking-wider text-slate-500">METADATA DOKUMEN AUDIT</div>
+<div class="flex justify-between gap-2">
+<span class="text-slate-500">No. Dokumen:</span>
+<span class="font-mono font-bold text-slate-900">RPT/SLS/2025/05/024-EXC</span>
+</div>
+<div class="flex justify-between gap-2">
+<span class="text-slate-500">Klasifikasi:</span>
+<span class="font-bold text-red-600 uppercase">RAHASIA / PRIVILEGED</span>
+</div>
+<div class="flex justify-between gap-2">
+<span class="text-slate-500">Waktu Cetak:</span>
+<span class="font-mono text-slate-800">24/05/2025 20:15 WIB</span>
+</div>
+<div class="flex justify-between gap-2">
+<span class="text-slate-500">Otorisator:</span>
+<span class="font-semibold text-slate-800">Hendra (OWN-001)</span>
+</div>
+</div>
+</div>
+<!-- Decorative Solid Bar Separation -->
+<div class="w-full h-1 bg-slate-900 mb-1"></div>
+<div class="w-full h-0.5 bg-slate-400 mb-5"></div>
+<!-- 2. REPORT TITLE & PERIOD -->
+<div class="text-center space-y-1 mb-5">
+<h3 class="text-base font-extrabold uppercase tracking-wide text-slate-900">
+            LAPORAN KONSOLIDASI PENJUALAN &amp; REKONSILIASI KAS OPERASIONAL
+          </h3>
+<div class="flex items-center justify-center gap-4 text-[11px] text-slate-600">
+<span><strong>Periode:</strong> 01 Mei 2025 – 24 Mei 2025 (Bulan Berjalan M-T-D)</span>
+<span>•</span>
+<span><strong>Basis Akuntansi:</strong> Kas &amp; Setara Kas (Cash Basis)</span>
+<span>•</span>
+<span><strong>Mata Uang:</strong> IDR (Rupiah)</span>
+</div>
+</div>
+<!-- 3. EXECUTIVE FINANCIAL SUMMARY BOXES -->
+<div class="grid grid-cols-4 gap-2 mb-6">
+<div class="p-2.5 rounded bg-slate-50">
+<span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">Total Penjualan Kotor</span>
+<div class="text-[15px] font-bold font-mono text-slate-900 mt-1">Rp 184.650.000</div>
+<div class="text-[9px] text-slate-600 mt-0.5">3.620 Nota Transaksi</div>
+</div>
+<div class="p-2.5 rounded bg-slate-50">
+<span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">Potongan / Promo Diskon</span>
+<div class="text-[15px] font-bold font-mono text-rose-700 mt-1">-Rp 4.250.000</div>
+<div class="text-[9px] text-slate-600 mt-0.5">124 Voucher &amp; Promo Kasir</div>
+</div>
+<div class="p-2.5 rounded bg-slate-50">
+<span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">Pajak Restoran PB1 (10%)</span>
+<div class="text-[15px] font-bold font-mono text-slate-900 mt-1">Rp 18.040.000</div>
+<div class="text-[9px] text-slate-600 mt-0.5">Kewajiban Bapenda DKI</div>
+</div>
+<div class="p-2.5 rounded bg-slate-100">
+<span class="text-[9px] font-bold uppercase tracking-wider text-slate-700 block">Pendapatan Bersih (Net)</span>
+<div class="text-[15px] font-bold font-mono text-slate-900 mt-1">Rp 180.400.000</div>
+<div class="text-[9px] text-slate-600 mt-0.5">Rata-rata Nota Rp 51.400</div>
+</div>
+</div>
+<!-- 4. RECONCILIATION TABLE (Black-and-White Corporate) -->
+<div class="space-y-1.5 mb-6">
+<div class="flex items-center justify-between">
+<h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">
+              I. Rekonsiliasi Metode Pembayaran &amp; Settlement Kas
+            </h4>
+<span class="text-[9px] text-slate-500 italic">Dicocokkan dengan Rekening Koran per 24 Mei 2025</span>
+</div>
+<table class="w-full text-left text-[10px] collapse">
+<thead>
+<tr class="bg-slate-800 text-white font-semibold">
+<th class="p-2">Metode Pembayaran</th>
+<th class="p-2 text-center">Jml Trx</th>
+<th class="p-2 text-right">Nominal Transaksi</th>
+<th class="p-2 text-center">Porsi (%)</th>
+<th class="p-2 text-right">Potongan MDR / Fee</th>
+<th class="p-2 text-right">Saldo Diterima / Fisik</th>
+<th class="p-2 text-center">Status Audit</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 font-sans">
+<tr class="bg-white">
+<td class="p-2 font-medium text-slate-900">
+<div class="font-bold">QRIS Dinamis (Aggregator BCA &amp; ShopeePay)</div>
+<div class="text-[9px] text-slate-500">Auto-settlement settlement H+1 kerja</div>
+</td>
+<td class="p-2 text-center font-mono">1.846</td>
+<td class="p-2 text-right font-mono font-bold text-slate-800">Rp 94.171.500</td>
+<td class="p-2 text-center font-mono">51,0%</td>
+<td class="p-2 text-right font-mono text-rose-600">-Rp 659.200 (0,7%)</td>
+<td class="p-2 text-right font-mono font-bold text-slate-900">Rp 93.512.300</td>
+<td class="p-2 text-center">
+<span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 text-[9px] font-bold">MATCHED H+1</span>
+</td>
+</tr>
+<tr class="bg-slate-50/60">
+<td class="p-2 font-medium text-slate-900">
+<div class="font-bold">Uang Tunai Kasir (Fisik Laci POS Shift Pagi &amp; Malam)</div>
+<div class="text-[9px] text-slate-500">Disetor ke Brankas Utama tiap akhir shift</div>
+</td>
+<td class="p-2 text-center font-mono">1.050</td>
+<td class="p-2 text-right font-mono font-bold text-slate-800">Rp 53.548.500</td>
+<td class="p-2 text-center font-mono">29,0%</td>
+<td class="p-2 text-right font-mono text-slate-500">Rp 0 (0%)</td>
+<td class="p-2 text-right font-mono font-bold text-slate-900">Rp 53.543.500</td>
+<td class="p-2 text-center">
+<span class="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[9px] font-bold">SELISIH -Rp5.000</span>
+</td>
+</tr>
+<tr class="bg-white">
+<td class="p-2 font-medium text-slate-900">
+<div class="font-bold">EDC Debit / Kartu Kredit (Mandiri &amp; BCA)</div>
+<div class="text-[9px] text-slate-500">Batch closed settlement tiap pukul 23:00 WIB</div>
+</td>
+<td class="p-2 text-center font-mono">543</td>
+<td class="p-2 text-right font-mono font-bold text-slate-800">Rp 27.697.500</td>
+<td class="p-2 text-center font-mono">15,0%</td>
+<td class="p-2 text-right font-mono text-rose-600">-Rp 415.460 (1,5%)</td>
+<td class="p-2 text-right font-mono font-bold text-slate-900">Rp 27.282.040</td>
+<td class="p-2 text-center">
+<span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 text-[9px] font-bold">MATCHED BATCH</span>
+</td>
+</tr>
+<tr class="bg-slate-50/60">
+<td class="p-2 font-medium text-slate-900">
+<div class="font-bold">Transfer Bank Langsung &amp; Katering Event</div>
+<div class="text-[9px] text-slate-500">Verifikasi mutasi rekening koran BCA KCP Tebet</div>
+</td>
+<td class="p-2 text-center font-mono">181</td>
+<td class="p-2 text-right font-mono font-bold text-slate-800">Rp 9.232.500</td>
+<td class="p-2 text-center font-mono">5,0%</td>
+<td class="p-2 text-right font-mono text-slate-500">Rp 0 (Manual)</td>
+<td class="p-2 text-right font-mono font-bold text-slate-900">Rp 9.232.500</td>
+<td class="p-2 text-center">
+<span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 text-[9px] font-bold">VERIFIKASI BANK</span>
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr class="bg-slate-200 font-bold text-slate-900">
+<td class="p-2 uppercase tracking-wide">Total Terkonsolidasi</td>
+<td class="p-2 text-center font-mono">3.620</td>
+<td class="p-2 text-right font-mono text-[11px]">Rp 184.650.000</td>
+<td class="p-2 text-center font-mono">100,0%</td>
+<td class="p-2 text-right font-mono text-rose-800">-Rp 1.074.660</td>
+<td class="p-2 text-right font-mono text-[11px]">Rp 183.570.340</td>
+<td class="p-2 text-center text-[9px] font-mono">AKURASI: 99.99%</td>
+</tr>
+</tfoot>
+</table>
+</div>
+<!-- 5. TOP MENU CONTRIBUTION & GROSS MARGIN -->
+<div class="space-y-1.5 mb-6">
+<div class="flex items-center justify-between">
+<h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">
+              II. Kontribusi 5 Menu Terlaris &amp; Analisis Margin Kotor
+            </h4>
+<span class="text-[9px] text-slate-500">Metode Penilaian Persediaan: FIFO (First In First Out)</span>
+</div>
+<table class="w-full text-left text-[10px] collapse">
+<thead>
+<tr class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[9px]">
+<th class="p-1.5 text-center w-8">No</th>
+<th class="p-1.5">Nama Item Produk</th>
+<th class="p-1.5 text-center">Volume Terjual</th>
+<th class="p-1.5 text-right">Kontribusi Omset</th>
+<th class="p-1.5 text-center">Porsi (%)</th>
+<th class="p-1.5 text-right">HPP Standar / Unit</th>
+<th class="p-1.5 text-right">Margin Kotor (%)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 font-sans">
+<tr>
+<td class="p-1.5 text-center font-mono text-slate-500">1</td>
+<td class="p-1.5 font-bold text-slate-900">Sate Taichan Paha Spesial (10 Tusuk)</td>
+<td class="p-1.5 text-center font-mono">2.112 Porsi</td>
+<td class="p-1.5 text-right font-mono font-semibold">Rp 52.800.000</td>
+<td class="p-1.5 text-center font-mono">28,6%</td>
+<td class="p-1.5 text-right font-mono text-slate-600">Rp 9.000</td>
+<td class="p-1.5 text-right font-mono font-bold text-emerald-800">64,0%</td>
+</tr>
+<tr class="bg-slate-50/50">
+<td class="p-1.5 text-center font-mono text-slate-500">2</td>
+<td class="p-1.5 font-bold text-slate-900">Sate Kulit Crispy Gurih</td>
+<td class="p-1.5 text-center font-mono">1.418 Porsi</td>
+<td class="p-1.5 text-right font-mono font-semibold">Rp 31.196.000</td>
+<td class="p-1.5 text-center font-mono">16,9%</td>
+<td class="p-1.5 text-right font-mono text-slate-600">Rp 7.040</td>
+<td class="p-1.5 text-right font-mono font-bold text-emerald-800">68,0%</td>
+</tr>
+<tr>
+<td class="p-1.5 text-center font-mono text-slate-500">3</td>
+<td class="p-1.5 font-bold text-slate-900">Es Jeruk Kasturi Segar (Peras Asli)</td>
+<td class="p-1.5 text-center font-mono">1.208 Gelas</td>
+<td class="p-1.5 text-right font-mono font-semibold">Rp 14.496.000</td>
+<td class="p-1.5 text-center font-mono">7,8%</td>
+<td class="p-1.5 text-right font-mono text-slate-600">Rp 2.640</td>
+<td class="p-1.5 text-right font-mono font-bold text-emerald-800">78,0%</td>
+</tr>
+<tr class="bg-slate-50/50">
+<td class="p-1.5 text-center font-mono text-slate-500">4</td>
+<td class="p-1.5 font-bold text-slate-900">Lontong Daun Spesial</td>
+<td class="p-1.5 text-center font-mono">1.890 Porsi</td>
+<td class="p-1.5 text-right font-mono font-semibold">Rp 9.450.000</td>
+<td class="p-1.5 text-center font-mono">5,1%</td>
+<td class="p-1.5 text-right font-mono text-slate-600">Rp 1.750</td>
+<td class="p-1.5 text-right font-mono font-bold text-emerald-800">65,0%</td>
+</tr>
+<tr>
+<td class="p-1.5 text-center font-mono text-slate-500">5</td>
+<td class="p-1.5 font-bold text-slate-900">Taichan Campur Daging/Kulit Bakar</td>
+<td class="p-1.5 text-center font-mono">980 Porsi</td>
+<td class="p-1.5 text-right font-mono font-semibold">Rp 7.840.000</td>
+<td class="p-1.5 text-center font-mono">4,2%</td>
+<td class="p-1.5 text-right font-mono text-slate-600">Rp 8.800</td>
+<td class="p-1.5 text-right font-mono font-bold text-emerald-800">63,0%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Audit Footnote & Operational Remarks -->
+<div class="bg-slate-50 p-2.5 rounded text-[9.5px] leading-relaxed text-slate-600 space-y-1 mb-8">
+<div class="font-bold uppercase tracking-wider text-slate-800">Catatan Auditor &amp; Temuan Kasir:</div>
+<p>
+            1. Selisih fisik kas laci Rp 5.000 pada shift malam tanggal 14 Mei 2025 telah diinvestigasi sebagai pembulatan receh transaksi tunai dan telah dibebankan pada pos selisih kas operasional.<br/>
+            2. Kewajiban Pajak Restoran (PB1) sebesar Rp 18.040.000 wajib disetorkan melalui e-SPTPD Bapenda Provinsi DKI Jakarta paling lambat tanggal 15 Juni 2025.
+          </p>
+</div>
+</div>
+<!-- Bottom Section: Official Signatures & System Watermark -->
+<div class="w-full">
+<!-- 6. OFFICIAL MANAGEMENT SIGNATURE BLOCKS -->
+<div class="grid grid-cols-3 gap-6 text-center mb-6 pt-4">
+<div class="flex flex-col items-center">
+<span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Dibuat Oleh (Prepared By):</span>
+<span class="text-[10px] text-slate-600">Kasir Kepala / Supervisor Shift</span>
+<div class="h-16 w-36 flex items-end justify-center pb-1">
+<span class="text-[9px] text-slate-400 italic font-mono">[Tanda Tangan Digital Tersimpan]</span>
+</div>
+<div class="w-40 border-t border-slate-900 pt-1">
+<div class="text-[10px] font-bold text-slate-900">Rico Prasetia</div>
+<div class="text-[9px] text-slate-500 font-mono">NIP: SPV-2023-018</div>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Diperiksa Oleh (Audited By):</span>
+<span class="text-[10px] text-slate-600">Finance &amp; Tax Compliance</span>
+<div class="h-16 w-36 flex items-end justify-center pb-1">
+<span class="text-[9px] text-slate-400 italic font-mono">[Tanda Tangan Digital Tersimpan]</span>
+</div>
+<div class="w-40 border-t border-slate-900 pt-1">
+<div class="text-[10px] font-bold text-slate-900">Ratna Dewi, S.Ak.</div>
+<div class="text-[9px] text-slate-500 font-mono">NIP: FIN-2022-004</div>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Disetujui Oleh (Approved By):</span>
+<span class="text-[10px] text-slate-600">Pemilik / Managing Director</span>
+<div class="h-16 w-36 flex items-end justify-center pb-1">
+<span class="text-[9px] text-slate-400 italic font-mono">[Tanda Tangan Digital Tersimpan]</span>
+</div>
+<div class="w-40 border-t border-slate-900 pt-1">
+<div class="text-[10px] font-bold text-slate-900">Hendra S.</div>
+<div class="text-[9px] text-slate-500 font-mono">NIP: OWN-2021-001</div>
+</div>
+</div>
+</div>
+<!-- 7. SYSTEM AUDIT FOOTER -->
+<div class="pt-3 flex items-center justify-between text-[9px] text-slate-500 font-mono">
+<div>
+            Dokumen ini sah &amp; dihasilkan secara otomatis oleh sistem KA POS v3.0 F&amp;B Engine • Halaman 1 dari 1
+          </div>
+<div>
+            SHA-256 Audit Trail: <span class="font-bold text-slate-700">8f9b2c40a7e112d8...7d1a</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    let currentZoom = 100;
+    const sheet = document.getElementById('a4-sheet');
+    const zoomDisplay = document.getElementById('zoom-display');
+    const zoomInBtn = document.getElementById('zoom-in');
+    const zoomOutBtn = document.getElementById('zoom-out');
+    const zoomResetBtn = document.getElementById('zoom-reset');
+    const btnPortrait = document.getElementById('btn-portrait');
+    const btnLandscape = document.getElementById('btn-landscape');
+    const inkBw = document.getElementById('ink-bw');
+    const inkColor = document.getElementById('ink-color');
+    const btnExportPdf = document.getElementById('btn-export-pdf');
+
+    function updateZoom(newZoom) {
+      currentZoom = Math.min(Math.max(newZoom, 50), 160);
+      sheet.style.transform = 'scale(' + (currentZoom / 100) + ')';
+      zoomDisplay.textContent = currentZoom + '%';
+    }
+
+    if (zoomInBtn) {
+      zoomInBtn.addEventListener('click', () => updateZoom(currentZoom + 10));
+    }
+
+    if (zoomOutBtn) {
+      zoomOutBtn.addEventListener('click', () => updateZoom(currentZoom - 10));
+    }
+
+    if (zoomResetBtn) {
+      zoomResetBtn.addEventListener('click', () => updateZoom(100));
+    }
+
+    if (btnPortrait && btnLandscape) {
+      btnPortrait.addEventListener('click', () => {
+        sheet.classList.remove('w-[1160px]', 'min-h-[820px]');
+        sheet.classList.add('w-[820px]', 'min-h-[1160px]');
+        btnPortrait.classList.add('bg-primary-container', 'text-on-primary-container');
+        btnPortrait.classList.remove('text-secondary');
+        btnLandscape.classList.remove('bg-primary-container', 'text-on-primary-container');
+        btnLandscape.classList.add('text-secondary');
+      });
+
+      btnLandscape.addEventListener('click', () => {
+        sheet.classList.remove('w-[820px]', 'min-h-[1160px]');
+        sheet.classList.add('w-[1160px]', 'min-h-[820px]');
+        btnLandscape.classList.add('bg-primary-container', 'text-on-primary-container');
+        btnLandscape.classList.remove('text-secondary');
+        btnPortrait.classList.remove('bg-primary-container', 'text-on-primary-container');
+        btnPortrait.classList.add('text-secondary');
+      });
+    }
+
+    if (inkBw && inkColor) {
+      inkBw.addEventListener('click', () => {
+        sheet.classList.add('grayscale');
+        inkBw.classList.add('bg-surface-container-high', 'text-on-surface');
+        inkBw.classList.remove('text-secondary');
+        inkColor.classList.remove('bg-surface-container-high', 'text-on-surface');
+        inkColor.classList.add('text-secondary');
+      });
+
+      inkColor.addEventListener('click', () => {
+        sheet.classList.remove('grayscale');
+        inkColor.classList.add('bg-surface-container-high', 'text-on-surface');
+        inkColor.classList.remove('text-secondary');
+        inkBw.classList.remove('bg-surface-container-high', 'text-on-surface');
+        inkBw.classList.add('text-secondary');
+      });
+    }
+
+    if (btnExportPdf) {
+      btnExportPdf.addEventListener('click', () => {
+        window.print();
+      });
+    }
+  })();
+</script></main></div></body></html>

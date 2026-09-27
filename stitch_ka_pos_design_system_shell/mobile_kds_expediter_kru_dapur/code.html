@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "secondary-container": "#3e495d", "surface-bright": "#353944", "on-tertiary-fixed-variant": "#005236", "outline": "#a78b7d", "surface-container-highest": "#313540", "on-error-container": "#ffdad6", "surface-container-high": "#262a35", "on-background": "#dfe2f1", "on-primary-fixed-variant": "#783200", "inverse-surface": "#dfe2f1", "on-secondary-fixed-variant": "#3c475a", "tertiary-fixed-dim": "#4edea3", "error": "#ffb4ab", "surface": "#0f131d", "surface-container": "#1c1f2a", "secondary-fixed": "#d8e3fb", "tertiary-container": "#00b07a", "on-secondary-fixed": "#111c2d", "inverse-on-surface": "#2c303b", "on-primary-container": "#582200", "on-error": "#690005", "on-tertiary": "#003824", "tertiary": "#4edea3", "surface-container-lowest": "#0a0e18", "on-tertiary-fixed": "#002113", "surface-dim": "#0f131d", "secondary": "#bcc7de", "surface-container-low": "#171b26", "on-primary": "#552100", "error-container": "#93000a", "secondary-fixed-dim": "#bcc7de", "surface-tint": "#ffb690", "surface-variant": "#313540", "on-surface-variant": "#e0c0b1", "on-tertiary-container": "#003b26", "primary-fixed": "#ffdbca", "on-secondary-container": "#aeb9d0", "inverse-primary": "#9d4300", "on-secondary": "#263143", "primary-container": "#f97316", "primary": "#ffb690", "on-surface": "#dfe2f1", "background": "#0f131d", "primary-fixed-dim": "#ffb690", "tertiary-fixed": "#6ffbbe", "outline-variant": "#584237", "on-primary-fixed": "#341100" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "margin": "1rem", "space-md": "1rem", "gutter-mobile": "0.5rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "space-xl": "2rem", "gutter": "1rem", "margin-mobile": "0.75rem", "space-xs": "0.25rem" }, fontFamily: { "headline-xl-mobile": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "label-numeric-sm": ["Space Mono"], "headline-sm": ["Plus Jakarta Sans"], "label-numeric-md": ["Space Mono"], "headline-xl": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-numeric-lg": ["Space Mono"], "body-sm": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-caps": ["Plus Jakarta Sans"] }, fontSize: { "headline-xl-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}], "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}], "label-numeric-sm": ["13px", {"lineHeight": "16px", "fontWeight": "400"}], "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}], "label-numeric-md": ["16px", {"lineHeight": "20px", "fontWeight": "700"}], "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}], "label-numeric-lg": ["22px", {"lineHeight": "28px", "fontWeight": "700"}], "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}], "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.06em", "fontWeight": "700"}] } } } }</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface font-body-md flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface-container-lowest/85 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.4)] pt-safe"><div class="h-16 px-gutter-mobile flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="Brand logo. - Primary color: #f97316
+- Font: plusJakartaSans
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkfctN7PVDk25eHHzl5QLLbuCd6TAJtn95Dc0Pk-wRRGGOPVQS0Rj22iAM77OTBk_nItGNS_dUWTr17-oLCtDJ6qec3a2zMmg6IXbHFl0s3WWqbukqFKzQ82XkNbXLDLAXAwQ4hRXZadYtmEj1j65mz4FBoOLaWV-NhbpiHKeyGt4Y4OV84YkBzSrFOEbIlqyQIMsmQS52U04ZrP969_MdSTpLAGtNaF9PN_9kovWVBWFxBPcV-gp69w"/><div class="flex flex-col ml-space-xs"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">KA POS</span><span class="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary-container font-label-caps text-label-caps">KDS</span></div><span class="font-label-caps text-label-caps text-on-surface-variant truncate max-w-[90px]">Pesanan Aktif</span></div></div><div class="flex items-center gap-space-xs"><button class="min-h-[44px] px-space-sm flex items-center gap-1.5 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors" type="button"><span class="material-symbols-outlined text-[18px] text-primary">countertops</span><span class="font-headline-sm text-[13px] tracking-tight">Station</span><span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span></button><div class="flex items-center px-2 py-1 rounded bg-error/15 text-error gap-1"><span class="material-symbols-outlined text-[14px]">pending_actions</span><span class="font-label-numeric-sm text-label-numeric-sm font-bold">12</span></div><button aria-label="Beralih Notifikasi Audio" class="w-11 h-11 flex items-center justify-center rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors" type="button"><span class="material-symbols-outlined text-[20px] text-tertiary">volume_up</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-0.5 shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full px-space-sm pb-space-lg gap-space-md">
+<!-- Operational Alert & System Pulse Banner -->
+<div class="w-full bg-surface-container-high rounded-xl p-space-sm flex items-center justify-between shadow-md">
+<div class="flex items-center gap-space-xs min-w-0">
+<span class="relative flex h-3 w-3 shrink-0">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-container opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-tertiary"></span>
+</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">KA Monitor Dapur Aktif</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">14:42:18 WIB • Sync LAN OK</span>
+</div>
+</div>
+<button aria-label="Toggle Audio Bell" class="min-h-[44px] px-space-sm bg-surface-container-highest rounded-lg flex items-center gap-1.5 text-primary hover:bg-secondary-container transition-all active:scale-95 shrink-0" id="chimeBtn" onclick="toggleChime()" type="button">
+<span class="material-symbols-outlined text-[20px] text-tertiary" id="chimeIcon">volume_up</span>
+<span class="font-label-caps text-label-caps text-on-surface" id="chimeText">Chime ON</span>
+</button>
+</div>
+<!-- Priority Status Counter Strip -->
+<div class="grid grid-cols-3 gap-space-xs w-full">
+<div class="bg-error-container/40 p-2.5 rounded-lg flex flex-col items-center justify-center text-center">
+<span class="font-label-caps text-label-caps text-error tracking-wider uppercase">KRITIS (&gt;15m)</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-on-error-container mt-0.5">1 Tiket</span>
+</div>
+<div class="bg-surface-container-high p-2.5 rounded-lg flex flex-col items-center justify-center text-center">
+<span class="font-label-caps text-label-caps text-primary tracking-wider uppercase">PERINGATAN</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-primary mt-0.5">3 Tiket</span>
+</div>
+<div class="bg-surface-container-high p-2.5 rounded-lg flex flex-col items-center justify-center text-center">
+<span class="font-label-caps text-label-caps text-tertiary tracking-wider uppercase">SEDANG MASAK</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-tertiary mt-0.5">5 Tiket</span>
+</div>
+</div>
+<!-- Station Filter Carousel Pills -->
+<div class="flex items-center gap-space-xs overflow-x-auto no-scrollbar py-1 -mx-space-sm px-space-sm">
+<button class="min-h-[44px] px-4 rounded-full bg-primary-container text-on-primary-container font-headline-sm text-body-md whitespace-nowrap shadow-sm font-bold" type="button">
+      Semua (9)
+    </button>
+<button class="min-h-[44px] px-4 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high font-headline-sm text-body-md whitespace-nowrap transition-colors" type="button">
+      Bakaran (4)
+    </button>
+<button class="min-h-[44px] px-4 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high font-headline-sm text-body-md whitespace-nowrap transition-colors" type="button">
+      Gorengan (3)
+    </button>
+<button class="min-h-[44px] px-4 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high font-headline-sm text-body-md whitespace-nowrap transition-colors" type="button">
+      Minuman (2)
+    </button>
+</div>
+<!-- Priority Filter Bar -->
+<div class="w-full bg-surface-container-low px-space-sm py-2 rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-error">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span class="font-label-caps text-label-caps font-bold tracking-tight">PRIORITAS: Tiket Kritis &amp; Terlama</span>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">Urut: Terlama</span>
+</div>
+<!-- TICKET CARDS FEED -->
+<div class="flex flex-col gap-space-md w-full">
+<!-- Ticket 1: CRITICAL LATENCY -->
+<article class="w-full bg-surface-container rounded-xl shadow-xl overflow-hidden flex flex-col">
+<!-- High Latency Urgent Header -->
+<div class="bg-error-container px-space-sm py-2.5 flex items-center justify-between text-on-error-container">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] animate-pulse text-error">warning</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-error font-bold">KRITIS: Tertunda</span>
+</div>
+<div class="flex items-center gap-1 font-label-numeric-md text-label-numeric-md text-error bg-surface-container-lowest/80 px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+<span>16m 45s</span>
+</div>
+</div>
+<!-- Ticket Identity Subhead -->
+<div class="p-space-sm bg-surface-container-high flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-numeric-lg text-label-numeric-lg text-primary tracking-wide">#A1021</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">DINE IN • Meja 08</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="px-2 py-1 rounded bg-secondary-container text-on-secondary-container font-label-caps text-label-caps font-semibold">Staf: Dimas</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary mt-0.5">14:25 WIB</span>
+</div>
+</div>
+<!-- Ticket Content Body (Kitchen Readable High-Contrast Size) -->
+<div class="p-space-sm flex flex-col gap-3">
+<!-- Item 1 -->
+<div class="flex items-start justify-between gap-space-sm py-1 cursor-pointer active:opacity-60" onclick="toggleItemDone(this)">
+<div class="flex items-start gap-2.5 min-w-0">
+<span class="w-8 h-8 rounded-lg bg-primary-container text-on-primary-container font-label-numeric-md text-label-numeric-md font-bold flex items-center justify-center shrink-0">3x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md text-on-surface font-bold leading-snug">Sate Taichan Paha</span>
+<span class="font-headline-sm text-headline-sm text-error font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">local_fire_department</span> Level Pedas Gila
+              </span>
+</div>
+</div>
+<button aria-label="Ceklis Item" class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary hover:text-tertiary shrink-0" type="button">
+<span class="material-symbols-outlined text-[24px]">check</span>
+</button>
+</div>
+<!-- Item 2 -->
+<div class="flex items-start justify-between gap-space-sm py-1 cursor-pointer active:opacity-60" onclick="toggleItemDone(this)">
+<div class="flex items-start gap-2.5 min-w-0">
+<span class="w-8 h-8 rounded-lg bg-primary-container text-on-primary-container font-label-numeric-md text-label-numeric-md font-bold flex items-center justify-center shrink-0">2x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md text-on-surface font-bold leading-snug">Lontong Daun Spesial</span>
+<span class="font-body-md text-body-md text-secondary">Potong Dadu Standar</span>
+</div>
+</div>
+<button aria-label="Ceklis Item" class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary hover:text-tertiary shrink-0" type="button">
+<span class="material-symbols-outlined text-[24px]">check</span>
+</button>
+</div>
+<!-- Special Notes Box -->
+<div class="p-3 bg-secondary-container/40 rounded-xl flex items-start gap-2 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">sticky_note_2</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps uppercase text-primary font-bold">Catatan Khusus Tamu</span>
+<p class="font-headline-sm text-headline-sm font-semibold leading-tight text-on-surface">Sambal dipisah mangkuk, tamu minta dipercepat.</p>
+</div>
+</div>
+<!-- Huge Touch Action Button -->
+<button class="mt-2 w-full min-h-[56px] py-3.5 px-4 rounded-xl bg-primary-container hover:bg-on-primary text-on-primary-container font-headline-md text-headline-md font-bold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-transform" onclick="completeTicket(this, 'A1021')" type="button">
+<span class="material-symbols-outlined text-[26px]">check_circle</span>
+<span>TANDAI SIAP SAJI</span>
+</button>
+</div>
+</article>
+<!-- Ticket 2: WARNING LATENCY -->
+<article class="w-full bg-surface-container rounded-xl shadow-xl overflow-hidden flex flex-col">
+<!-- Amber Header -->
+<div class="bg-surface-container-highest px-space-sm py-2.5 flex items-center justify-between text-on-surface">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-primary">schedule</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-primary font-bold">PERINGATAN MASAK</span>
+</div>
+<div class="flex items-center gap-1 font-label-numeric-md text-label-numeric-md text-primary bg-surface-container-lowest px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+<span>11m 12s</span>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container-high flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-numeric-lg text-label-numeric-lg text-primary tracking-wide">#A1024</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">DINE IN • Meja 12</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="px-2 py-1 rounded bg-secondary-container text-on-secondary-container font-label-caps text-label-caps font-semibold">Staf: Ratna</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary mt-0.5">14:31 WIB</span>
+</div>
+</div>
+<div class="p-space-sm flex flex-col gap-3">
+<!-- Item 1 -->
+<div class="flex items-start justify-between gap-space-sm py-1 cursor-pointer active:opacity-60" onclick="toggleItemDone(this)">
+<div class="flex items-start gap-2.5 min-w-0">
+<span class="w-8 h-8 rounded-lg bg-surface-container-highest text-on-surface font-label-numeric-md text-label-numeric-md font-bold flex items-center justify-center shrink-0">2x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md text-on-surface font-bold leading-snug">Ayam Geprek Pedas</span>
+<span class="font-headline-sm text-headline-sm text-error font-semibold">Level 3 (Cabe Rawit 15)</span>
+</div>
+</div>
+<button aria-label="Ceklis Item" class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary hover:text-tertiary shrink-0" type="button">
+<span class="material-symbols-outlined text-[24px]">check</span>
+</button>
+</div>
+<!-- Item 2 -->
+<div class="flex items-start justify-between gap-space-sm py-1 cursor-pointer active:opacity-60" onclick="toggleItemDone(this)">
+<div class="flex items-start gap-2.5 min-w-0">
+<span class="w-8 h-8 rounded-lg bg-surface-container-highest text-on-surface font-label-numeric-md text-label-numeric-md font-bold flex items-center justify-center shrink-0">1x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md text-on-surface font-bold leading-snug">Taichan Campur</span>
+<span class="font-body-md text-body-md text-secondary">Extra Bumbu Bubuk Asin Gurih</span>
+</div>
+</div>
+<button aria-label="Ceklis Item" class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary hover:text-tertiary shrink-0" type="button">
+<span class="material-symbols-outlined text-[24px]">check</span>
+</button>
+</div>
+<!-- Item 3 -->
+<div class="flex items-start justify-between gap-space-sm py-1 cursor-pointer active:opacity-60" onclick="toggleItemDone(this)">
+<div class="flex items-start gap-2.5 min-w-0">
+<span class="w-8 h-8 rounded-lg bg-surface-container-highest text-on-surface font-label-numeric-md text-label-numeric-md font-bold flex items-center justify-center shrink-0">2x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md text-on-surface font-bold leading-snug">Es Jeruk Peras Murni</span>
+<span class="font-body-md text-body-md text-tertiary font-semibold">Gula Normal • Es Sedang</span>
+</div>
+</div>
+<button aria-label="Ceklis Item" class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary hover:text-tertiary shrink-0" type="button">
+<span class="material-symbols-outlined text-[24px]">check</span>
+</button>
+</div>
+<!-- Cook / Process Trigger -->
+<button class="mt-2 w-full min-h-[56px] py-3.5 px-4 rounded-xl bg-surface-container-high hover:bg-surface-bright text-primary font-headline-md text-headline-md font-bold flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-transform" onclick="startCooking(this)" type="button">
+<span class="material-symbols-outlined text-[24px]">skillet</span>
+<span>👨‍🍳 MULAI MASAK</span>
+</button>
+</div>
+</article>
+<!-- Ticket 3: TAKE AWAY / NORMAL FLOW -->
+<article class="w-full bg-surface-container rounded-xl shadow-xl overflow-hidden flex flex-col">
+<!-- Fresh Green Status Header -->
+<div class="bg-surface-container-highest px-space-sm py-2.5 flex items-center justify-between text-on-surface">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-tertiary">check_circle</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-tertiary font-bold">NORMAL ANTREAN</span>
+</div>
+<div class="flex items-center gap-1 font-label-numeric-md text-label-numeric-md text-tertiary bg-surface-container-lowest px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+<span>03m 20s</span>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container-high flex items-center justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-numeric-lg text-label-numeric-lg text-tertiary-fixed-dim tracking-wide">#B208</span>
+<span class="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary font-label-caps text-[10px] font-bold">BUNGKUS</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">TAKE AWAY • Antrean #04</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="px-2 py-1 rounded bg-secondary-container text-on-secondary-container font-label-caps text-label-caps font-semibold">Kasir Depan</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary mt-0.5">14:39 WIB</span>
+</div>
+</div>
+<div class="p-space-sm flex flex-col gap-3">
+<!-- Item 1 -->
+<div class="flex items-start justify-between gap-space-sm py-1 cursor-pointer active:opacity-60" onclick="toggleItemDone(this)">
+<div class="flex items-start gap-2.5 min-w-0">
+<span class="w-8 h-8 rounded-lg bg-surface-container-highest text-on-surface font-label-numeric-md text-label-numeric-md font-bold flex items-center justify-center shrink-0">4x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md text-on-surface font-bold leading-snug">Sate Kulit Crispy</span>
+<span class="font-body-md text-body-md text-secondary">Goreng Kering • Bumbu Manis Gurih</span>
+</div>
+</div>
+<button aria-label="Ceklis Item" class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary hover:text-tertiary shrink-0" type="button">
+<span class="material-symbols-outlined text-[24px]">check</span>
+</button>
+</div>
+<!-- Item 2 -->
+<div class="flex items-start justify-between gap-space-sm py-1 cursor-pointer active:opacity-60" onclick="toggleItemDone(this)">
+<div class="flex items-start gap-2.5 min-w-0">
+<span class="w-8 h-8 rounded-lg bg-surface-container-highest text-on-surface font-label-numeric-md text-label-numeric-md font-bold flex items-center justify-center shrink-0">2x</span>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md text-on-surface font-bold leading-snug">Nasi Putih Pulen</span>
+<span class="font-body-md text-body-md text-secondary">Bungkus Daun Pisang</span>
+</div>
+</div>
+<button aria-label="Ceklis Item" class="w-11 h-11 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary hover:text-tertiary shrink-0" type="button">
+<span class="material-symbols-outlined text-[24px]">check</span>
+</button>
+</div>
+<!-- Button Action -->
+<button class="mt-2 w-full min-h-[56px] py-3.5 px-4 rounded-xl bg-surface-container-high hover:bg-surface-bright text-primary font-headline-md text-headline-md font-bold flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-transform" onclick="startCooking(this)" type="button">
+<span class="material-symbols-outlined text-[24px]">skillet</span>
+<span>👨‍🍳 MULAI MASAK</span>
+</button>
+</div>
+</article>
+<!-- Ticket 4: READY / WAITING FOR RUNNER -->
+<article class="w-full bg-surface-container rounded-xl shadow-xl overflow-hidden flex flex-col opacity-90">
+<!-- Waiting Expediter Header -->
+<div class="bg-secondary-container px-space-sm py-2.5 flex items-center justify-between text-on-secondary-container">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-tertiary-fixed-dim">room_service</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-on-secondary font-bold">SUDAH SIAP • Menunggu Pelayan</span>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">Pemanas #2</span>
+</div>
+<div class="p-space-sm bg-surface-container-high flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-numeric-lg text-label-numeric-lg text-secondary tracking-wide line-through">#A1026</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">DINE IN • Meja 03</span>
+</div>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">done_all</span>
+<span class="font-label-caps text-label-caps font-bold">Lengkap 3 Menu</span>
+</div>
+</div>
+<div class="p-space-sm flex flex-col gap-2">
+<div class="p-2.5 rounded-lg bg-surface-container-lowest flex items-center justify-between text-secondary font-body-md text-body-md line-through">
+<span>1x Bebek Goreng Kremes Sambal Korek</span>
+<span class="font-label-numeric-sm text-label-numeric-sm">Siap</span>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container-lowest flex items-center justify-between text-secondary font-body-md text-body-md line-through">
+<span>2x Es Teh Manis Jumbo</span>
+<span class="font-label-numeric-sm text-label-numeric-sm">Siap</span>
+</div>
+<!-- Handover Action -->
+<button class="mt-2 w-full min-h-[52px] py-3 px-4 rounded-xl bg-tertiary-container hover:bg-tertiary text-on-tertiary-container font-headline-sm text-headline-sm font-bold flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-transform" onclick="completeTicket(this, 'A1026')" type="button">
+<span class="material-symbols-outlined text-[22px]">handshake</span>
+<span>SERAHKAN KE PRAMUSAJI</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Real-Time Audio Trigger Feedback Notification (Toast) -->
+<div class="fixed bottom-20 left-4 right-4 bg-surface-container-highest text-on-surface px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between transition-all duration-300 opacity-0 pointer-events-none translate-y-4 z-40" id="kitchenToast">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]" id="toastIcon">notification_important</span>
+<span class="font-headline-sm text-body-md" id="toastMessage">Bel Dapur Berbunyi: Pesanan Baru #A1029</span>
+</div>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary">Tadi</span>
+</div>
+</div>
+<script>
+  let chimeActive = true;
+
+  function toggleChime() {
+    chimeActive = !chimeActive;
+    const chimeIcon = document.getElementById('chimeIcon');
+    const chimeText = document.getElementById('chimeText');
+    const chimeBtn = document.getElementById('chimeBtn');
+
+    if (chimeActive) {
+      chimeIcon.textContent = 'volume_up';
+      chimeIcon.className = 'material-symbols-outlined text-[20px] text-tertiary';
+      chimeText.textContent = 'Chime ON';
+      showToast('Bel Dapur AKTIF (Chime ON)', 'volume_up');
+    } else {
+      chimeIcon.textContent = 'volume_off';
+      chimeIcon.className = 'material-symbols-outlined text-[20px] text-error';
+      chimeText.textContent = 'Muted';
+      showToast('Bel Dapur DINONAKTIFKAN (Senyap)', 'volume_off');
+    }
+  }
+
+  function toggleItemDone(row) {
+    const checkBtn = row.querySelector('button span');
+    const titleText = row.querySelector('.font-headline-md');
+
+    if (titleText.classList.contains('line-through')) {
+      titleText.classList.remove('line-through', 'opacity-40');
+      checkBtn.textContent = 'check';
+      checkBtn.classList.remove('text-tertiary');
+      checkBtn.classList.add('text-secondary');
+    } else {
+      titleText.classList.add('line-through', 'opacity-40');
+      checkBtn.textContent = 'check_circle';
+      checkBtn.classList.remove('text-secondary');
+      checkBtn.classList.add('text-tertiary');
+    }
+  }
+
+  function startCooking(btn) {
+    btn.innerHTML = '<span class="material-symbols-outlined text-[24px] animate-spin">refresh</span><span>SEDANG DIMASAK...</span>';
+    btn.className = 'mt-2 w-full min-h-[56px] py-3.5 px-4 rounded-xl bg-tertiary/20 text-tertiary font-headline-md text-headline-md font-bold flex items-center justify-center gap-2 shadow-md';
+    showToast('Status diperbarui: Sedang Dimasak 🍳', 'skillet');
+  }
+
+  function completeTicket(btn, ticketId) {
+    const card = btn.closest('article');
+    card.classList.add('transition-all', 'duration-500', 'scale-95', 'opacity-0');
+    setTimeout(() => {
+      card.remove();
+      showToast('Tiket #' + ticketId + ' Selesai & Diserahkan! ✨', 'verified');
+    }, 450);
+  }
+
+  function showToast(msg, icon = 'info') {
+    const toast = document.getElementById('kitchenToast');
+    const toastMsg = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+
+    toastMsg.textContent = msg;
+    toastIcon.textContent = icon;
+    toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+    toast.classList.add('opacity-100', 'translate-y-0');
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+      toast.classList.remove('opacity-100', 'translate-y-0');
+    }, 2800);
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.5)]" data-active-classes="text-primary-container bg-surface-container-high/60"><div class="flex justify-around items-center h-16 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-2 py-1 rounded-xl transition-all gap-0.5 text-primary-container bg-surface-container-high/60" data-path="pesanan-aktif" href="#"><span class="material-symbols-outlined text-[22px]">kitchen</span><span class="font-label-caps text-[10px] tracking-normal">Aktif</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-2 py-1 rounded-xl text-on-surface-variant hover:text-on-surface transition-all gap-0.5" data-path="antrean-ekspedisi" href="#"><span class="material-symbols-outlined text-[22px]">local_shipping</span><span class="font-label-caps text-[10px] tracking-normal">Ekspedisi</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-2 py-1 rounded-xl text-on-surface-variant hover:text-on-surface transition-all gap-0.5" data-path="stok-baku" href="#"><span class="material-symbols-outlined text-[22px]">inventory_2</span><span class="font-label-caps text-[10px] tracking-normal">Bahan</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-2 py-1 rounded-xl text-on-surface-variant hover:text-on-surface transition-all gap-0.5" data-path="riwayat-selesai" href="#"><span class="material-symbols-outlined text-[22px]">check_circle</span><span class="font-label-caps text-[10px] tracking-normal">Selesai</span></a></div></nav></body></html>
