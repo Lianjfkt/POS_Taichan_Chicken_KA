@@ -811,26 +811,52 @@
         </button>
       </div>
       <div class="modal-body">
-        <label class="form-label">Tingkat Kepedasan Sambal Taichan</label>
+        <!-- Spicy Level -->
+        <label class="form-label">Tingkat Kepedasan</label>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;">
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.0 (Ori)">Lv.0 (Ori)</button>
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.1 (Sedang)">Lv.1 (Sedang)</button>
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.2 (Pedas)">Lv.2 (Pedas)</button>
-          <button type="button" class="btn btn-secondary mod-level-btn active" data-level="Lv.3 (Nendang)">Lv.3 (Nendang)</button>
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.4 (Gahar)">Lv.4 (Gahar)</button>
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.5 (Mampus)">🔥 Lv.5 (Mampus)</button>
+          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.0 (Ori)" data-price="0">Lv.0 (Ori)</button>
+          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.1 (Sedang)" data-price="0">Lv.1</button>
+          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.2 (Pedas)" data-price="0">Lv.2</button>
+          <button type="button" class="btn btn-secondary mod-level-btn active" data-level="Lv.3 (Nendang)" data-price="0">Lv.3 (Nendang)</button>
+          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.4 (Gahar)" data-price="0">Lv.4</button>
+          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.5 (Mampus)" data-price="2000">🔥 Lv.5 (+2rb)</button>
+        </div>
+
+        <!-- Toppings / Add-ons -->
+        <label class="form-label">Topping &amp; Tambahan (Opsional)</label>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:8px;margin-bottom:18px;">
+          <label style="display:flex;align-items:center;gap:8px;background:var(--surface-container-low);padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;border:1px solid rgba(255,255,255,0.06);font-size:12px;font-weight:600;">
+            <input type="checkbox" class="mod-topping-cb" data-topping="Ekstra Sambal" data-price="3000">
+            <span>Ekstra Sambal (+3rb)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;background:var(--surface-container-low);padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;border:1px solid rgba(255,255,255,0.06);font-size:12px;font-weight:600;">
+            <input type="checkbox" class="mod-topping-cb" data-topping="Ekstra Jeruk Nipis" data-price="1000">
+            <span>Ekstra Jeruk (+1rb)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;background:var(--surface-container-low);padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;border:1px solid rgba(255,255,255,0.06);font-size:12px;font-weight:600;">
+            <input type="checkbox" class="mod-topping-cb" data-topping="Bawang Goreng" data-price="2000">
+            <span>Bawang Goreng (+2rb)</span>
+          </label>
+        </div>
+
+        <!-- Quick Tags for Notes -->
+        <label class="form-label">Catatan Cepat</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+          <button type="button" class="btn btn-secondary mod-tag-btn" data-tag="Tanpa Micin" style="font-size:11px;padding:4px 10px;">Tanpa Micin</button>
+          <button type="button" class="btn btn-secondary mod-tag-btn" data-tag="Bumbu Dipisah" style="font-size:11px;padding:4px 10px;">Bumbu Dipisah</button>
+          <button type="button" class="btn btn-secondary mod-tag-btn" data-tag="Sedikit Es" style="font-size:11px;padding:4px 10px;">Sedikit Es</button>
+          <button type="button" class="btn btn-secondary mod-tag-btn" data-tag="Manis Sedang" style="font-size:11px;padding:4px 10px;">Manis Sedang</button>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Catatan Tambahan (Sambal Pisah, Bawang Banyak, dst.)</label>
-          <input type="text" id="modifier-custom-notes" class="form-input" placeholder="Tulis catatan khusus dapur...">
+          <input type="text" id="modifier-custom-notes" class="form-input" placeholder="Tulis catatan khusus tambahan...">
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary btn-modal-cancel">Batal</button>
         <button type="button" class="btn btn-primary" id="btn-save-modifier">
           <span class="material-symbols-outlined">shopping_cart</span>
-          Tambah ke Keranjang
+          <span>Tambah ke Keranjang — <strong id="modifier-total-price" class="font-mono">Rp 0</strong></span>
         </button>
       </div>
     </div>

@@ -7,7 +7,9 @@ class POSView {
     this.selectedCategory = 'all';
     this.searchQuery = '';
     this.activeProductForModifier = null;
-    this.selectedModifierLevel = 'Lv.3';
+    this.selectedModifierLevel = 'Lv.3 (Nendang)';
+    this.selectedModifierLevelExtra = 0;
+    this.selectedToppings = [];
     this.modifierNotes = '';
   }
 
@@ -98,6 +100,33 @@ class POSView {
         document.querySelectorAll('.mod-level-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.selectedModifierLevel = btn.getAttribute('data-level');
+        this.selectedModifierLevelExtra = Number(btn.getAttribute('data-price')) || 0;
+        this.updateModifierTotalPrice();
+      };
+    });
+
+    // Modifier Toppings Checkboxes
+    document.querySelectorAll('.mod-topping-cb').forEach(cb => {
+      cb.onchange = () => {
+        this.selectedToppings = Array.from(document.querySelectorAll('.mod-topping-cb:checked')).map(el => ({
+          nm: el.getAttribute('data-topping'),
+          price: Number(el.getAttribute('data-price')) || 0
+        }));
+        this.updateModifierTotalPrice();
+      };
+    });
+
+    // Modifier Quick Tags
+    document.querySelectorAll('.mod-tag-btn').forEach(btn => {
+      btn.onclick = () => {
+        const tag = btn.getAttribute('data-tag');
+        const notesInput = document.getElementById('modifier-custom-notes');
+        if (notesInput) {
+          const curr = notesInput.value.trim();
+          if (!curr.includes(tag)) {
+            notesInput.value = curr ? `${curr}, ${tag}` : tag;
+          }
+        }
       };
     });
 
@@ -107,15 +136,27 @@ class POSView {
       btnSaveMod.onclick = () => {
         if (!this.activeProductForModifier) return;
         const notesInput = document.getElementById('modifier-custom-notes');
-        const notes = notesInput ? notesInput.value.trim() : '';
+        const customNotes = notesInput ? notesInput.value.trim() : '';
+
+        const toppingsTotal = this.selectedToppings.reduce((sum, t) => sum + t.price, 0);
+        const extraPrice = this.selectedModifierLevelExtra + toppingsTotal;
+
+        const parts = [];
+        if (this.selectedToppings.length > 0) {
+          parts.push(this.selectedToppings.map(t => t.nm).join(', '));
+        }
+        if (customNotes) {
+          parts.push(customNotes);
+        }
 
         window.State.addToCart(this.activeProductForModifier, {
           level: this.selectedModifierLevel,
-          notes: notes
+          notes: parts.join(' • '),
+          extraPrice: extraPrice
         });
 
         this.closeModifierModal();
-        window.State.toast(`Ditambahkan: ${this.activeProductForModifier.nm} (${this.selectedModifierLevel})`, 'success');
+        window.State.toast(`+1 ${this.activeProductForModifier.nm} (${this.selectedModifierLevel})`, 'success');
       };
     }
   }
@@ -227,7 +268,9 @@ class POSView {
 
   openModifierModal(product) {
     this.activeProductForModifier = product;
-    this.selectedModifierLevel = product.lv || 'Lv.3';
+    this.selectedModifierLevel = product.lv || 'Lv.3 (Nendang)';
+    this.selectedModifierLevelExtra = 0;
+    this.selectedToppings = [];
 
     const titleEl = document.getElementById('modifier-product-name');
     const priceEl = document.getElementById('modifier-product-price');
@@ -238,16 +281,29 @@ class POSView {
     if (priceEl) priceEl.textContent = window.State.formatRp(product.hr);
     if (notesInput) notesInput.value = '';
 
+    // Reset toppings checkboxes
+    document.querySelectorAll('.mod-topping-cb').forEach(cb => cb.checked = false);
+
     // Set active button for level
     document.querySelectorAll('.mod-level-btn').forEach(btn => {
-      if (btn.getAttribute('data-level') === this.selectedModifierLevel) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
+      const match = btn.getAttribute('data-level').startsWith(this.selectedModifierLevel.split(' ')[0]);
+      btn.classList.toggle('active', match);
+      if (match) {
+        this.selectedModifierLevel = btn.getAttribute('data-level');
+        this.selectedModifierLevelExtra = Number(btn.getAttribute('data-price')) || 0;
       }
     });
 
+    this.updateModifierTotalPrice();
     if (modal) modal.classList.add('open');
+  }
+
+  updateModifierTotalPrice() {
+    if (!this.activeProductForModifier) return;
+    const toppingsTotal = this.selectedToppings.reduce((sum, t) => sum + t.price, 0);
+    const total = Number(this.activeProductForModifier.hr) + this.selectedModifierLevelExtra + toppingsTotal;
+    const totalEl = document.getElementById('modifier-total-price');
+    if (totalEl) totalEl.textContent = window.State.formatRp(total);
   }
 
   closeModifierModal() {
