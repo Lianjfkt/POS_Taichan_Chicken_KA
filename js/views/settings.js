@@ -204,7 +204,7 @@ class SettingsView {
         <td style="padding:10px 14px;font-weight:700">${st.nm}</td>
         <td style="padding:10px 14px;color:var(--secondary)">@${st.user}</td>
         <td style="padding:10px 14px">
-          <span class="status-pill ${st.role === 'owner' ? 'online' : 'syncing'}" style="font-size:10px;padding:2px 8px">
+          <span class="badge ${st.role === 'owner' ? 'primary' : 'info'}">
             ${st.role.toUpperCase()}
           </span>
         </td>

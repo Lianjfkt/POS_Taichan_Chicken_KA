@@ -219,7 +219,7 @@ class ReportsView {
         <td class="font-mono" style="padding:10px 14px;font-weight:700;color:var(--primary)">${t.no}</td>
         <td style="padding:10px 14px;color:var(--secondary);font-size:12px">${window.State.formatDate(t.tgl)}</td>
         <td style="padding:10px 14px">
-          <span class="status-pill online" style="font-size:10px;padding:2px 8px">${(t.tipe || 'dine-in').toUpperCase()}</span>
+          <span class="badge info">${(t.tipe || 'dine-in').toUpperCase()}</span>
           ${t.meja ? `<span style="font-size:11px;margin-left:4px;color:var(--secondary)">M-${t.meja}</span>` : ''}
         </td>
         <td style="padding:10px 14px;font-size:12px">${(t.items || []).map(i => `${i.nm} (${i.qty})`).join(', ')}</td>

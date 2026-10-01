@@ -57,8 +57,8 @@ class AuthView {
       };
     });
 
-    // Keypad PIN buttons
-    document.querySelectorAll('.keypad-btn').forEach(btn => {
+    // Keypad PIN buttons (.pin-btn from Stitch design & .keypad-btn)
+    document.querySelectorAll('.pin-btn, .keypad-btn').forEach(btn => {
       btn.onclick = () => {
         const val = btn.getAttribute('data-val');
         this.handleKeypadInput(val);

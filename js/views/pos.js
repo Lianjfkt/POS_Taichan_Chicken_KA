@@ -149,11 +149,13 @@ class POSView {
     const products = window.State.products.filter(p => p.on !== false);
     const totalCount = products.length;
 
-    let html = `
+    let html = `<div class="zone-a-label">Kategori Menu</div>`;
+
+    html += `
       <button class="cat-pill ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="window.POSView.selectCategory('all')">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="material-symbols-outlined">restaurant_menu</span>
-          <span>Semua Menu</span>
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+          <span class="material-symbols-outlined cat-icon">restaurant_menu</span>
+          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Semua Menu</span>
         </div>
         <span class="cat-count">${totalCount}</span>
       </button>
@@ -165,9 +167,9 @@ class POSView {
       const isActive = this.selectedCategory === cat.nm;
       html += `
         <button class="cat-pill ${isActive ? 'active' : ''}" onclick="window.POSView.selectCategory('${cat.nm}')">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:16px">${cat.emj || '🍽️'}</span>
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cat.nm}</span>
+          <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+            <span class="cat-icon">${cat.emj || '🍽️'}</span>
+            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cat.nm}</span>
           </div>
           <span class="cat-count">${count}</span>
         </button>
@@ -211,21 +213,25 @@ class POSView {
       return;
     }
 
-    grid.innerHTML = list.map(p => `
-      <div class="product-card" onclick="window.POSView.handleProductClick(${p.id})">
-        <div class="product-img-box">
-          ${p.emj || '🍢'}
-          ${p.lv ? `<span style="position:absolute;top:6px;right:6px;background:rgba(249,115,22,0.9);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">${p.lv}</span>` : ''}
+    grid.innerHTML = list.map(p => {
+      const isUnavailable = p.habis === true;
+      return `
+        <div class="product-card ${isUnavailable ? 'unavailable' : ''}" onclick="window.POSView.handleProductClick(${p.id})" style="${isUnavailable ? 'opacity:0.5;cursor:not-allowed;' : ''}">
+          <div class="product-img-box">
+            <span style="font-size:${p.emj ? '32' : '28'}px;">${p.emj || '🍢'}</span>
+            ${isUnavailable ? '<span class="product-badge out">HABIS</span>' : ''}
+            ${p.lv && !isUnavailable ? `<span class="product-badge" style="background:rgba(249,115,22,0.85);color:#fff;">${p.lv}</span>` : ''}
+          </div>
+          <div class="product-title">${p.nm}</div>
+          <div class="product-foot">
+            <span class="product-price">${window.State.formatRp(p.hr)}</span>
+            <button class="add-btn" ${isUnavailable ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''} onclick="event.stopPropagation();window.POSView.handleProductClick(${p.id})">
+              <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+            </button>
+          </div>
         </div>
-        <div class="product-title">${p.nm}</div>
-        <div class="product-foot">
-          <span class="product-price">${window.State.formatRp(p.hr)}</span>
-          <button class="add-btn" onclick="event.stopPropagation();window.POSView.handleProductClick(${p.id})">
-            <span class="material-symbols-outlined" style="font-size:18px">add</span>
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   handleProductClick(productId) {
@@ -285,10 +291,10 @@ class POSView {
 
       if (cart.length === 0) {
         container.innerHTML = `
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:180px;color:var(--secondary);opacity:0.6;text-align:center">
-            <span class="material-symbols-outlined" style="font-size:42px;margin-bottom:8px">shopping_cart</span>
-            <div style="font-weight:600;font-size:13px">Keranjang Kosong</div>
-            <div style="font-size:11px">Pilih menu dari katalog di sebelah kiri</div>
+          <div class="cart-empty">
+            <span class="material-symbols-outlined" style="font-size:44px;opacity:0.35;">shopping_cart</span>
+            <div style="font-weight:700;font-size:14px;">Keranjang Kosong</div>
+            <div style="font-size:12px;">Pilih menu dari katalog</div>
           </div>
         `;
         return;
@@ -296,24 +302,27 @@ class POSView {
 
       container.innerHTML = cart.map((item, idx) => `
         <div class="cart-item">
-          <div class="cart-item-top">
-            <div class="cart-item-title">${item.nm}</div>
-            <button class="qty-btn" style="color:var(--error)" onclick="window.State.updateCartQty(${idx}, -${item.qty})">
-              <span class="material-symbols-outlined" style="font-size:16px">close</span>
+          <div class="cart-item-header">
+            <span class="cart-item-qty-badge">${item.qty}x</span>
+            <div style="flex:1;min-width:0;">
+              <div class="cart-item-title">${item.nm}</div>
+              ${item.mod ? `<div class="cart-item-mod"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">local_fire_department</span> ${item.mod}</div>` : ''}
+            </div>
+            <button class="cart-item-delete" onclick="window.State.updateCartQty(${idx}, -${item.qty})" title="Hapus">
+              <span class="material-symbols-outlined" style="font-size:18px;">close</span>
             </button>
           </div>
-          ${item.mod ? `<div class="cart-item-mod"><span class="material-symbols-outlined" style="font-size:13px">local_fire_department</span> ${item.mod}</div>` : ''}
-          <div class="cart-item-bot">
-            <span class="font-mono" style="font-weight:700;color:var(--primary);font-size:13px">${window.State.formatRp(item.hr * item.qty)}</span>
+          <div class="cart-item-footer">
             <div class="cart-qty-ctrl">
               <button class="qty-btn" onclick="window.State.updateCartQty(${idx}, -1)">
-                <span class="material-symbols-outlined" style="font-size:14px">remove</span>
+                <span class="material-symbols-outlined" style="font-size:14px;">remove</span>
               </button>
               <span class="qty-val">${item.qty}</span>
               <button class="qty-btn" onclick="window.State.updateCartQty(${idx}, 1)">
-                <span class="material-symbols-outlined" style="font-size:14px">add</span>
+                <span class="material-symbols-outlined" style="font-size:14px;">add</span>
               </button>
             </div>
+            <span class="cart-item-price">${window.State.formatRp(item.hr * item.qty)}</span>
           </div>
         </div>
       `).join('');
@@ -359,6 +368,13 @@ class POSView {
       } else {
         pill.classList.remove('has-items');
       }
+    }
+  }
+
+  openMobileCartDrawer() {
+    const drawer = document.getElementById('mobile-cart-drawer');
+    if (drawer) {
+      drawer.classList.add('open');
     }
   }
 

@@ -239,7 +239,7 @@ class ShiftView {
     }
     if (badgeEl) {
       badgeEl.textContent = `REKONSILIASI: ${report.status}`;
-      badgeEl.className = `status-pill ${report.status === 'PAS' ? 'online' : (report.status === 'LEBIH' ? 'syncing' : 'offline')}`;
+      badgeEl.className = `badge ${report.status === 'PAS' ? 'success' : (report.status === 'LEBIH' ? 'warning' : 'error')}`;
     }
 
     if (modal) modal.classList.add('open');
@@ -286,7 +286,7 @@ class ShiftView {
         <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
           <td style="padding:10px 14px;color:var(--secondary)">${new Date(log.tgl).toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})}</td>
           <td style="padding:10px 14px">
-            <span class="status-pill ${log.tipe === 'masuk' ? 'online' : 'offline'}" style="font-size:10px;padding:2px 8px">
+            <span class="badge ${log.tipe === 'masuk' ? 'success' : 'error'}">
               ${log.tipe.toUpperCase()}
             </span>
           </td>

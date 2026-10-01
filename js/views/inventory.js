@@ -75,7 +75,7 @@ class InventoryView {
               </td>
               <td class="font-mono" style="padding:12px 16px;font-weight:700;color:${isCritical ? 'var(--error)' : 'var(--on-surface)'}">
                 ${item.stok} ${item.sat}
-                ${isCritical ? '<span class="status-pill offline" style="font-size:9px;margin-left:6px;padding:2px 6px">KRITIS</span>' : ''}
+                ${isCritical ? '<span class="badge error" style="margin-left:6px;">KRITIS</span>' : ''}
               </td>
               <td class="font-mono" style="padding:12px 16px;color:var(--secondary)">${item.min} ${item.sat}</td>
               <td class="font-mono" style="padding:12px 16px;color:var(--primary)">${window.State.formatRp(item.hr)}</td>

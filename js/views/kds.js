@@ -90,7 +90,26 @@ class KDSView {
     const grid = document.getElementById('kds-tickets-grid');
     if (!grid) return;
 
-    let orders = window.State.kitchenOrders.filter(o => o.status !== 'selesai');
+    const countAll = window.State.kitchenOrders.filter(o => o.status !== 'selesai');
+    const getStationCount = (st) => countAll.filter(order => (order.items || []).some(item => {
+      const cat = (item.kat || '').toLowerCase();
+      const nm  = (item.nm || '').toLowerCase();
+      if (st === 'bakaran')  return cat.includes('taichan') || nm.includes('taichan');
+      if (st === 'gorengan') return cat.includes('chicken') || nm.includes('chicken') || nm.includes('crispy');
+      if (st === 'minuman')  return cat.includes('minuman') || nm.includes('es ') || nm.includes('teh');
+      return false;
+    })).length;
+
+    const elCountAll = document.getElementById('kds-count-all');
+    const elCountBakaran = document.getElementById('kds-count-bakaran');
+    const elCountGorengan = document.getElementById('kds-count-gorengan');
+    const elCountMinuman = document.getElementById('kds-count-minuman');
+    if (elCountAll) elCountAll.textContent = countAll.length;
+    if (elCountBakaran) elCountBakaran.textContent = getStationCount('bakaran');
+    if (elCountGorengan) elCountGorengan.textContent = getStationCount('gorengan');
+    if (elCountMinuman) elCountMinuman.textContent = getStationCount('minuman');
+
+    let orders = [...countAll];
 
     // Filter by cooking station if not 'all'
     if (this.selectedStation !== 'all') {
@@ -137,8 +156,8 @@ class KDSView {
         <div class="kds-ticket ${cardClass}" id="ticket-${order.id}">
           <div class="ticket-head">
             <div>
-              <div class="ticket-table">${order.meja ? `MEJA ${order.meja}` : 'TAKE AWAY'}</div>
-              <div style="font-size:11px;color:var(--secondary)">#${order.id} • ${order.tipe || 'Dine-In'}</div>
+              <div class="ticket-table-num">${order.meja ? `MEJA ${order.meja}` : 'TAKE AWAY'}</div>
+              <div class="ticket-order-type">#${order.id} • ${order.tipe || 'Dine-In'}</div>
             </div>
             <div class="ticket-timer ${urgencyClass}" data-created="${order.waktu || Date.now()}">
               <span class="material-symbols-outlined" style="font-size:14px">timer</span>
@@ -147,18 +166,18 @@ class KDSView {
           </div>
           <div class="ticket-items">
             ${(order.items || []).map(item => `
-              <div class="ticket-row">
+              <div class="ticket-item">
                 <div>
                   <span>${item.nm}</span>
-                  ${item.mod ? `<span class="ticket-mod-tag">🔥 ${item.mod}</span>` : ''}
+                  ${item.mod ? `<span class="ticket-item-mods">🔥 ${item.mod}</span>` : ''}
                 </div>
-                <span class="font-mono" style="font-weight:700;padding-left:8px">${item.qty}x</span>
+                <span class="ticket-item-qty">${item.qty}x</span>
               </div>
             `).join('')}
           </div>
           <div class="ticket-foot">
-            <button class="btn-done-order" onclick="window.KDSView.completeOrder('${order.id}')">
-              <span class="material-symbols-outlined">check_circle</span>
+            <button type="button" class="btn-done-ticket" onclick="window.KDSView.completeOrder('${order.id}')">
+              <span class="material-symbols-outlined" style="font-size:18px;">check_circle</span>
               <span>Siap Saji / Selesai</span>
             </button>
           </div>
