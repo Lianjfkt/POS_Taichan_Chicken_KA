@@ -172,10 +172,6 @@
             <span class="material-symbols-outlined" style="font-size:24px;">account_balance_wallet</span>
             <span class="nav-label">Shift</span>
           </a>
-          <a class="nav-item" data-view="kds" title="Kitchen Display System">
-            <span class="material-symbols-outlined" style="font-size:24px;">soup_kitchen</span>
-            <span class="nav-label">Dapur</span>
-          </a>
           <a class="nav-item owner-only" data-view="inventory" title="Inventaris & Stok">
             <span class="material-symbols-outlined" style="font-size:24px;">inventory_2</span>
             <span class="nav-label">Stok</span>
@@ -293,19 +289,6 @@
                       <span>Ojol</span>
                     </button>
                   </div>
-
-                  <!-- Table Selector (Dine-in only) -->
-                  <div class="table-selector-bar" id="pos-table-selector-bar">
-                    <span class="material-symbols-outlined" style="font-size:17px;color:var(--primary);">pin</span>
-                    <span style="font-size:12px;color:var(--secondary);font-weight:600;">Meja:</span>
-                    <input type="text" id="pos-table-input" class="table-num-input" value="08">
-                    <div style="display:flex;gap:3px;">
-                      <button class="quick-table-btn" data-table="01">M-01</button>
-                      <button class="quick-table-btn" data-table="04">M-04</button>
-                      <button class="quick-table-btn active" data-table="08">M-08</button>
-                      <button class="quick-table-btn" data-table="12">M-12</button>
-                    </div>
-                  </div>
                 </div>
 
                 <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:400px;justify-content:flex-end;">
@@ -347,19 +330,6 @@
                     <span class="material-symbols-outlined" style="font-size:14px;">two_wheeler</span>
                     <span>Ojol</span>
                   </button>
-                </div>
-
-                <!-- Table Bar (Dine-in) -->
-                <div class="table-selector-bar" id="pos-table-selector-bar-cart" style="border-radius:var(--radius-md);">
-                  <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">pin</span>
-                  <span style="font-size:12px;color:var(--secondary);">No. Meja:</span>
-                  <input type="text" id="pos-table-input-cart" class="table-num-input" value="08">
-                  <div style="display:flex;gap:2px;">
-                    <button class="quick-table-btn" data-table="01">01</button>
-                    <button class="quick-table-btn" data-table="04">04</button>
-                    <button class="quick-table-btn active" data-table="08">08</button>
-                    <button class="quick-table-btn" data-table="12">12</button>
-                  </div>
                 </div>
               </div>
 
@@ -478,51 +448,6 @@
                 <tbody id="shift-cash-log-tbody"></tbody>
               </table>
             </div>
-          </div>
-        </section>
-
-        <!-- =====================================================
-             VIEW 3: KITCHEN DISPLAY SYSTEM (KDS)
-        ===================================================== -->
-        <section id="view-kds" class="view-pane">
-          <div class="kds-layout">
-            <div class="kds-header">
-              <div class="kds-station-tabs" id="kds-station-tabs-container">
-                <button type="button" class="kds-tab active" data-station="all">
-                  <span class="material-symbols-outlined" style="font-size:16px;">kitchen</span>
-                  <span>Semua Stasiun</span>
-                  <span class="kds-tab-count" id="kds-count-all">0</span>
-                </button>
-                <button type="button" class="kds-tab" data-station="bakaran">
-                  <span class="material-symbols-outlined" style="font-size:16px;">local_fire_department</span>
-                  <span>Bakaran Sate</span>
-                  <span class="kds-tab-count" id="kds-count-bakaran">0</span>
-                </button>
-                <button type="button" class="kds-tab" data-station="gorengan">
-                  <span class="material-symbols-outlined" style="font-size:16px;">skillet</span>
-                  <span>Gorengan Ayam</span>
-                  <span class="kds-tab-count" id="kds-count-gorengan">0</span>
-                </button>
-                <button type="button" class="kds-tab" data-station="minuman">
-                  <span class="material-symbols-outlined" style="font-size:16px;">local_cafe</span>
-                  <span>Bar Minuman</span>
-                  <span class="kds-tab-count" id="kds-count-minuman">0</span>
-                </button>
-              </div>
-
-              <div style="display:flex;align-items:center;gap:8px;">
-                <button type="button" class="btn btn-secondary" id="btn-kds-test-audio" style="font-size:12px;">
-                  <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">notifications_active</span>
-                  <span class="hidden-sm">Tes Bel</span>
-                </button>
-                <button type="button" class="btn btn-secondary" id="btn-kds-fullscreen" style="font-size:12px;padding:7px;" title="Layar Penuh" onclick="document.documentElement.requestFullscreen && document.documentElement.requestFullscreen()">
-                  <span class="material-symbols-outlined" style="font-size:16px;">fullscreen</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Ticket Grid -->
-            <div class="kds-grid" id="kds-tickets-grid"></div>
           </div>
         </section>
 
@@ -826,10 +751,6 @@
         <span class="material-symbols-outlined" style="font-size:22px;">account_balance_wallet</span>
         <span>Shift</span>
       </div>
-      <div class="mobile-nav-item" data-view="kds">
-        <span class="material-symbols-outlined" style="font-size:22px;">soup_kitchen</span>
-        <span>Dapur</span>
-      </div>
       <div class="mobile-nav-item owner-only" data-view="inventory">
         <span class="material-symbols-outlined" style="font-size:22px;">inventory_2</span>
         <span>Stok</span>
@@ -837,6 +758,10 @@
       <div class="mobile-nav-item owner-only" data-view="reports">
         <span class="material-symbols-outlined" style="font-size:22px;">analytics</span>
         <span>Laporan</span>
+      </div>
+      <div class="mobile-nav-item owner-only" data-view="settings">
+        <span class="material-symbols-outlined" style="font-size:22px;">settings</span>
+        <span>Setting</span>
       </div>
     </nav>
   </div><!-- /screen-app -->
@@ -1011,7 +936,7 @@
         </div>
         <div style="font-size:22px;font-weight:800;color:var(--on-surface);">Pembayaran Berhasil!</div>
         <div style="font-size:13px;color:var(--secondary);margin-top:6px;">
-          Nota <strong id="success-order-no" style="color:var(--primary);font-family:var(--font-mono);">KA-000000</strong> dicatat &amp; diteruskan ke Dapur.
+          Nota <strong id="success-order-no" style="color:var(--primary);font-family:var(--font-mono);">KA-000000</strong> berhasil dicatat &amp; disimpan.
         </div>
 
         <!-- Summary -->
@@ -1425,7 +1350,6 @@
   <script src="js/views/auth.js"></script>
   <script src="js/views/pos.js"></script>
   <script src="js/views/payment.js"></script>
-  <script src="js/views/kds.js"></script>
   <script src="js/views/shift.js"></script>
   <script src="js/views/inventory.js"></script>
   <script src="js/views/reports.js"></script>

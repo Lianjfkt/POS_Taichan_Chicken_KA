@@ -151,7 +151,6 @@ class PaymentView {
       kembali: change,
       metode: this.selectedMethod,
       tipe: window.State.orderType,
-      meja: window.State.orderType === 'dine-in' ? window.State.tableNo : '',
       kasir: cashierName
     };
 
@@ -159,20 +158,7 @@ class PaymentView {
     window.State.transactions.unshift(transaction);
     window.State.save(LS_KEYS.trx, window.State.transactions);
 
-    // 2. Dispatch to Kitchen Display System (KDS)
-    const kdsTicket = {
-      id: orderNumber,
-      meja: transaction.meja || (transaction.tipe === 'dine-in' ? 'Meja' : 'Take Away'),
-      tipe: transaction.tipe,
-      items: orderItems,
-      status: 'menunggu',
-      waktu: Date.now()
-    };
-    window.State.kitchenOrders.unshift(kdsTicket);
-    window.State.save(LS_KEYS.dp, window.State.kitchenOrders);
-    window.State.emit('kds:new_order', kdsTicket);
-
-    // 3. Deduct Inventory Ingredients
+    // 2. Deduct Inventory Ingredients
     this.deductInventory(orderItems);
 
     // 4. Push to Cloud or Queue

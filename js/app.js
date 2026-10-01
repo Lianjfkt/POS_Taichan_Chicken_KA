@@ -109,8 +109,6 @@ class AppRouter {
     if (viewName === 'pos' && window.POSView) {
       window.POSView.renderProducts();
       window.POSView.renderCart();
-    } else if (viewName === 'kds' && window.KDSView) {
-      window.KDSView.render();
     } else if (viewName === 'shift' && window.ShiftView) {
       window.ShiftView.render();
     } else if (viewName === 'inventory' && window.InventoryView) {

@@ -55,38 +55,16 @@ class POSView {
       };
     }
 
-    // Order Type buttons
+    // Order Type buttons (Dine In / Bungkus / Ojol)
     document.querySelectorAll('.btn-order-type').forEach(btn => {
       btn.onclick = () => {
-        document.querySelectorAll('.btn-order-type').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        window.State.orderType = btn.getAttribute('data-type');
-        const tableBar = document.getElementById('pos-table-selector-bar');
-        if (tableBar) {
-          tableBar.style.display = window.State.orderType === 'dine-in' ? 'flex' : 'none';
-        }
+        const type = btn.getAttribute('data-type');
+        document.querySelectorAll('.btn-order-type').forEach(b => {
+          b.classList.toggle('active', b.getAttribute('data-type') === type);
+        });
+        window.State.orderType = type;
       };
     });
-
-    // Quick Table number pills
-    document.querySelectorAll('.quick-table-btn').forEach(btn => {
-      btn.onclick = () => {
-        const tableNo = btn.getAttribute('data-table');
-        const input = document.getElementById('pos-table-input');
-        if (input) input.value = tableNo;
-        window.State.tableNo = tableNo;
-        document.querySelectorAll('.quick-table-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      };
-    });
-
-    // Table input change
-    const tableInput = document.getElementById('pos-table-input');
-    if (tableInput) {
-      tableInput.oninput = (e) => {
-        window.State.tableNo = e.target.value.trim();
-      };
-    }
 
     // Checkout button
     const btnCheckout = document.getElementById('btn-pos-checkout');

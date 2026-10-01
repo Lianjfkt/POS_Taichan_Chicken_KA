@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kapos-v3-cache-v2';
+const CACHE_NAME = 'kapos-v3-cache-v3';
 const ASSETS = [
   '/',
   'index.html',
@@ -10,7 +10,6 @@ const ASSETS = [
   'js/views/auth.js',
   'js/views/pos.js',
   'js/views/payment.js',
-  'js/views/kds.js',
   'js/views/shift.js',
   'js/views/inventory.js',
   'js/views/reports.js',
