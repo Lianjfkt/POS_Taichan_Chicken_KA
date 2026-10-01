@@ -401,24 +401,27 @@ body { display: flex; flex-direction: column; }
 /* ── View Container ── */
 .view-container {
   flex: 1; display: flex; flex-direction: column;
-  overflow: hidden; position: relative;
+  overflow: hidden; position: relative; min-height: 0;
 }
 .view-pane {
-  display: none; flex: 1; height: 100%; width: 100%; overflow-y: auto;
+  display: none !important; flex: 1; height: 100%; width: 100%; overflow: hidden; min-height: 0;
 }
-.view-pane.active { display: flex; }
+.view-pane.active { display: flex !important; }
 
-/* Padding view for scrollable content */
-.view-scroll {
-  padding: 20px; display: flex; flex-direction: column; gap: 16px;
-  overflow-y: auto; flex: 1;
+/* Padding view for scrollable content (applies only when active) */
+.view-pane.view-scroll {
+  padding: 20px; display: none !important; flex-direction: column; gap: 16px;
+  overflow-y: auto !important; flex: 1; min-height: 0;
+}
+.view-pane.view-scroll.active {
+  display: flex !important;
 }
 
 /* -----------------------------------------------------------------
    3-ZONE VELOCITY POS LAYOUT
 ----------------------------------------------------------------- */
 .pos-layout {
-  display: flex; width: 100%; height: 100%; overflow: hidden;
+  display: flex; width: 100%; height: 100%; overflow: hidden; min-height: 0;
 }
 
 /* Zone A — Category Rail */
@@ -478,7 +481,7 @@ body { display: flex; flex-direction: column; }
 /* Zone B — Product Grid */
 .zone-b {
   flex: 1; display: flex; flex-direction: column;
-  height: 100%; overflow: hidden;
+  height: 100%; overflow: hidden; min-width: 0; min-height: 0;
   background: var(--surface);
 }
 
@@ -672,7 +675,7 @@ body { display: flex; flex-direction: column; }
   background: var(--surface-container-lowest);
   border-left: 1px solid rgba(255, 255, 255, 0.06);
   display: flex; flex-direction: column;
-  height: 100%; flex-shrink: 0; z-index: 20;
+  height: 100%; flex-shrink: 0; z-index: 20; min-height: 0;
   box-shadow: -2px 0 12px rgba(0, 0, 0, 0.2);
 }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kapos-v3-cache-v1';
+const CACHE_NAME = 'kapos-v3-cache-v2';
 const ASSETS = [
   '/',
   'index.html',
