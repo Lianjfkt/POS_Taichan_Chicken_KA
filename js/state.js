@@ -252,6 +252,8 @@ class StateManager {
     } catch {
       return plain;
     }
+  }
+
   // --- Recipe BOM & HPP Calculation ---
   calculateProductHPP(product) {
     if (!product) return 0;

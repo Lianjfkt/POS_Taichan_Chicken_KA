@@ -14,6 +14,7 @@ class ShiftView {
       1000: 0,
       coin: 0
     };
+    this.lastClosedReport = null;
   }
 
   init() {
@@ -170,6 +171,47 @@ class ShiftView {
     return total;
   }
 
+  getShiftFinancialSummary(shift) {
+    if (!shift) return null;
+
+    const starterCash = Number(shift.modalAwal) || 0;
+    const shiftLogs = (window.State.cashLog || []).filter(l => l.tgl >= shift.mulai);
+    const shiftTrx = (window.State.transactions || []).filter(t => t.tgl >= shift.mulai);
+
+    const cashSales = shiftLogs.filter(l => l.kat === 'Penjualan POS').reduce((s, l) => s + l.jml, 0);
+    const nonCashSales = shiftTrx.filter(t => t.metode !== 'cash').reduce((s, t) => s + (t.total || 0), 0);
+    const cashInOther = shiftLogs.filter(l => l.tipe === 'masuk' && l.kat !== 'Modal Awal Kasir' && l.kat !== 'Penjualan POS').reduce((s, l) => s + l.jml, 0);
+    const cashOut = shiftLogs.filter(l => l.tipe === 'keluar').reduce((s, l) => s + l.jml, 0);
+
+    const expectedSystemCash = starterCash + cashSales + cashInOther - cashOut;
+
+    return {
+      shiftId: shift.id,
+      kasir: shift.staf,
+      mulai: shift.mulai,
+      modalAwal: starterCash,
+      omzetTunai: cashSales,
+      omzetNonTunai: nonCashSales,
+      totalMasuk: cashInOther,
+      totalKeluar: cashOut,
+      saldoSistem: expectedSystemCash,
+      trxCount: shiftTrx.length
+    };
+  }
+
+  printXReport() {
+    const shift = window.State.activeShift;
+    if (!shift) {
+      window.State.toast('Tidak ada shift aktif yang berjalan!', 'error');
+      return;
+    }
+
+    const data = this.getShiftFinancialSummary(shift);
+    if (window.PrinterService) {
+      window.PrinterService.printShiftReport(data, 'X');
+    }
+  }
+
   submitBlindCount() {
     const physicalCash = this.updateBlindCountTotal();
     const shift = window.State.activeShift;
@@ -179,32 +221,22 @@ class ShiftView {
       return;
     }
 
-    // Calculate expected system balance
-    const starterCash = Number(shift.modalAwal) || 0;
-    const shiftLogs = window.State.cashLog.filter(l => l.tgl >= shift.mulai);
-    const cashIn = shiftLogs.filter(l => l.tipe === 'masuk').reduce((s, l) => s + l.jml, 0);
-    const cashOut = shiftLogs.filter(l => l.tipe === 'keluar').reduce((s, l) => s + l.jml, 0);
-    const expectedSystemCash = (starterCash + cashIn) - cashOut;
-
-    const discrepancy = physicalCash - expectedSystemCash;
+    const summary = this.getShiftFinancialSummary(shift);
+    const discrepancy = physicalCash - summary.saldoSistem;
     let statusDiscrepancy = 'PAS';
     if (discrepancy > 0) statusDiscrepancy = 'LEBIH';
     if (discrepancy < 0) statusDiscrepancy = 'KURANG';
 
     const closedReport = {
-      shiftId: shift.id,
-      kasir: shift.staf,
-      mulai: shift.mulai,
+      ...summary,
       selesai: Date.now(),
-      modalAwal: starterCash,
-      totalMasuk: cashIn,
-      totalKeluar: cashOut,
-      saldoSistem: expectedSystemCash,
       uangFisik: physicalCash,
       selisih: discrepancy,
       status: statusDiscrepancy,
       breakdown: { ...this.blindCountBreakdown }
     };
+
+    this.lastClosedReport = closedReport;
 
     // Close shift
     window.State.activeShift = null;
@@ -242,6 +274,21 @@ class ShiftView {
       badgeEl.className = `badge ${report.status === 'PAS' ? 'success' : (report.status === 'LEBIH' ? 'warning' : 'error')}`;
     }
 
+    // Attach Z-Report Print & WhatsApp handlers
+    const btnPrintZ = document.getElementById('btn-recon-print-z');
+    const btnShareWa = document.getElementById('btn-recon-wa');
+
+    if (btnPrintZ) {
+      btnPrintZ.onclick = () => {
+        if (window.PrinterService) window.PrinterService.printShiftReport(report, 'Z');
+      };
+    }
+    if (btnShareWa) {
+      btnShareWa.onclick = () => {
+        if (window.PrinterService) window.PrinterService.shareShiftWhatsApp(report, 'Z');
+      };
+    }
+
     if (modal) modal.classList.add('open');
   }
 
@@ -259,11 +306,8 @@ class ShiftView {
     if (noShiftCard) noShiftCard.style.display = 'none';
     if (activeShiftCard) activeShiftCard.style.display = 'block';
 
-    const starterCash = Number(shift.modalAwal) || 0;
-    const shiftLogs = window.State.cashLog.filter(l => l.tgl >= shift.mulai);
-    const cashIn = shiftLogs.filter(l => l.tipe === 'masuk').reduce((s, l) => s + l.jml, 0);
-    const cashOut = shiftLogs.filter(l => l.tipe === 'keluar').reduce((s, l) => s + l.jml, 0);
-    const estimatedTotal = (starterCash + cashIn) - cashOut;
+    const summary = this.getShiftFinancialSummary(shift);
+    const shiftLogs = (window.State.cashLog || []).filter(l => l.tgl >= shift.mulai);
 
     const nameEl = document.getElementById('shift-active-staff');
     const timeEl = document.getElementById('shift-active-time');
@@ -274,15 +318,15 @@ class ShiftView {
 
     if (nameEl) nameEl.textContent = shift.staf;
     if (timeEl) timeEl.textContent = window.State.formatDate(shift.mulai);
-    if (startEl) startEl.textContent = window.State.formatRp(starterCash);
-    if (inEl) inEl.textContent = window.State.formatRp(cashIn);
-    if (outEl) outEl.textContent = window.State.formatRp(cashOut);
-    if (estEl) estEl.textContent = window.State.formatRp(estimatedTotal);
+    if (startEl) startEl.textContent = window.State.formatRp(summary.modalAwal);
+    if (inEl) inEl.textContent = window.State.formatRp(summary.omzetTunai + summary.totalMasuk);
+    if (outEl) outEl.textContent = window.State.formatRp(summary.totalKeluar);
+    if (estEl) estEl.textContent = window.State.formatRp(summary.saldoSistem);
 
     // Render Cash Log table
     const logTableBody = document.getElementById('shift-cash-log-tbody');
     if (logTableBody) {
-      logTableBody.innerHTML = shiftLogs.slice(0, 20).map(log => `
+      logTableBody.innerHTML = shiftLogs.slice(0, 25).map(log => `
         <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
           <td style="padding:10px 14px;color:var(--secondary)">${new Date(log.tgl).toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})}</td>
           <td style="padding:10px 14px">
