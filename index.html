@@ -463,7 +463,7 @@
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <div class="pos-search-wrapper" style="max-width:240px;">
                 <span class="material-symbols-outlined pos-search-icon">search</span>
-                <input type="text" id="inventory-search" class="pos-search-input" placeholder="Cari bahan baku...">
+                <input type="text" id="inventory-search" class="pos-search-input" placeholder="Cari bahan / menu...">
               </div>
               <button class="btn btn-secondary" onclick="window.InventoryView && window.InventoryView.render();document.getElementById('fast-stock-modal').classList.add('open');">
                 <span class="material-symbols-outlined" style="font-size:16px;color:var(--warning);">bolt</span>
@@ -476,8 +476,20 @@
             </div>
           </div>
 
-          <!-- Inventory Table -->
-          <div class="section-card" style="flex:1;display:flex;flex-direction:column;">
+          <!-- Inventory Subtabs -->
+          <div style="display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:10px;">
+            <button type="button" class="btn btn-secondary active inv-subtab-btn" data-tab="raw">
+              <span class="material-symbols-outlined" style="font-size:16px;">inventory_2</span>
+              <span>Bahan Baku &amp; Stok Fisik</span>
+            </button>
+            <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="bom">
+              <span class="material-symbols-outlined" style="font-size:16px;">receipt_long</span>
+              <span>Resep Menu &amp; HPP (BOM)</span>
+            </button>
+          </div>
+
+          <!-- Tab 1: Raw Ingredients Table -->
+          <div id="inventory-raw-tab" class="section-card" style="flex:1;display:flex;flex-direction:column;">
             <div style="overflow-y:auto;flex:1;">
               <table class="data-table">
                 <thead>
@@ -492,6 +504,25 @@
                   </tr>
                 </thead>
                 <tbody id="inventory-table-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 2: Recipe BOM & HPP Table -->
+          <div id="inventory-bom-tab" class="section-card" style="flex:1;display:none;flex-direction:column;">
+            <div style="overflow-y:auto;flex:1;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Menu Produk</th>
+                    <th>Komposisi Resep (BOM)</th>
+                    <th>Estimasi HPP</th>
+                    <th>Harga Jual</th>
+                    <th>Margin Laba</th>
+                    <th style="text-align:right;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-bom-tbody"></tbody>
               </table>
             </div>
           </div>
@@ -1311,6 +1342,50 @@
             <span class="material-symbols-outlined">add</span>
             Tambah Bahan
           </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       MODAL: EDIT RECIPE (BOM)
+  ================================================================= -->
+  <div class="modal-overlay" id="edit-recipe-modal">
+    <div class="modal-card" style="max-width:540px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Pengaturan Resep &amp; BOM</div>
+          <div class="modal-subtitle" id="edit-recipe-product-name">Menu Produk</div>
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="edit-recipe-form">
+        <input type="hidden" id="edit-recipe-product-id">
+        <div class="modal-body">
+          <div style="background:var(--surface-container-low);padding:14px;border-radius:var(--radius-md);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.06);">
+            <div>
+              <div style="font-size:11px;color:var(--secondary);font-weight:700;text-transform:uppercase;">Estimasi HPP (Modal)</div>
+              <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--primary);margin-top:2px;" id="edit-recipe-live-hpp">Rp 0</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;color:var(--secondary);font-weight:700;text-transform:uppercase;">Harga Jual Produk</div>
+              <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--on-surface);margin-top:2px;" id="edit-recipe-sell-price">Rp 0</div>
+            </div>
+          </div>
+
+          <label class="form-label">Komposisi Bahan Baku (per porsi penjualan):</label>
+          <div id="recipe-ingredients-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;max-height:220px;overflow-y:auto;"></div>
+
+          <button type="button" class="btn btn-secondary" id="btn-add-recipe-row" style="width:100%;font-size:12px;padding:8px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">add_circle</span>
+            Tambah Bahan ke Resep
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Resep Menu</button>
         </div>
       </form>
     </div>

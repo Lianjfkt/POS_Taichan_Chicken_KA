@@ -31,16 +31,16 @@ const DEFAULT_CATEGORIES = [
 ];
 
 const DEFAULT_PRODUCTS = [
-  { id: 1, nm: 'Taichan Pedas Lv.3', kat: 'Taichan', hr: 18000, md: 10000, emj: '🍢', lv: 'Lv.3', on: true },
-  { id: 2, nm: 'Taichan Original', kat: 'Taichan', hr: 15000, md: 8500, emj: '🍢', lv: '', on: true },
-  { id: 3, nm: 'Taichan Jumbo Lv.2', kat: 'Taichan', hr: 22000, md: 12000, emj: '🍢', lv: 'Lv.2', on: true },
-  { id: 4, nm: 'Chicken Crispy', kat: 'Chicken', hr: 20000, md: 11000, emj: '🍗', lv: '', on: true },
-  { id: 5, nm: 'Chicken Pedas Lv.1', kat: 'Chicken', hr: 20000, md: 11000, emj: '🍗', lv: 'Lv.1', on: true },
-  { id: 6, nm: 'Es Teh Manis', kat: 'Minuman', hr: 5000, md: 1500, emj: '🧊', lv: '', on: true },
-  { id: 7, nm: 'Es Jeruk', kat: 'Minuman', hr: 7000, md: 2500, emj: '🍊', lv: '', on: true },
-  { id: 8, nm: 'Air Mineral', kat: 'Minuman', hr: 4000, md: 1200, emj: '💧', lv: '', on: true },
-  { id: 9, nm: 'Nasi Putih', kat: 'Nasi', hr: 5000, md: 1800, emj: '🍚', lv: '', on: true },
-  { id: 10, nm: 'Nasi Goreng', kat: 'Nasi', hr: 18000, md: 9000, emj: '🍳', lv: '', on: true }
+  { id: 1, nm: 'Taichan Pedas Lv.3', kat: 'Taichan', hr: 18000, md: 5600, emj: '🍢', lv: 'Lv.3', on: true, bom: [{ invId: 1, qty: 0.15 }, { invId: 2, qty: 0.10 }] },
+  { id: 2, nm: 'Taichan Original', kat: 'Taichan', hr: 15000, md: 5440, emj: '🍢', lv: '', on: true, bom: [{ invId: 1, qty: 0.15 }, { invId: 2, qty: 0.08 }] },
+  { id: 3, nm: 'Taichan Jumbo Lv.2', kat: 'Taichan', hr: 22000, md: 8000, emj: '🍢', lv: 'Lv.2', on: true, bom: [{ invId: 1, qty: 0.22 }, { invId: 2, qty: 0.12 }] },
+  { id: 4, nm: 'Chicken Crispy', kat: 'Chicken', hr: 20000, md: 7300, emj: '🍗', lv: '', on: true, bom: [{ invId: 1, qty: 0.20 }, { invId: 3, qty: 0.05 }] },
+  { id: 5, nm: 'Chicken Pedas Lv.1', kat: 'Chicken', hr: 20000, md: 7700, emj: '🍗', lv: 'Lv.1', on: true, bom: [{ invId: 1, qty: 0.20 }, { invId: 3, qty: 0.05 }, { invId: 2, qty: 0.05 }] },
+  { id: 6, nm: 'Es Teh Manis', kat: 'Minuman', hr: 5000, md: 950, emj: '🧊', lv: '', on: true, bom: [{ invId: 4, qty: 1 }, { invId: 5, qty: 0.15 }] },
+  { id: 7, nm: 'Es Jeruk', kat: 'Minuman', hr: 7000, md: 950, emj: '🍊', lv: '', on: true, bom: [{ invId: 4, qty: 1 }, { invId: 5, qty: 0.15 }] },
+  { id: 8, nm: 'Air Mineral', kat: 'Minuman', hr: 4000, md: 1200, emj: '💧', lv: '', on: true, bom: [] },
+  { id: 9, nm: 'Nasi Putih', kat: 'Nasi', hr: 5000, md: 1800, emj: '🍚', lv: '', on: true, bom: [] },
+  { id: 10, nm: 'Nasi Goreng', kat: 'Nasi', hr: 18000, md: 540, emj: '🍳', lv: '', on: true, bom: [{ invId: 3, qty: 0.03 }] }
 ];
 
 const DEFAULT_INVENTORY = [
@@ -78,9 +78,16 @@ class StateManager {
     this.orderType = 'dine-in';
     this.tableNo = '08';
 
-    // Initialize raw datasets
     this.categories = this.load(LS_KEYS.kat, DEFAULT_CATEGORIES);
     this.products   = this.load(LS_KEYS.prod, DEFAULT_PRODUCTS);
+
+    // Ensure products have BOM arrays even if loaded from older localStorage
+    this.products.forEach(p => {
+      if (!p.bom) {
+        const def = DEFAULT_PRODUCTS.find(d => d.id === p.id);
+        p.bom = def && def.bom ? JSON.parse(JSON.stringify(def.bom)) : [];
+      }
+    });
     this.transactions = this.load(LS_KEYS.trx, []);
     this.cashLog    = this.load(LS_KEYS.kas, []);
     this.activeShift = this.load(LS_KEYS.sesi, null);
@@ -245,6 +252,20 @@ class StateManager {
     } catch {
       return plain;
     }
+  // --- Recipe BOM & HPP Calculation ---
+  calculateProductHPP(product) {
+    if (!product) return 0;
+    if (product.bom && Array.isArray(product.bom) && product.bom.length > 0) {
+      let sum = 0;
+      product.bom.forEach(b => {
+        const inv = this.inventory.find(i => i.id === b.invId);
+        if (inv) {
+          sum += (inv.hr || 0) * (b.qty || 0);
+        }
+      });
+      return Math.round(sum);
+    }
+    return product.md || 0;
   }
 }
 

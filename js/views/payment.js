@@ -192,22 +192,54 @@ class PaymentView {
   }
 
   deductInventory(items) {
-    items.forEach(item => {
-      // Find matching ingredient by name keywords
-      if (item.nm.toLowerCase().includes('taichan') || item.nm.toLowerCase().includes('chicken')) {
-        const meat = window.State.inventory.find(i => i.nm.toLowerCase().includes('daging'));
-        if (meat && meat.stok > 0) {
-          meat.stok = Math.max(0, +(meat.stok - (0.15 * item.qty)).toFixed(2));
+    let anyDeducted = false;
+    items.forEach(cartItem => {
+      const product = window.State.products.find(p => p.id === cartItem.id);
+      if (product && product.bom && product.bom.length > 0) {
+        product.bom.forEach(b => {
+          const invItem = window.State.inventory.find(i => i.id === b.invId);
+          if (invItem) {
+            const deductQty = +(b.qty * (cartItem.qty || 1)).toFixed(3);
+            invItem.stok = Math.max(0, +(invItem.stok - deductQty).toFixed(3));
+            anyDeducted = true;
+
+            // Log mutation
+            window.State.stockMutations.unshift({
+              id: Date.now() + Math.random(),
+              tgl: Date.now(),
+              invId: invItem.id,
+              nm: invItem.nm,
+              tipe: 'keluar',
+              jml: deductQty,
+              sat: invItem.sat,
+              ket: `POS: ${cartItem.qty}x ${cartItem.nm}`,
+              staf: window.State.currentUser ? window.State.currentUser.nm : 'Kasir'
+            });
+          }
+        });
+      } else {
+        // Fallback deduction
+        if (cartItem.nm.toLowerCase().includes('taichan') || cartItem.nm.toLowerCase().includes('chicken')) {
+          const meat = window.State.inventory.find(i => i.nm.toLowerCase().includes('daging'));
+          if (meat && meat.stok > 0) {
+            meat.stok = Math.max(0, +(meat.stok - (0.15 * cartItem.qty)).toFixed(2));
+            anyDeducted = true;
+          }
         }
-      }
-      if (item.kat === 'Minuman') {
-        const cup = window.State.inventory.find(i => i.nm.toLowerCase().includes('cup'));
-        if (cup && cup.stok > 0) {
-          cup.stok = Math.max(0, cup.stok - item.qty);
+        if (cartItem.kat === 'Minuman') {
+          const cup = window.State.inventory.find(i => i.nm.toLowerCase().includes('cup'));
+          if (cup && cup.stok > 0) {
+            cup.stok = Math.max(0, cup.stok - cartItem.qty);
+            anyDeducted = true;
+          }
         }
       }
     });
-    window.State.save(LS_KEYS.inv, window.State.inventory);
+
+    if (anyDeducted) {
+      window.State.save(LS_KEYS.inv, window.State.inventory);
+      window.State.save(LS_KEYS.mut, window.State.stockMutations);
+    }
   }
 
   showSuccessModal(trx) {
