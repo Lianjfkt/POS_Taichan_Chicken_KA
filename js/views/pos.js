@@ -7,8 +7,7 @@ class POSView {
     this.selectedCategory = 'all';
     this.searchQuery = '';
     this.activeProductForModifier = null;
-    this.selectedModifierLevel = 'Lv.3 (Nendang)';
-    this.selectedModifierLevelExtra = 0;
+    this.selectedSambal = null; // { nm, hr }
     this.selectedToppings = [];
     this.modifierNotes = '';
   }
@@ -76,9 +75,32 @@ class POSView {
           window.State.toast('Keranjang masih kosong!', 'warning');
           return;
         }
+        this.syncCustomerName();
         if (window.PaymentView) {
           window.PaymentView.openPaymentModal();
         }
+      };
+    }
+
+    // Hold / Save Order button (desktop)
+    const btnHold = document.getElementById('btn-hold-cart');
+    if (btnHold) {
+      btnHold.onclick = () => this.saveCurrentOrder();
+    }
+
+    // Customer name sync between desktop and mobile
+    const nameDesktop = document.getElementById('pos-customer-name');
+    const nameMobile = document.getElementById('pos-customer-name-mobile');
+    if (nameDesktop) {
+      nameDesktop.oninput = () => {
+        window.State.currentCustomerName = nameDesktop.value.trim();
+        if (nameMobile) nameMobile.value = nameDesktop.value;
+      };
+    }
+    if (nameMobile) {
+      nameMobile.oninput = () => {
+        window.State.currentCustomerName = nameMobile.value.trim();
+        if (nameDesktop) nameDesktop.value = nameMobile.value;
       };
     }
 
@@ -93,17 +115,6 @@ class POSView {
     if (btnCloseDrawer) {
       btnCloseDrawer.onclick = () => this.closeMobileCartDrawer();
     }
-
-    // Modifier Level Buttons
-    document.querySelectorAll('.mod-level-btn').forEach(btn => {
-      btn.onclick = () => {
-        document.querySelectorAll('.mod-level-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.selectedModifierLevel = btn.getAttribute('data-level');
-        this.selectedModifierLevelExtra = Number(btn.getAttribute('data-price')) || 0;
-        this.updateModifierTotalPrice();
-      };
-    });
 
     // Modifier Toppings Checkboxes
     document.querySelectorAll('.mod-topping-cb').forEach(cb => {
@@ -139,24 +150,24 @@ class POSView {
         const customNotes = notesInput ? notesInput.value.trim() : '';
 
         const toppingsTotal = this.selectedToppings.reduce((sum, t) => sum + t.price, 0);
-        const extraPrice = this.selectedModifierLevelExtra + toppingsTotal;
+        const sambalPrice = this.selectedSambal ? (this.selectedSambal.hr || 0) : 0;
+        const extraPrice = toppingsTotal + sambalPrice;
 
         const parts = [];
+        if (this.selectedSambal) parts.push(this.selectedSambal.nm);
         if (this.selectedToppings.length > 0) {
           parts.push(this.selectedToppings.map(t => t.nm).join(', '));
         }
-        if (customNotes) {
-          parts.push(customNotes);
-        }
+        if (customNotes) parts.push(customNotes);
 
         window.State.addToCart(this.activeProductForModifier, {
-          level: this.selectedModifierLevel,
+          level: this.selectedSambal ? this.selectedSambal.nm : '',
           notes: parts.join(' • '),
           extraPrice: extraPrice
         });
 
         this.closeModifierModal();
-        window.State.toast(`+1 ${this.activeProductForModifier.nm} (${this.selectedModifierLevel})`, 'success');
+        window.State.toast(`+1 ${this.activeProductForModifier.nm}`, 'success');
       };
     }
   }
@@ -268,8 +279,7 @@ class POSView {
 
   openModifierModal(product) {
     this.activeProductForModifier = product;
-    this.selectedModifierLevel = product.lv || 'Lv.3 (Nendang)';
-    this.selectedModifierLevelExtra = 0;
+    this.selectedSambal = null;
     this.selectedToppings = [];
 
     const titleEl = document.getElementById('modifier-product-name');
@@ -284,15 +294,40 @@ class POSView {
     // Reset toppings checkboxes
     document.querySelectorAll('.mod-topping-cb').forEach(cb => cb.checked = false);
 
-    // Set active button for level
-    document.querySelectorAll('.mod-level-btn').forEach(btn => {
-      const match = btn.getAttribute('data-level').startsWith(this.selectedModifierLevel.split(' ')[0]);
-      btn.classList.toggle('active', match);
-      if (match) {
-        this.selectedModifierLevel = btn.getAttribute('data-level');
-        this.selectedModifierLevelExtra = Number(btn.getAttribute('data-price')) || 0;
+    // Populate dynamic sambal options
+    const sambalContainer = document.getElementById('modifier-sambal-options');
+    if (sambalContainer) {
+      const activeSambal = (window.State.sambalList || []).filter(s => s.aktif !== false);
+      if (activeSambal.length === 0) {
+        sambalContainer.innerHTML = `<div style="font-size:12px;color:var(--secondary);padding:4px 0;">Belum ada variasi sambal. Tambah di menu Stok &amp; Resep.</div>`;
+      } else {
+        sambalContainer.innerHTML = activeSambal.map(s => `
+          <button type="button" class="btn btn-secondary mod-sambal-btn"
+            data-sambal-id="${s.id}"
+            data-sambal-nm="${s.nm}"
+            data-sambal-hr="${s.hr || 0}"
+            style="font-size:12px;border-radius:var(--radius-pill);">
+            ${s.nm}${s.hr > 0 ? ` <span style="color:var(--primary);font-size:10px;">+${window.State.formatRp(s.hr)}</span>` : ''}
+          </button>
+        `).join('');
+
+        // Auto-select first sambal
+        const firstBtn = sambalContainer.querySelector('.mod-sambal-btn');
+        if (firstBtn) {
+          this.selectedSambal = { nm: firstBtn.getAttribute('data-sambal-nm'), hr: Number(firstBtn.getAttribute('data-sambal-hr')) };
+          firstBtn.classList.add('active');
+        }
+
+        sambalContainer.querySelectorAll('.mod-sambal-btn').forEach(btn => {
+          btn.onclick = () => {
+            sambalContainer.querySelectorAll('.mod-sambal-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            this.selectedSambal = { nm: btn.getAttribute('data-sambal-nm'), hr: Number(btn.getAttribute('data-sambal-hr')) };
+            this.updateModifierTotalPrice();
+          };
+        });
       }
-    });
+    }
 
     this.updateModifierTotalPrice();
     if (modal) modal.classList.add('open');
@@ -301,7 +336,8 @@ class POSView {
   updateModifierTotalPrice() {
     if (!this.activeProductForModifier) return;
     const toppingsTotal = this.selectedToppings.reduce((sum, t) => sum + t.price, 0);
-    const total = Number(this.activeProductForModifier.hr) + this.selectedModifierLevelExtra + toppingsTotal;
+    const sambalPrice = this.selectedSambal ? (this.selectedSambal.hr || 0) : 0;
+    const total = Number(this.activeProductForModifier.hr) + sambalPrice + toppingsTotal;
     const totalEl = document.getElementById('modifier-total-price');
     if (totalEl) totalEl.textContent = window.State.formatRp(total);
   }
@@ -373,17 +409,134 @@ class POSView {
       document.getElementById('mobile-drawer-total')
     ];
     const btnCheckout = document.getElementById('btn-pos-checkout');
+    const btnHold = document.getElementById('btn-hold-cart');
     const btnDrawerCheckout = document.getElementById('btn-drawer-checkout');
 
-    subtotalEls.forEach(el => {
-      if (el) el.textContent = window.State.formatRp(subtotal);
-    });
-    totalEls.forEach(el => {
-      if (el) el.textContent = window.State.formatRp(subtotal);
-    });
+    subtotalEls.forEach(el => { if (el) el.textContent = window.State.formatRp(subtotal); });
+    totalEls.forEach(el => { if (el) el.textContent = window.State.formatRp(subtotal); });
 
     if (btnCheckout) btnCheckout.disabled = cart.length === 0;
+    if (btnHold) btnHold.disabled = cart.length === 0;
     if (btnDrawerCheckout) btnDrawerCheckout.disabled = cart.length === 0;
+
+    // Update saved orders badge
+    this.updateSavedOrdersBadge();
+  }
+
+  syncCustomerName() {
+    const nameDesktop = document.getElementById('pos-customer-name');
+    const nameMobile = document.getElementById('pos-customer-name-mobile');
+    if (nameDesktop) window.State.currentCustomerName = nameDesktop.value.trim();
+    else if (nameMobile) window.State.currentCustomerName = nameMobile.value.trim();
+  }
+
+  clearCustomerNameInputs() {
+    const nameDesktop = document.getElementById('pos-customer-name');
+    const nameMobile = document.getElementById('pos-customer-name-mobile');
+    window.State.currentCustomerName = '';
+    if (nameDesktop) nameDesktop.value = '';
+    if (nameMobile) nameMobile.value = '';
+  }
+
+  saveCurrentOrder() {
+    if (window.State.cart.length === 0) {
+      window.State.toast('Keranjang kosong, tidak ada yang bisa disimpan!', 'warning');
+      return;
+    }
+    this.syncCustomerName();
+    const cashierName = window.State.currentUser ? window.State.currentUser.nm : 'Kasir';
+    const order = {
+      id: 'HOLD-' + Date.now(),
+      pelanggan: window.State.currentCustomerName || 'Umum',
+      tgl: Date.now(),
+      items: JSON.parse(JSON.stringify(window.State.cart)),
+      subtotal: window.State.getCartTotal(),
+      tipe: window.State.orderType,
+      staf: cashierName
+    };
+    window.State.saveOrder(order);
+    window.State.clearCart();
+    this.clearCustomerNameInputs();
+    this.closeMobileCartDrawer();
+    this.updateSavedOrdersBadge();
+    window.State.toast(`Order a.n. "${order.pelanggan}" berhasil disimpan!`, 'success');
+  }
+
+  openSavedOrdersModal() {
+    const modal = document.getElementById('saved-orders-modal');
+    const listEl = document.getElementById('saved-orders-list');
+    if (!modal || !listEl) return;
+
+    const orders = window.State.savedOrders || [];
+    if (orders.length === 0) {
+      listEl.innerHTML = `<div style="text-align:center;padding:32px;color:var(--secondary);"><span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px;">bookmark</span>Belum ada order yang disimpan</div>`;
+    } else {
+      listEl.innerHTML = orders.map(o => `
+        <div style="background:var(--surface-container-low);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div>
+              <div style="font-weight:800;font-size:14px;">a.n. ${o.pelanggan}</div>
+              <div style="font-size:11px;color:var(--secondary);">${new Date(o.tgl).toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})} · ${o.tipe || 'dine-in'} · ${o.staf}</div>
+            </div>
+            <div class="font-mono" style="font-size:15px;font-weight:800;color:var(--primary);">${window.State.formatRp(o.subtotal)}</div>
+          </div>
+          <div style="font-size:11px;color:var(--secondary);margin-bottom:10px;">${(o.items||[]).map(i=>`${i.nm} x${i.qty}`).join(', ')}</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" style="flex:1;height:36px;font-size:12px;" onclick="window.POSView.recallSavedOrder('${o.id}')">
+              <span class="material-symbols-outlined" style="font-size:16px;">shopping_cart</span>
+              Buka ke Keranjang
+            </button>
+            <button class="btn btn-danger" style="height:36px;padding:0 14px;font-size:12px;" onclick="window.POSView.deleteSavedOrder('${o.id}')">
+              <span class="material-symbols-outlined" style="font-size:16px;">delete</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+    modal.classList.add('open');
+  }
+
+  recallSavedOrder(orderId) {
+    const order = (window.State.savedOrders || []).find(o => o.id === orderId);
+    if (!order) return;
+
+    if (window.State.cart.length > 0) {
+      if (!confirm('Keranjang saat ini tidak kosong. Timpa dengan order tersimpan?')) return;
+    }
+
+    window.State.cart = JSON.parse(JSON.stringify(order.items));
+    window.State.orderType = order.tipe || 'dine-in';
+    window.State.currentCustomerName = order.pelanggan;
+
+    // Sync customer name to inputs
+    const nameDesktop = document.getElementById('pos-customer-name');
+    const nameMobile = document.getElementById('pos-customer-name-mobile');
+    if (nameDesktop) nameDesktop.value = order.pelanggan;
+    if (nameMobile) nameMobile.value = order.pelanggan;
+
+    window.State.removeSavedOrder(orderId);
+    window.State.emit('cart:change');
+
+    const modal = document.getElementById('saved-orders-modal');
+    if (modal) modal.classList.remove('open');
+
+    window.State.toast(`Order a.n. "${order.pelanggan}" dibuka ke keranjang!`, 'success');
+  }
+
+  deleteSavedOrder(orderId) {
+    window.State.removeSavedOrder(orderId);
+    this.updateSavedOrdersBadge();
+    this.openSavedOrdersModal(); // refresh list
+    window.State.toast('Order tersimpan dihapus.', 'warning');
+  }
+
+  updateSavedOrdersBadge() {
+    const count = (window.State.savedOrders || []).length;
+    const badge = document.getElementById('saved-orders-badge');
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'flex' : 'none';
+    }
   }
 
   updateMobileFloatingCart() {

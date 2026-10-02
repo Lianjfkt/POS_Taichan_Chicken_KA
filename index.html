@@ -331,6 +331,18 @@
                     <span>Ojol</span>
                   </button>
                 </div>
+
+                <!-- Customer Name + Saved Orders Badge -->
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 0 2px;">
+                  <div style="position:relative;flex:1;">
+                    <span class="material-symbols-outlined" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--secondary);pointer-events:none;">person</span>
+                    <input type="text" id="pos-customer-name" class="form-input" placeholder="Atas nama pelanggan..." style="padding-left:34px;height:36px;font-size:12px;border-radius:var(--radius-md);">
+                  </div>
+                  <button type="button" id="btn-open-saved-orders" onclick="window.POSView && window.POSView.openSavedOrdersModal()" title="Order Tersimpan" style="position:relative;width:36px;height:36px;padding:0;border-radius:var(--radius-md);background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">
+                    <span class="material-symbols-outlined" style="font-size:18px;color:var(--warning);">bookmark</span>
+                    <span id="saved-orders-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--primary);font-size:9px;font-weight:800;color:white;display:flex;align-items:center;justify-content:center;">0</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Cart Items -->
@@ -346,10 +358,16 @@
                   <span>TOTAL TAGIHAN</span>
                   <span class="font-mono" style="color:var(--primary);" id="pos-cart-total">Rp 0</span>
                 </div>
-                <button type="button" class="btn-checkout" id="btn-pos-checkout" disabled>
-                  <span class="material-symbols-outlined">payments</span>
-                  <span>Bayar Sekarang</span>
-                </button>
+                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
+                  <button type="button" class="btn-checkout" id="btn-pos-checkout" disabled>
+                    <span class="material-symbols-outlined">payments</span>
+                    <span>Bayar</span>
+                  </button>
+                  <button type="button" id="btn-hold-cart" title="Simpan Order (Hold)" disabled style="background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:0 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--warning);white-space:nowrap;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">bookmark_add</span>
+                    <span class="hidden-sm">Hold</span>
+                  </button>
+                </div>
               </div>
             </aside>
           </div>
@@ -481,7 +499,7 @@
           </div>
 
           <!-- Inventory Subtabs -->
-          <div style="display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:10px;">
+          <div style="display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:10px;overflow-x:auto;">
             <button type="button" class="btn btn-secondary active inv-subtab-btn" data-tab="raw">
               <span class="material-symbols-outlined" style="font-size:16px;">inventory_2</span>
               <span>Bahan Baku &amp; Stok Fisik</span>
@@ -489,6 +507,10 @@
             <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="bom">
               <span class="material-symbols-outlined" style="font-size:16px;">receipt_long</span>
               <span>Resep Menu &amp; HPP (BOM)</span>
+            </button>
+            <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="sambal">
+              <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">local_fire_department</span>
+              <span>Variasi Sambal &amp; Pelengkap</span>
             </button>
           </div>
 
@@ -527,6 +549,34 @@
                   </tr>
                 </thead>
                 <tbody id="inventory-bom-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 3: Sambal Variations Table -->
+          <div id="inventory-sambal-tab" class="section-card" style="flex:1;display:none;flex-direction:column;">
+            <div class="section-card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+              <div>
+                <div class="section-card-title">Variasi Sambal &amp; Saus Outlet</div>
+                <div style="font-size:12px;color:var(--secondary);">Atur varian sambal yang dapat dipilih pelanggan saat pemesanan menu</div>
+              </div>
+              <button class="btn btn-primary" type="button" onclick="window.InventoryView && window.InventoryView.openSambalModal()" style="font-size:12px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">add</span>
+                Tambah Sambal
+              </button>
+            </div>
+            <div style="overflow-y:auto;flex:1;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width:50px;">No</th>
+                    <th>Nama Variasi Sambal</th>
+                    <th>Tambahan Harga</th>
+                    <th>Status Kasir</th>
+                    <th style="text-align:right;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-sambal-tbody"></tbody>
               </table>
             </div>
           </div>
@@ -821,41 +871,59 @@
   <!-- =================================================================
        MOBILE: SLIDE-UP CART BOTTOM SHEET
   ================================================================= -->
-  <div id="mobile-cart-drawer" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,14,24,0.85);backdrop-filter:blur(12px);z-index:150;">
-    <div style="position:absolute;bottom:0;left:0;right:0;max-height:88vh;background:var(--surface-container);border-top:1px solid rgba(255,255,255,0.08);border-radius:24px 24px 0 0;display:flex;flex-direction:column;box-shadow:var(--shadow-xl);">
+  <div id="mobile-cart-drawer" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,14,24,0.85);backdrop-filter:blur(12px);z-index:150;" onclick="event.target===this&&window.POSView&&window.POSView.closeMobileCartDrawer()">
+    <div style="position:absolute;bottom:0;left:0;right:0;max-height:90vh;background:var(--surface-container);border-top:1px solid rgba(255,255,255,0.08);border-radius:24px 24px 0 0;display:flex;flex-direction:column;box-shadow:var(--shadow-xl);overflow:hidden;">
       <!-- Drag Handle -->
-      <div style="display:flex;justify-content:center;padding:10px 0 0;cursor:grab;">
+      <div style="display:flex;justify-content:center;padding:10px 0 0;cursor:grab;flex-shrink:0;">
         <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.2);"></div>
       </div>
-      <div style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;">
+      <div style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
         <div style="font-size:16px;font-weight:700;">Keranjang Pesanan</div>
-        <button class="modal-close" id="btn-close-cart-drawer">
-          <span class="material-symbols-outlined">close</span>
-        </button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" onclick="window.POSView && window.POSView.openSavedOrdersModal()" title="Order Tersimpan" style="position:relative;width:32px;height:32px;padding:0;border-radius:var(--radius-md);background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <span class="material-symbols-outlined" style="font-size:18px;color:var(--warning);">bookmark</span>
+          </button>
+          <button class="modal-close" id="btn-close-cart-drawer">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
       </div>
-      <div id="mobile-drawer-cart-items" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;"></div>
-      <div style="padding:14px 20px;background:var(--surface-container-low);border-top:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:12px;">
+      <!-- Customer Name in Drawer -->
+      <div style="padding:10px 16px 8px;flex-shrink:0;">
+        <div style="position:relative;">
+          <span class="material-symbols-outlined" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--secondary);pointer-events:none;">person</span>
+          <input type="text" id="pos-customer-name-mobile" class="form-input" placeholder="Atas nama pelanggan..." style="padding-left:34px;height:38px;font-size:13px;">
+        </div>
+      </div>
+      <div id="mobile-drawer-cart-items" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px 4px;display:flex;flex-direction:column;gap:8px;"></div>
+      <div style="padding:14px 20px;background:var(--surface-container-low);border-top:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:10px;flex-shrink:0;">
         <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;">
           <span>TOTAL</span>
           <span class="font-mono" style="color:var(--primary);" id="mobile-drawer-total">Rp 0</span>
         </div>
-        <button class="btn-checkout" id="btn-drawer-checkout" onclick="window.PaymentView && window.PaymentView.openPaymentModal();window.POSView && window.POSView.closeMobileCartDrawer();">
-          <span class="material-symbols-outlined">payments</span>
-          Bayar Sekarang
-        </button>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
+          <button class="btn-checkout" id="btn-drawer-checkout" onclick="window.PaymentView && window.PaymentView.openPaymentModal();window.POSView && window.POSView.closeMobileCartDrawer();">
+            <span class="material-symbols-outlined">payments</span>
+            Bayar Sekarang
+          </button>
+          <button type="button" id="btn-hold-cart-mobile" onclick="window.POSView && window.POSView.saveCurrentOrder()" title="Simpan / Hold Order" style="background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:0 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--warning);">
+            <span class="material-symbols-outlined" style="font-size:18px;">bookmark_add</span>
+            Hold
+          </button>
+        </div>
       </div>
     </div>
   </div>
   <style>#mobile-cart-drawer.open { display: flex !important; }</style>
 
   <!-- =================================================================
-       MODAL: MODIFIERS (SPICE LEVEL & TOPPINGS)
+       MODAL: MODIFIERS (SAMBAL VARIATIONS & TOPPINGS)
   ================================================================= -->
   <div class="modal-overlay" id="modifier-modal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width:480px;">
       <div class="modal-header">
         <div>
-          <div class="modal-title" id="modifier-product-name">Pilihan Level &amp; Catatan</div>
+          <div class="modal-title" id="modifier-product-name">Pilihan Sambal &amp; Catatan</div>
           <div class="modal-subtitle font-mono" id="modifier-product-price" style="color:var(--primary);">Rp 0</div>
         </div>
         <button class="modal-close" onclick="window.POSView && window.POSView.closeModifierModal()">
@@ -863,24 +931,18 @@
         </button>
       </div>
       <div class="modal-body">
-        <!-- Spicy Level -->
-        <label class="form-label">Tingkat Kepedasan</label>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;">
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.0 (Ori)" data-price="0">Lv.0 (Ori)</button>
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.1 (Sedang)" data-price="0">Lv.1</button>
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.2 (Pedas)" data-price="0">Lv.2</button>
-          <button type="button" class="btn btn-secondary mod-level-btn active" data-level="Lv.3 (Nendang)" data-price="0">Lv.3 (Nendang)</button>
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.4 (Gahar)" data-price="0">Lv.4</button>
-          <button type="button" class="btn btn-secondary mod-level-btn" data-level="Lv.5 (Mampus)" data-price="2000">🔥 Lv.5 (+2rb)</button>
+        <!-- Dynamic Sambal Options -->
+        <label class="form-label">
+          <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;color:var(--primary);">local_fire_department</span>
+          Pilih Variasi Sambal
+        </label>
+        <div id="modifier-sambal-options" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+          <!-- Populated dynamically by pos.js -->
         </div>
 
         <!-- Toppings / Add-ons -->
         <label class="form-label">Topping &amp; Tambahan (Opsional)</label>
         <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:8px;margin-bottom:18px;">
-          <label style="display:flex;align-items:center;gap:8px;background:var(--surface-container-low);padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;border:1px solid rgba(255,255,255,0.06);font-size:12px;font-weight:600;">
-            <input type="checkbox" class="mod-topping-cb" data-topping="Ekstra Sambal" data-price="3000">
-            <span>Ekstra Sambal (+3rb)</span>
-          </label>
           <label style="display:flex;align-items:center;gap:8px;background:var(--surface-container-low);padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;border:1px solid rgba(255,255,255,0.06);font-size:12px;font-weight:600;">
             <input type="checkbox" class="mod-topping-cb" data-topping="Ekstra Jeruk Nipis" data-price="1000">
             <span>Ekstra Jeruk (+1rb)</span>
@@ -888,6 +950,10 @@
           <label style="display:flex;align-items:center;gap:8px;background:var(--surface-container-low);padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;border:1px solid rgba(255,255,255,0.06);font-size:12px;font-weight:600;">
             <input type="checkbox" class="mod-topping-cb" data-topping="Bawang Goreng" data-price="2000">
             <span>Bawang Goreng (+2rb)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;background:var(--surface-container-low);padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;border:1px solid rgba(255,255,255,0.06);font-size:12px;font-weight:600;">
+            <input type="checkbox" class="mod-topping-cb" data-topping="Tanpa Tulang" data-price="0">
+            <span>Tanpa Tulang</span>
           </label>
         </div>
 
@@ -911,6 +977,67 @@
           <span>Tambah ke Keranjang — <strong id="modifier-total-price" class="font-mono">Rp 0</strong></span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       MODAL: SAVED ORDERS (HOLD/QUEUE)
+  ================================================================= -->
+  <div class="modal-overlay" id="saved-orders-modal">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Order Tersimpan (Hold Queue)</div>
+          <div class="modal-subtitle">Pilih order untuk dibuka kembali ke keranjang</div>
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" id="saved-orders-list" style="max-height:60vh;overflow-y:auto;padding:16px;"></div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       MODAL: SAMBAL MANAGEMENT (OWNER)
+  ================================================================= -->
+  <div class="modal-overlay" id="sambal-modal">
+    <div class="modal-card" style="max-width:420px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="sambal-modal-title">Tambah Variasi Sambal</div>
+          <div class="modal-subtitle">Buat variasi sambal baru yang dapat dipilih pelanggan</div>
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="sambal-form">
+        <div class="modal-body">
+          <input type="hidden" id="sambal-edit-id" value="">
+          <div class="form-group">
+            <label class="form-label">Nama Variasi Sambal</label>
+            <input type="text" id="sambal-name" class="form-input" placeholder="Contoh: Sambal Ijo Spesial" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tambahan Harga (Rp) — isi 0 jika gratis</label>
+            <input type="number" id="sambal-price" class="form-input font-mono" value="0" min="0" placeholder="0">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="sambal-aktif" checked style="width:16px;height:16px;accent-color:var(--primary);">
+              <span class="form-label" style="margin-bottom:0;">Aktif di kasir (tampil sebagai pilihan)</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <span class="material-symbols-outlined">save</span>
+            Simpan Variasi
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

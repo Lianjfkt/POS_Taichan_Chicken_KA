@@ -5,7 +5,7 @@
 class InventoryView {
   constructor() {
     this.searchQuery = '';
-    this.activeTab = 'raw'; // 'raw' or 'bom'
+    this.activeTab = 'raw'; // 'raw', 'bom', or 'sambal'
     this.activeEditingProduct = null;
   }
 
@@ -27,23 +27,20 @@ class InventoryView {
       };
     }
 
-    // Subtab Buttons (Bahan Baku vs Resep BOM)
+    // Subtab Buttons (Bahan Baku / Resep BOM / Sambal)
     document.querySelectorAll('.inv-subtab-btn').forEach(btn => {
       btn.onclick = () => {
         document.querySelectorAll('.inv-subtab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.activeTab = btn.getAttribute('data-tab');
 
-        const rawTab = document.getElementById('inventory-raw-tab');
-        const bomTab = document.getElementById('inventory-bom-tab');
+        const rawTab    = document.getElementById('inventory-raw-tab');
+        const bomTab    = document.getElementById('inventory-bom-tab');
+        const sambalTab = document.getElementById('inventory-sambal-tab');
 
-        if (this.activeTab === 'raw') {
-          if (rawTab) rawTab.style.display = 'flex';
-          if (bomTab) bomTab.style.display = 'none';
-        } else {
-          if (rawTab) rawTab.style.display = 'none';
-          if (bomTab) bomTab.style.display = 'flex';
-        }
+        if (rawTab)    rawTab.style.display    = (this.activeTab === 'raw')    ? 'flex' : 'none';
+        if (bomTab)    bomTab.style.display    = (this.activeTab === 'bom')    ? 'flex' : 'none';
+        if (sambalTab) sambalTab.style.display = (this.activeTab === 'sambal') ? 'flex' : 'none';
       };
     });
 
@@ -79,12 +76,22 @@ class InventoryView {
     if (btnAddRow) {
       btnAddRow.onclick = () => this.addRecipeIngredientRow();
     }
+
+    // Sambal Form Submit
+    const sambalForm = document.getElementById('sambal-form');
+    if (sambalForm) {
+      sambalForm.onsubmit = (e) => {
+        e.preventDefault();
+        this.handleSaveSambal();
+      };
+    }
   }
 
   render() {
     this.renderRawTable();
     this.renderBomTable();
     this.renderFastStock();
+    this.renderSambalTable();
   }
 
   // 1. Render Raw Ingredients Table
@@ -469,6 +476,108 @@ class InventoryView {
 
     window.State.toast(`Resep ${this.activeEditingProduct.nm} berhasil disimpan! (HPP: ${window.State.formatRp(this.activeEditingProduct.md)})`, 'success');
     this.render();
+  }
+
+  // =============================================
+  // SAMBAL MANAGEMENT
+  // =============================================
+
+  renderSambalTable() {
+    const tbody = document.getElementById('inventory-sambal-tbody');
+    if (!tbody) return;
+
+    const list = window.State.sambalList || [];
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--secondary);">Belum ada variasi sambal. Klik "Tambah Sambal" untuk mulai.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map((s, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td style="font-weight:700;">
+          <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;color:var(--primary);">local_fire_department</span>
+          ${s.nm}
+        </td>
+        <td class="font-mono">${s.hr > 0 ? `+${window.State.formatRp(s.hr)}` : '<span style="color:var(--secondary);">Gratis</span>'}</td>
+        <td>
+          <span style="padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;background:${s.aktif !== false ? 'rgba(76,175,80,0.15)' : 'rgba(255,255,255,0.06)'};color:${s.aktif !== false ? '#4caf50' : 'var(--secondary)'};"
+          >${s.aktif !== false ? 'Aktif' : 'Nonaktif'}</span>
+        </td>
+        <td style="text-align:right;">
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="window.InventoryView.openSambalModal('${s.id}')">
+              <span class="material-symbols-outlined" style="font-size:14px;">edit</span>
+            </button>
+            <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="window.InventoryView.deleteSambal('${s.id}')">
+              <span class="material-symbols-outlined" style="font-size:14px;">delete</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  openSambalModal(editId = null) {
+    const modal = document.getElementById('sambal-modal');
+    const titleEl = document.getElementById('sambal-modal-title');
+    const idInput = document.getElementById('sambal-edit-id');
+    const nameInput = document.getElementById('sambal-name');
+    const priceInput = document.getElementById('sambal-price');
+    const aktifInput = document.getElementById('sambal-aktif');
+    if (!modal) return;
+
+    if (editId) {
+      const item = (window.State.sambalList || []).find(s => s.id === editId);
+      if (!item) return;
+      if (titleEl) titleEl.textContent = 'Edit Variasi Sambal';
+      if (idInput) idInput.value = item.id;
+      if (nameInput) nameInput.value = item.nm;
+      if (priceInput) priceInput.value = item.hr || 0;
+      if (aktifInput) aktifInput.checked = item.aktif !== false;
+    } else {
+      if (titleEl) titleEl.textContent = 'Tambah Variasi Sambal';
+      if (idInput) idInput.value = '';
+      if (nameInput) nameInput.value = '';
+      if (priceInput) priceInput.value = 0;
+      if (aktifInput) aktifInput.checked = true;
+    }
+
+    modal.classList.add('open');
+    if (nameInput) nameInput.focus();
+  }
+
+  handleSaveSambal() {
+    const idInput = document.getElementById('sambal-edit-id');
+    const nameInput = document.getElementById('sambal-name');
+    const priceInput = document.getElementById('sambal-price');
+    const aktifInput = document.getElementById('sambal-aktif');
+
+    const nm = nameInput ? nameInput.value.trim() : '';
+    if (!nm) { window.State.toast('Nama sambal wajib diisi!', 'warning'); return; }
+
+    const item = {
+      id: (idInput && idInput.value) ? idInput.value : 'SBL-' + Date.now(),
+      nm: nm,
+      hr: Number(priceInput ? priceInput.value : 0) || 0,
+      aktif: aktifInput ? aktifInput.checked : true
+    };
+
+    window.State.addOrUpdateSambal(item);
+
+    const modal = document.getElementById('sambal-modal');
+    if (modal) modal.classList.remove('open');
+
+    this.renderSambalTable();
+    window.State.toast(`Sambal "${item.nm}" berhasil disimpan!`, 'success');
+  }
+
+  deleteSambal(id) {
+    if (!confirm('Hapus variasi sambal ini?')) return;
+    window.State.deleteSambal(id);
+    this.renderSambalTable();
+    window.State.toast('Variasi sambal dihapus.', 'warning');
   }
 }
 

@@ -19,7 +19,9 @@ const LS_KEYS = {
   set:   'ka_set',
   ofq:   'ka_ofq',
   fb:    'ka_fb',
-  sb:    'ka_sb'
+  sb:    'ka_sb',
+  sambal: 'ka_sambal',
+  saved_orders: 'ka_saved_orders'
 };
 
 const DEFAULT_CATEGORIES = [
@@ -68,6 +70,14 @@ const DEFAULT_STAFF = [
   { id: 2, nm: 'Kasir (Budi)', user: 'kasir', pw: 'kasir123', role: 'kasir', hp: '081234567890', on: true, pin: '1111' }
 ];
 
+const DEFAULT_SAMBAL = [
+  { id: 1, nm: 'Sambal Taichan Original', hr: 0, aktif: true },
+  { id: 2, nm: 'Sambal Bawang Gurih', hr: 0, aktif: true },
+  { id: 3, nm: 'Sambal Matah Bali', hr: 2000, aktif: true },
+  { id: 4, nm: 'Sambal Ijo Spesial', hr: 2000, aktif: true },
+  { id: 5, nm: 'Sambal Terasi Bakar', hr: 0, aktif: true }
+];
+
 class StateManager {
   constructor() {
     this.listeners = new Map();
@@ -76,7 +86,7 @@ class StateManager {
     this.isLocked = false;
     this.cart = [];
     this.orderType = 'dine-in';
-    this.tableNo = '08';
+    this.currentCustomerName = '';
 
     this.categories = this.load(LS_KEYS.kat, DEFAULT_CATEGORIES);
     this.products   = this.load(LS_KEYS.prod, DEFAULT_PRODUCTS);
@@ -101,6 +111,8 @@ class StateManager {
     this.settings   = this.load(LS_KEYS.set, DEFAULT_SETTINGS);
     this.offlineQueue = this.load(LS_KEYS.ofq, []);
     this.supabaseConfig = this.load(LS_KEYS.sb, null);
+    this.sambalList = this.load(LS_KEYS.sambal, DEFAULT_SAMBAL);
+    this.savedOrders = this.load(LS_KEYS.saved_orders, []);
   }
 
   load(key, fallback) {
@@ -268,6 +280,35 @@ class StateManager {
       return Math.round(sum);
     }
     return product.md || 0;
+  }
+
+  // --- Saved Orders (Hold/Queue) Methods ---
+  saveOrder(order) {
+    if (!order) return;
+    this.savedOrders.unshift(order);
+    this.save(LS_KEYS.saved_orders, this.savedOrders);
+  }
+
+  removeSavedOrder(orderId) {
+    this.savedOrders = this.savedOrders.filter(o => o.id !== orderId);
+    this.save(LS_KEYS.saved_orders, this.savedOrders);
+  }
+
+  // --- Sambal Management Methods ---
+  addOrUpdateSambal(sambal) {
+    if (!sambal) return;
+    const idx = this.sambalList.findIndex(s => s.id === sambal.id);
+    if (idx >= 0) {
+      this.sambalList[idx] = sambal;
+    } else {
+      this.sambalList.push(sambal);
+    }
+    this.save(LS_KEYS.sambal, this.sambalList);
+  }
+
+  deleteSambal(sambalId) {
+    this.sambalList = this.sambalList.filter(s => s.id !== sambalId);
+    this.save(LS_KEYS.sambal, this.sambalList);
   }
 }
 
