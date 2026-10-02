@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+.npm
+
+# Environment variables (JANGAN pernah commit ini!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build artifacts
+dist/
+build/
+
+# Large zip files
+*.zip
+stitch_ka_pos_design_system_shell/
+stitch_ka_pos_design_system_shell.zip
