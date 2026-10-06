@@ -14,6 +14,7 @@
   <!-- External Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
@@ -172,6 +173,10 @@
             <span class="material-symbols-outlined" style="font-size:24px;">account_balance_wallet</span>
             <span class="nav-label">Shift</span>
           </a>
+          <a class="nav-item" data-view="customers" title="Manajemen Pelanggan & Loyalty">
+            <span class="material-symbols-outlined" style="font-size:24px;">group</span>
+            <span class="nav-label">Member</span>
+          </a>
           <a class="nav-item owner-only" data-view="inventory" title="Inventaris & Stok">
             <span class="material-symbols-outlined" style="font-size:24px;">inventory_2</span>
             <span class="nav-label">Stok</span>
@@ -212,10 +217,20 @@
             <span class="brand-version-badge">v3.0</span>
           </div>
 
-          <!-- Branch Badge -->
-          <div class="branch-badge" style="display:none;" id="header-branch-badge">
-            <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">storefront</span>
-            <span id="header-branch-name">Taichan &amp; Chicken KA</span>
+          <!-- Realtime Operations Metric Pills -->
+          <div style="display:flex;align-items:center;gap:6px;margin-left:8px;">
+            <div style="display:inline-flex;align-items:center;gap:5px;background:var(--surface-container);padding:5px 10px;border-radius:var(--radius-full);border:1px solid rgba(255,255,255,0.06);font-size:11px;" title="Total Omzet Hari Ini">
+              <span>💰</span>
+              <span id="header-omzet-val" class="font-mono" style="font-weight:700;color:var(--primary);">Rp 0</span>
+            </div>
+            <div style="display:inline-flex;align-items:center;gap:5px;background:var(--surface-container);padding:5px 10px;border-radius:var(--radius-full);border:1px solid rgba(255,255,255,0.06);font-size:11px;" title="Jumlah Transaksi Hari Ini">
+              <span>🧾</span>
+              <span id="header-trx-val" class="font-mono" style="font-weight:700;color:var(--on-surface);">0 Trx</span>
+            </div>
+            <div id="header-stok-pill" style="display:none;align-items:center;gap:5px;background:rgba(239,68,68,0.15);border:1px solid var(--error);padding:5px 10px;border-radius:var(--radius-full);font-size:11px;cursor:pointer;" onclick="window.POSView && window.POSView.showLowStockModal()" title="Bahan Baku Kritis! Klik untuk lihat rincian">
+              <span>⚠️</span>
+              <span id="header-stok-val" style="font-weight:700;color:var(--error);">0 Kritis</span>
+            </div>
           </div>
 
           <!-- Sync Status -->
@@ -226,6 +241,17 @@
         </div>
 
         <div class="header-right">
+          <!-- Notification Bell -->
+          <button class="btn btn-secondary" id="btn-header-notif" style="position:relative;padding:7px 10px;" onclick="window.POSView && window.POSView.toggleNotificationsDrawer()" title="Pusat Notifikasi">
+            <span class="material-symbols-outlined" style="font-size:18px;">notifications</span>
+            <span id="header-notif-badge" style="display:none;position:absolute;top:2px;right:2px;min-width:14px;height:14px;border-radius:7px;background:var(--error);color:#fff;font-size:9px;font-weight:800;align-items:center;justify-content:center;padding:0 3px;">0</span>
+          </button>
+
+          <!-- Theme Toggle (Dark / Light) -->
+          <button class="btn btn-secondary" id="btn-header-theme" style="padding:7px 10px;" onclick="window.State && window.State.toggleTheme()" title="Ganti Mode Gelap / Terang">
+            <span class="material-symbols-outlined" id="header-theme-icon" style="font-size:18px;">light_mode</span>
+          </button>
+
           <!-- User Pill -->
           <div class="user-pill">
             <div class="user-avatar" id="header-user-initial">K</div>
@@ -340,7 +366,8 @@
                 <div style="display:flex;align-items:center;gap:8px;padding:8px 0 2px;">
                   <div style="position:relative;flex:1;">
                     <span class="material-symbols-outlined" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--secondary);pointer-events:none;">person</span>
-                    <input type="text" id="pos-customer-name" class="form-input" placeholder="Atas nama pelanggan..." style="padding-left:34px;height:36px;font-size:12px;border-radius:var(--radius-md);">
+                    <input type="text" id="pos-customer-name" class="form-input" list="pos-customer-datalist" placeholder="Atas nama pelanggan..." style="padding-left:34px;height:36px;font-size:12px;border-radius:var(--radius-md);">
+                    <datalist id="pos-customer-datalist"></datalist>
                   </div>
                   <button type="button" id="btn-open-saved-orders" onclick="window.POSView && window.POSView.openSavedOrdersModal()" title="Order Tersimpan" style="position:relative;width:36px;height:36px;padding:0;border-radius:var(--radius-md);background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">
                     <span class="material-symbols-outlined" style="font-size:18px;color:var(--warning);">bookmark</span>
@@ -472,6 +499,95 @@
                   </tr>
                 </thead>
                 <tbody id="shift-cash-log-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Shift History Activity -->
+          <div class="section-card" style="margin-top:16px;">
+            <div class="section-card-header">
+              <div class="section-card-title">
+                <span class="material-symbols-outlined" style="font-size:18px;color:var(--secondary);">calendar_month</span>
+                Riwayat Tutup Shift Lalu (Z-Report History)
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Kasir</th>
+                    <th>Waktu Mulai</th>
+                    <th>Waktu Tutup</th>
+                    <th>Saldo Sistem</th>
+                    <th>Uang Fisik</th>
+                    <th>Selisih</th>
+                    <th style="text-align:center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="shift-history-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =====================================================
+             VIEW: CUSTOMERS & LOYALTY CRM
+        ===================================================== -->
+        <section id="view-customers" class="view-pane view-scroll">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <div>
+              <h1 style="font-size:18px;font-weight:800;">Manajemen Pelanggan &amp; Member Loyalty</h1>
+              <div style="font-size:12px;color:var(--secondary);margin-top:2px;">Database member, poin reward &amp; riwayat belanja pelanggan</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <div class="pos-search-wrapper" style="max-width:240px;">
+                <span class="material-symbols-outlined pos-search-icon">search</span>
+                <input type="text" id="cust-search-input" class="pos-search-input" placeholder="Cari nama / HP member...">
+              </div>
+              <button class="btn btn-primary" id="btn-add-customer" style="padding:8px 16px;font-size:12px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">person_add</span>
+                Tambah Member
+              </button>
+            </div>
+          </div>
+
+          <!-- CRM KPI Cards -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:18px;">
+            <div style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:16px;">
+              <div style="font-size:11px;color:var(--secondary);font-weight:700;">TOTAL MEMBER AKTIF</div>
+              <div class="font-mono" style="font-size:24px;font-weight:800;color:var(--on-surface);margin-top:4px;" id="cust-kpi-total">0 Member</div>
+            </div>
+            <div style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:16px;">
+              <div style="font-size:11px;color:var(--secondary);font-weight:700;">TOTAL POIN BEREDAR</div>
+              <div class="font-mono" style="font-size:24px;font-weight:800;color:var(--warning);margin-top:4px;" id="cust-kpi-points">0 Poin</div>
+            </div>
+            <div style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:16px;">
+              <div style="font-size:11px;color:var(--secondary);font-weight:700;">TOTAL AKUMULASI BELANJA</div>
+              <div class="font-mono" style="font-size:24px;font-weight:800;color:var(--primary);margin-top:4px;" id="cust-kpi-spend">Rp 0</div>
+            </div>
+          </div>
+
+          <!-- Customer Table -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-card-title">
+                <span class="material-symbols-outlined" style="font-size:18px;color:var(--primary);">contacts</span>
+                Daftar Pelanggan &amp; Member
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Pelanggan</th>
+                    <th>No. Telepon / WA</th>
+                    <th>Poin Loyalty</th>
+                    <th>Frekuensi Order</th>
+                    <th>Total Belanja</th>
+                    <th style="text-align:right;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="cust-table-body"></tbody>
               </table>
             </div>
           </div>
@@ -696,6 +812,34 @@
             </div>
           </div>
 
+          <!-- P&L Financial Statement Card -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div>
+                <div class="section-card-title">
+                  <span class="material-symbols-outlined" style="font-size:18px;color:var(--tertiary);">account_balance</span>
+                  Laba Rugi (P&amp;L Financial Summary)
+                </div>
+                <div style="font-size:12px;color:var(--secondary);">Rincian pendapatan kotor, beban HPP, operasional &amp; laba bersih</div>
+              </div>
+            </div>
+            <div id="pnl-breakdown-container" style="padding:16px 20px;"></div>
+          </div>
+
+          <!-- Peak Hours Analysis Card -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div>
+                <div class="section-card-title">
+                  <span class="material-symbols-outlined" style="font-size:18px;color:var(--primary);">schedule</span>
+                  Analisis Jam Beli &amp; Peak Hours
+                </div>
+                <div style="font-size:12px;color:var(--secondary);">Frekuensi pesanan berdasarkan jam operasional kedai</div>
+              </div>
+            </div>
+            <div id="peak-hours-container" style="padding:16px 20px;"></div>
+          </div>
+
           <!-- Payment Method Breakdown -->
           <div class="section-card">
             <div class="section-card-header">
@@ -710,10 +854,25 @@
 
           <!-- Recent Transactions -->
           <div class="section-card" style="display:flex;flex-direction:column;">
-            <div class="section-card-header">
+            <div class="section-card-header" style="flex-wrap:wrap;gap:10px;">
               <div class="section-card-title">
                 <span class="material-symbols-outlined" style="font-size:18px;color:var(--primary);">receipt_long</span>
-                Transaksi Terkini
+                Riwayat Transaksi
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="text" id="report-search-input" class="form-input" placeholder="Cari nota / pelanggan..." style="max-width:180px;height:32px;font-size:11px;">
+                <select id="report-filter-payment" class="form-input" style="height:32px;font-size:11px;padding:4px 8px;">
+                  <option value="all">Semua Metode</option>
+                  <option value="cash">Tunai (Cash)</option>
+                  <option value="qris">QRIS</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+                <select id="report-filter-type" class="form-input" style="height:32px;font-size:11px;padding:4px 8px;">
+                  <option value="all">Semua Tipe</option>
+                  <option value="dine-in">Dine-In</option>
+                  <option value="take-away">Bungkus</option>
+                  <option value="online">Ojol</option>
+                </select>
               </div>
             </div>
             <div style="overflow-x:auto;">
@@ -723,14 +882,20 @@
                     <th>No. Nota</th>
                     <th>Waktu</th>
                     <th>Tipe</th>
+                    <th>Pelanggan</th>
                     <th>Item</th>
                     <th>Metode</th>
                     <th style="text-align:right;">Total</th>
-                    <th style="text-align:center;">Struk</th>
+                    <th style="text-align:center;">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="recent-transactions-tbody"></tbody>
               </table>
+            </div>
+            <div id="report-load-more-container" style="text-align:center;padding:12px;border-top:1px solid rgba(255,255,255,0.05);display:none;">
+              <button class="btn btn-secondary" id="btn-load-more-trx" style="padding:6px 16px;font-size:12px;">
+                Muat Lebih Banyak...
+              </button>
             </div>
           </div>
         </section>
@@ -850,6 +1015,55 @@
                     </tr>
                   </thead>
                   <tbody id="staff-table-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+            <!-- Backup & Restore Database -->
+            <div class="section-card">
+              <div class="section-card-header">
+                <div class="section-card-title">
+                  <span class="material-symbols-outlined" style="font-size:18px;color:var(--tertiary);">cloud_download</span>
+                  Cadangan &amp; Pemulihan (Backup &amp; Restore)
+                </div>
+              </div>
+              <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+                <p style="font-size:12px;color:var(--secondary);line-height:1.5;">
+                  Simpan seluruh database kasir, produk, resep, transaksi dan inventaris ke dalam file JSON, atau pulihkan dari cadangan sebelumnya.
+                </p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button type="button" class="btn btn-secondary" id="btn-export-backup" style="flex:1;">
+                    <span class="material-symbols-outlined" style="font-size:16px;">download</span>
+                    Ekspor Database JSON
+                  </button>
+                  <label class="btn btn-secondary" style="flex:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:0;">
+                    <span class="material-symbols-outlined" style="font-size:16px;">upload</span>
+                    Pulihkan dari JSON
+                    <input type="file" id="input-import-backup" accept=".json" style="display:none;">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Audit Log Viewer -->
+            <div class="section-card" style="grid-column:1/-1;">
+              <div class="section-card-header">
+                <div class="section-card-title">
+                  <span class="material-symbols-outlined" style="font-size:18px;color:var(--primary);">shield</span>
+                  Audit Trail &amp; Log Aktivitas Sistem
+                </div>
+                <div style="font-size:12px;color:var(--secondary);">Pencatatan login, transaksi, modifikasi data &amp; aktivitas sensitif</div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Waktu</th>
+                      <th>Pengguna</th>
+                      <th>Aksi</th>
+                      <th>Rincian Aktivitas</th>
+                    </tr>
+                  </thead>
+                  <tbody id="audit-log-tbody"></tbody>
                 </table>
               </div>
             </div>
@@ -1057,6 +1271,10 @@
       <div class="mobile-nav-item" data-view="shift">
         <span class="material-symbols-outlined" style="font-size:22px;">account_balance_wallet</span>
         <span>Shift</span>
+      </div>
+      <div class="mobile-nav-item" data-view="customers">
+        <span class="material-symbols-outlined" style="font-size:22px;">group</span>
+        <span>Member</span>
       </div>
       <div class="mobile-nav-item owner-only" data-view="inventory">
         <span class="material-symbols-outlined" style="font-size:22px;">inventory_2</span>
@@ -1266,9 +1484,49 @@
       </div>
       <div class="modal-body">
         <!-- Total Banner -->
-        <div style="background:linear-gradient(135deg,rgba(249,115,22,0.12),rgba(249,115,22,0.05));padding:16px;border-radius:var(--radius-lg);text-align:center;margin-bottom:18px;border:1px solid rgba(249,115,22,0.2);">
+        <div style="background:linear-gradient(135deg,rgba(249,115,22,0.12),rgba(249,115,22,0.05));padding:16px;border-radius:var(--radius-lg);text-align:center;margin-bottom:14px;border:1px solid rgba(249,115,22,0.2);">
           <div style="font-size:11px;color:var(--secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Total Pembayaran</div>
-          <div class="font-mono" style="font-size:30px;font-weight:800;color:var(--primary);margin-top:4px;" id="payment-modal-total">Rp 0</div>
+          <div class="font-mono" style="font-size:30px;font-weight:800;color:var(--primary);margin-top:2px;" id="payment-modal-total">Rp 0</div>
+          <div style="display:none;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--tertiary);margin-top:4px;">
+            <span>Potongan Diskon:</span>
+            <span class="font-mono" style="font-weight:700;" id="payment-discount-display">Rp 0</span>
+          </div>
+        </div>
+
+        <!-- Customer / Member Selection -->
+        <div style="margin-bottom:14px;background:var(--surface-container-low);padding:12px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <label class="form-label" style="margin-bottom:0;">Pelanggan / Member Loyalty</label>
+            <span id="payment-cust-loyalty-badge" style="display:none;font-size:11px;color:var(--warning);font-weight:700;"></span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <select id="payment-customer-select" class="form-input" style="flex:1;height:38px;font-size:12px;"></select>
+            <button type="button" class="btn btn-secondary" id="btn-redeem-points" style="display:none;padding:0 10px;font-size:11px;color:var(--warning);white-space:nowrap;" title="Tukar Poin Jadi Diskon">
+              ⭐ Tukar Poin
+            </button>
+          </div>
+        </div>
+
+        <!-- Discount Section -->
+        <div style="margin-bottom:16px;background:var(--surface-container-low);padding:12px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label class="form-label" style="margin-bottom:0;">Diskon / Potongan Harga</label>
+            <button type="button" id="btn-reset-discount" style="background:none;border:none;color:var(--secondary);font-size:11px;cursor:pointer;">Reset Diskon</button>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <div style="display:flex;background:var(--surface-container);padding:2px;border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,0.08);">
+              <button type="button" class="btn btn-secondary btn-discount-type active" data-type="nominal" style="padding:4px 8px;font-size:11px;height:auto;">Rp</button>
+              <button type="button" class="btn btn-secondary btn-discount-type" data-type="percent" style="padding:4px 8px;font-size:11px;height:auto;">%</button>
+            </div>
+            <input type="text" id="payment-discount-input" class="form-input font-mono" placeholder="Masukkan nilai diskon..." style="height:34px;font-size:13px;flex:1;">
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            <button type="button" class="btn btn-secondary quick-discount-chip" data-type="percent" data-val="5" style="padding:3px 8px;font-size:10px;">5%</button>
+            <button type="button" class="btn btn-secondary quick-discount-chip" data-type="percent" data-val="10" style="padding:3px 8px;font-size:10px;">10%</button>
+            <button type="button" class="btn btn-secondary quick-discount-chip" data-type="percent" data-val="15" style="padding:3px 8px;font-size:10px;">15%</button>
+            <button type="button" class="btn btn-secondary quick-discount-chip" data-type="nominal" data-val="5000" style="padding:3px 8px;font-size:10px;">5rb</button>
+            <button type="button" class="btn btn-secondary quick-discount-chip" data-type="nominal" data-val="10000" style="padding:3px 8px;font-size:10px;">10rb</button>
+          </div>
         </div>
 
         <!-- Payment Method Tabs -->
@@ -1328,12 +1586,18 @@
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-modal-cancel">Batal</button>
-        <button type="button" class="btn btn-primary" id="btn-submit-payment" style="padding:10px 24px;">
-          <span class="material-symbols-outlined">check_circle</span>
-          Konfirmasi &amp; Selesaikan
+      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+        <button type="button" class="btn btn-secondary" id="btn-open-split-bill" style="padding:10px 14px;font-size:12px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">call_split</span>
+          Split Bill
         </button>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Batal</button>
+          <button type="button" class="btn btn-primary" id="btn-submit-payment" style="padding:10px 20px;">
+            <span class="material-symbols-outlined">check_circle</span>
+            Konfirmasi &amp; Bayar
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1342,7 +1606,7 @@
        MODAL: PAYMENT SUCCESS
   ================================================================= -->
   <div class="modal-overlay" id="payment-success-modal">
-    <div class="modal-card" style="text-align:center;max-width:400px;">
+    <div class="modal-card" style="text-align:center;max-width:420px;">
       <div style="padding:32px 24px 24px;">
         <!-- Success Icon -->
         <div style="width:72px;height:72px;border-radius:50%;background:rgba(78,222,163,0.12);border:2px solid rgba(78,222,163,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:modalPop 0.4s var(--transition-spring);">
@@ -1366,13 +1630,17 @@
           </div>
         </div>
 
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <button class="btn btn-secondary" id="btn-success-print" style="flex:1;">
-            <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="btn btn-secondary" id="btn-success-print" style="flex:1;padding:8px 6px;font-size:11px;">
+            <span class="material-symbols-outlined" style="font-size:15px;">print</span>
             Cetak Struk
           </button>
-          <button class="btn btn-secondary" id="btn-success-wa" style="flex:1;">
-            <span class="material-symbols-outlined" style="font-size:16px;">share</span>
+          <button class="btn btn-secondary" id="btn-success-pdf" style="flex:1;padding:8px 6px;font-size:11px;" title="Lihat Struk / QR Code">
+            <span class="material-symbols-outlined" style="font-size:15px;">qr_code_2</span>
+            Struk &amp; QR
+          </button>
+          <button class="btn btn-secondary" id="btn-success-wa" style="flex:1;padding:8px 6px;font-size:11px;">
+            <span class="material-symbols-outlined" style="font-size:15px;">share</span>
             WhatsApp
           </button>
         </div>
@@ -1880,6 +2148,135 @@
     </div>
   </div>
 
+  <!-- =============================================================== -->
+  <!-- MODAL: Customer Add/Edit (CRM)                                  -->
+  <!-- =============================================================== -->
+  <div id="cust-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="cust-modal-title">Tambah Pelanggan Baru</div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="cust-form">
+        <div class="modal-body">
+          <input type="hidden" id="cust-id-input">
+          <div class="form-group">
+            <label class="form-label">Nama Pelanggan <span style="color:var(--error)">*</span></label>
+            <input type="text" id="cust-name-input" class="form-input" placeholder="Contoh: Budi Santoso" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nomor HP / WhatsApp</label>
+            <input type="tel" id="cust-phone-input" class="form-input" placeholder="08123456789">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Saldo Poin Awal</label>
+            <input type="number" id="cust-points-input" class="form-input font-mono" value="0" min="0" placeholder="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <span class="material-symbols-outlined">person_add</span>
+            Simpan Pelanggan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODAL: Split Bill Dialog                                          -->
+  <!-- =============================================================== -->
+  <div id="split-bill-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:380px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="material-symbols-outlined" style="color:var(--tertiary);">call_split</span>
+          Split Bill
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="font-size:12px;color:var(--secondary);margin-bottom:4px;">Total Tagihan</div>
+          <div id="split-bill-total" style="font-size:28px;font-weight:800;font-family:var(--font-mono);color:var(--primary);">Rp 0</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jumlah Orang</label>
+          <input type="number" id="split-person-count" class="form-input font-mono" value="2" min="2" max="20" style="font-size:22px;text-align:center;">
+        </div>
+        <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:var(--radius-lg);padding:16px;text-align:center;margin-top:8px;">
+          <div style="font-size:12px;color:var(--secondary);margin-bottom:4px;">Bayar per Orang</div>
+          <div id="split-per-person-amount" style="font-size:32px;font-weight:900;font-family:var(--font-mono);color:var(--primary);">Rp 0</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary btn-modal-cancel" style="width:100%;">
+          <span class="material-symbols-outlined">check_circle</span>
+          Mengerti
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODAL: Low Stock Alert                                            -->
+  <!-- =============================================================== -->
+  <div id="low-stock-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="material-symbols-outlined" style="color:var(--error);">warning</span>
+          Daftar Bahan Baku Kritis
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:0;">
+        <div id="low-stock-modal-body" style="max-height:60vh;overflow-y:auto;padding:16px;">
+          <!-- Populated by POSView.showLowStockModal() -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-modal-cancel">Tutup</button>
+        <button type="button" class="btn btn-primary" onclick="window.Router && window.Router.navigate('inventory')">
+          <span class="material-symbols-outlined">inventory_2</span>
+          Kelola Stok
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODAL: In-App Notifications Center                               -->
+  <!-- =============================================================== -->
+  <div id="notifications-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:480px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="material-symbols-outlined" style="color:var(--primary);">notifications</span>
+          Pusat Notifikasi Sistem
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:0;">
+        <div id="notifications-list" style="max-height:65vh;overflow-y:auto;">
+          <!-- Populated by POSView.toggleNotificationsDrawer() -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-modal-cancel">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast-wrap"></div>
 
@@ -1895,6 +2292,7 @@
   <script src="js/views/stock_tracker.js"></script>
   <script src="js/views/reports.js"></script>
   <script src="js/views/settings.js"></script>
+  <script src="js/views/customers.js"></script>
   <script src="js/views/menu.js"></script>
   <script src="js/app.js"></script>
 

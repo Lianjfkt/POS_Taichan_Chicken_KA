@@ -55,6 +55,21 @@ class SettingsView {
       btnTestPrint.onclick = () => this.printTestReceipt();
     }
 
+    // Backup & Restore
+    const btnExportBackup = document.getElementById('btn-export-backup');
+    if (btnExportBackup) {
+      btnExportBackup.onclick = () => this.exportBackup();
+    }
+
+    const inputImportBackup = document.getElementById('input-import-backup');
+    if (inputImportBackup) {
+      inputImportBackup.onchange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+          this.importBackup(e.target.files[0]);
+        }
+      };
+    }
+
     // Add Staff Form
     const staffForm = document.getElementById('add-staff-form');
     if (staffForm) {
@@ -92,6 +107,7 @@ class SettingsView {
     if (sbKeyInput && sb) sbKeyInput.value = sb.anonKey || '';
 
     this.renderStaffList();
+    this.renderAuditLogs();
   }
 
   saveStoreSettings() {
@@ -279,6 +295,98 @@ class SettingsView {
       this.renderStaffList();
       window.State.toast('Akun staf berhasil dihapus.', 'warning');
     }
+  }
+
+  // --- Backup & Restore Methods ---
+  exportBackup() {
+    const backupData = {
+      app: 'KA POS v3.0',
+      exportedAt: new Date().toISOString(),
+      version: '3.0',
+      data: {
+        categories: window.State.categories,
+        products: window.State.products,
+        inventory: window.State.inventory,
+        transactions: window.State.transactions,
+        cashLog: window.State.cashLog,
+        staff: window.State.staff,
+        settings: window.State.settings,
+        customers: window.State.customers,
+        sambalList: window.State.sambalList,
+        shiftHistory: window.State.shiftHistory,
+        auditLog: window.State.auditLog
+      }
+    };
+
+    const str = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([str], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `KAPOS_Backup_${window.State.formatDateShort(Date.now())}.json`;
+    link.click();
+
+    window.State.logAudit('BACKUP_EXPORTED', { size: str.length });
+    window.State.toast('File backup database berhasil diunduh!', 'success');
+  }
+
+  importBackup(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        if (!json.data || !json.data.products || !json.data.inventory) {
+          throw new Error('Format file backup tidak valid');
+        }
+
+        if (!confirm('PERINGATAN: Memulihkan database akan menimpa data saat ini. Lanjutkan?')) {
+          return;
+        }
+
+        const d = json.data;
+        if (d.categories) window.State.categories = d.categories;
+        if (d.products) window.State.products = d.products;
+        if (d.inventory) window.State.inventory = d.inventory;
+        if (d.transactions) window.State.transactions = d.transactions;
+        if (d.cashLog) window.State.cashLog = d.cashLog;
+        if (d.staff) window.State.staff = d.staff;
+        if (d.settings) window.State.settings = d.settings;
+        if (d.customers) window.State.customers = d.customers;
+        if (d.sambalList) window.State.sambalList = d.sambalList;
+        if (d.shiftHistory) window.State.shiftHistory = d.shiftHistory;
+        if (d.auditLog) window.State.auditLog = d.auditLog;
+
+        window.State.saveAll();
+        window.State.logAudit('BACKUP_RESTORED', { exportedAt: json.exportedAt });
+        window.State.toast('Database berhasil dipulihkan! Memuat ulang...', 'success');
+        setTimeout(() => location.reload(), 1200);
+      } catch (err) {
+        console.error('[Settings] Import error:', err);
+        window.State.toast(`Gagal restore database: ${err.message}`, 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // --- Audit Log Viewer ---
+  renderAuditLogs() {
+    const tbody = document.getElementById('audit-log-tbody');
+    if (!tbody) return;
+
+    const logs = window.State.auditLog || [];
+    if (logs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--secondary)">Belum ada log aktivitas sistem.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = logs.slice(0, 30).map(l => `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+        <td style="padding:10px 14px;color:var(--secondary);font-size:12px;font-family:var(--font-mono);">${window.State.formatDate(l.time)}</td>
+        <td style="padding:10px 14px;font-weight:700;color:var(--on-surface);">${l.user || 'Sistem'}</td>
+        <td style="padding:10px 14px;"><span class="badge info">${l.action}</span></td>
+        <td style="padding:10px 14px;font-size:12px;color:var(--secondary);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.details || '-'}</td>
+      </tr>
+    `).join('');
   }
 }
 

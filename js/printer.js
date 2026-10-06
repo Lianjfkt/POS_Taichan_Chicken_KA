@@ -305,6 +305,16 @@ class PrinterService {
             </div>
           ` : ''}
         </div>
+        <div style="text-align:center;border-top:1px dashed #999;padding-top:12px;margin-bottom:8px;">
+          <div style="font-size:9px;color:#777;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em;">Scan untuk verifikasi struk</div>
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent('KA-POS|' + trx.no + '|' + trx.total + '|' + trx.tgl)}"
+            alt="QR Struk ${trx.no}"
+            style="width:90px;height:90px;border-radius:6px;border:1px solid #ddd;"
+            onerror="this.style.display='none'"
+          >
+          <div style="font-size:9px;color:#999;margin-top:4px;font-family:monospace;">${trx.no}</div>
+        </div>
         <div style="text-align:center;font-size:10px;color:#555;border-top:1px dashed #999;padding-top:10px">
           ${s.footer || 'Terima kasih atas kunjungannya!'}
         </div>

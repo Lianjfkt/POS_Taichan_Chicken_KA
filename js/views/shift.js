@@ -92,6 +92,7 @@ class ShiftView {
       staf: cashierName
     });
     window.State.save(LS_KEYS.kas, window.State.cashLog);
+    window.State.logAudit('SHIFT_OPENED', { shiftId: newShift.id, kasir: cashierName, modalAwal: starterCash });
 
     const modal = document.getElementById('open-shift-modal');
     if (modal) modal.classList.remove('open');
@@ -249,9 +250,11 @@ class ShiftView {
     window.State.activeShift = null;
     window.State.save(LS_KEYS.sesi, null);
 
-    // Save report to staff shift log
+    // Save report to staff shift log & shift history
     window.State.staffLog.unshift(closedReport);
     window.State.save(LS_KEYS.stlog, window.State.staffLog);
+    window.State.saveShiftHistory(closedReport);
+    window.State.logAudit('SHIFT_CLOSED', { shiftId: closedReport.shiftId, kasir: closedReport.kasir, selisih: closedReport.selisih });
 
     // Close blind count modal
     const blindModal = document.getElementById('blind-cash-count-modal');
@@ -304,6 +307,8 @@ class ShiftView {
     const noShiftCard = document.getElementById('shift-no-active-card');
     const activeShiftCard = document.getElementById('shift-active-card');
 
+    this.renderShiftHistory();
+
     if (!shift) {
       if (noShiftCard) noShiftCard.style.display = 'block';
       if (activeShiftCard) activeShiftCard.style.display = 'none';
@@ -349,6 +354,35 @@ class ShiftView {
         </tr>
       `).join('');
     }
+  }
+
+  renderShiftHistory() {
+    const tbody = document.getElementById('shift-history-tbody');
+    if (!tbody) return;
+
+    const list = window.State.shiftHistory || [];
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--secondary)">Belum ada riwayat shift yang ditutup.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.slice(0, 20).map(s => `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+        <td style="padding:10px 14px;font-weight:700;color:var(--on-surface);">${s.kasir || 'Kasir'}</td>
+        <td style="padding:10px 14px;font-size:12px;color:var(--secondary);">${window.State.formatDate(s.mulai)}</td>
+        <td style="padding:10px 14px;font-size:12px;color:var(--secondary);">${s.selesai ? window.State.formatDate(s.selesai) : '-'}</td>
+        <td style="padding:10px 14px;font-family:var(--font-mono);">${window.State.formatRp(s.saldoSistem || 0)}</td>
+        <td style="padding:10px 14px;font-family:var(--font-mono);font-weight:700;">${window.State.formatRp(s.uangFisik || 0)}</td>
+        <td style="padding:10px 14px;font-family:var(--font-mono);font-weight:700;color:${s.selisih === 0 ? 'var(--tertiary)' : (s.selisih > 0 ? 'var(--primary)' : 'var(--error)')};">
+          ${s.selisih >= 0 ? '+' : ''}${window.State.formatRp(s.selisih || 0)} (${s.status || 'PAS'})
+        </td>
+        <td style="padding:10px 14px;text-align:center;">
+          <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="window.PrinterService.openShiftReportModal(window.State.shiftHistory.find(item => item.shiftId === '${s.shiftId}'), 'Z')" title="Cetak Ulang Laporan Z">
+            <span class="material-symbols-outlined" style="font-size:14px;">print</span>
+          </button>
+        </td>
+      </tr>
+    `).join('');
   }
 }
 

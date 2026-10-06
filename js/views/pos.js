@@ -17,6 +17,12 @@ class POSView {
     this.renderProducts();
     this.renderCart();
     this.bindEvents();
+    this.setupKeyboardShortcuts();
+    this.updateHeaderMetrics();
+
+    // Check low stock on start
+    window.State.checkLowStockAlerts();
+    this.updateHeaderMetrics();
 
     // Listen to reactive cart changes
     window.State.on('cart:change', () => {
@@ -28,7 +34,13 @@ class POSView {
     window.State.on(LS_KEYS.prod, () => {
       this.renderProducts();
       this.renderCategories();
+      this.updateHeaderMetrics();
     });
+
+    // Listen to transactions & inventory
+    window.State.on(LS_KEYS.trx, () => this.updateHeaderMetrics());
+    window.State.on(LS_KEYS.inv, () => this.updateHeaderMetrics());
+    window.State.on('notifications:updated', () => this.updateHeaderMetrics());
   }
 
   bindEvents() {
@@ -595,6 +607,124 @@ class POSView {
     if (drawer) {
       drawer.classList.remove('open');
     }
+  }
+
+  // --- Keyboard Shortcuts (F2, F4, F8, F9, Esc) ---
+  setupKeyboardShortcuts() {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'F2') {
+        e.preventDefault();
+        const custInput = document.getElementById('pos-customer-name');
+        if (custInput) custInput.focus();
+      } else if (e.key === 'F4') {
+        e.preventDefault();
+        if (window.State.cart.length > 0 && window.PaymentView) {
+          window.PaymentView.openPaymentModal();
+        } else {
+          window.State.toast('Keranjang masih kosong!', 'warning');
+        }
+      } else if (e.key === 'F8') {
+        e.preventDefault();
+        if (window.State.cart.length > 0) {
+          this.saveCurrentOrder();
+        }
+      } else if (e.key === 'F9') {
+        e.preventDefault();
+        const lastTrx = (window.State.transactions || [])[0];
+        if (lastTrx && window.PrinterService) {
+          window.PrinterService.printReceipt(lastTrx);
+          window.State.toast('Mencetak struk terakhir (F9)', 'info');
+        }
+      } else if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+      }
+    });
+  }
+
+  // --- Operational Realtime Dashboard Metrics ---
+  updateHeaderMetrics() {
+    const todayStr = window.State.formatDateShort(Date.now());
+    const todayTrx = (window.State.transactions || []).filter(t => window.State.formatDateShort(t.tgl) === todayStr);
+    const omzet = todayTrx.reduce((s, t) => s + (t.total || 0), 0);
+    const omzetEl = document.getElementById('header-omzet-val');
+    const trxEl = document.getElementById('header-trx-val');
+    if (omzetEl) omzetEl.textContent = window.State.formatRp(omzet);
+    if (trxEl) trxEl.textContent = `${todayTrx.length} Trx`;
+
+    const lowItems = (window.State.inventory || []).filter(i => Number(i.stok) <= Number(i.min));
+    const stokPill = document.getElementById('header-stok-pill');
+    const stokVal = document.getElementById('header-stok-val');
+    if (stokPill && stokVal) {
+      stokVal.textContent = `${lowItems.length} Kritis`;
+      stokPill.style.display = lowItems.length > 0 ? 'inline-flex' : 'none';
+    }
+
+    const unreadCount = window.State.getUnreadNotificationCount();
+    const notifBadge = document.getElementById('header-notif-badge');
+    if (notifBadge) {
+      notifBadge.textContent = unreadCount;
+      notifBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+  }
+
+  showLowStockModal() {
+    const modal = document.getElementById('low-stock-modal');
+    const body = document.getElementById('low-stock-modal-body');
+    if (!modal || !body) return;
+
+    const lowItems = (window.State.inventory || []).filter(i => Number(i.stok) <= Number(i.min));
+    if (lowItems.length === 0) {
+      body.innerHTML = `<div style="text-align:center;padding:24px;color:var(--tertiary);">✅ Semua stok bahan baku dalam batas aman!</div>`;
+    } else {
+      body.innerHTML = `
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);color:var(--secondary);text-align:left;">
+              <th style="padding:8px;">Bahan</th>
+              <th style="padding:8px;">Sisa Stok</th>
+              <th style="padding:8px;">Batas Min</th>
+              <th style="padding:8px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lowItems.map(item => `
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                <td style="padding:8px;font-weight:700;">${item.emj || '📦'} ${item.nm}</td>
+                <td style="padding:8px;font-family:var(--font-mono);color:var(--error);font-weight:700;">${item.stok} ${item.sat}</td>
+                <td style="padding:8px;font-family:var(--font-mono);">${item.min} ${item.sat}</td>
+                <td style="padding:8px;"><span style="color:var(--error);font-weight:700;">KRITIS</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+    modal.classList.add('open');
+  }
+
+  toggleNotificationsDrawer() {
+    const modal = document.getElementById('notifications-modal');
+    const list = document.getElementById('notifications-list');
+    if (!modal || !list) return;
+
+    const notifs = window.State.notifications || [];
+    if (notifs.length === 0) {
+      list.innerHTML = `<div style="text-align:center;padding:32px;color:var(--secondary);">Belum ada notifikasi sistem.</div>`;
+    } else {
+      list.innerHTML = notifs.map(n => `
+        <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:12px;align-items:flex-start;">
+          <div style="font-size:20px;">${n.type === 'warning' ? '⚠️' : (n.type === 'error' ? '❌' : (n.type === 'success' ? '✅' : 'ℹ️'))}</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;color:var(--on-surface);">${n.title}</div>
+            <div style="font-size:12px;color:var(--secondary);margin-top:2px;">${n.message}</div>
+            <div style="font-size:10px;color:var(--secondary);margin-top:4px;font-family:var(--font-mono);">${window.State.formatDate(n.time)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+    window.State.markNotificationsRead();
+    this.updateHeaderMetrics();
+    modal.classList.add('open');
   }
 }
 

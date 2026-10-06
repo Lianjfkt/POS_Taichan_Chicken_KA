@@ -19,8 +19,17 @@ const LS_KEYS = {
   fb:    'ka_fb',
   sb:    'ka_sb',
   sambal: 'ka_sambal',
-  saved_orders: 'ka_saved_orders'
+  saved_orders: 'ka_saved_orders',
+  cust:   'ka_cust',
+  audit:  'ka_audit',
+  shift_hist: 'ka_shift_hist',
+  theme:  'ka_theme'
 };
+
+const DEFAULT_CUSTOMERS = [
+  { id: 'CUST-001', nm: 'Pelanggan Umum', hp: '-', poin: 0, trxCount: 0, totalSpend: 0, joined: 1717000000000 },
+  { id: 'CUST-002', nm: 'Hendra Wijaya', hp: '08123456789', poin: 50, trxCount: 8, totalSpend: 350000, joined: 1716000000000 }
+];
 
 const DEFAULT_CATEGORIES = [
   { id: 'k1', nm: 'Taichan', emj: '🍢', col: '#f97316', on: true, ord: 0 },
@@ -109,6 +118,11 @@ class StateManager {
     this.supabaseConfig = this.load(LS_KEYS.sb, null);
     this.sambalList = this.load(LS_KEYS.sambal, DEFAULT_SAMBAL);
     this.savedOrders = this.load(LS_KEYS.saved_orders, []);
+    this.customers = this.load(LS_KEYS.cust, DEFAULT_CUSTOMERS);
+    this.auditLog = this.load(LS_KEYS.audit, []);
+    this.shiftHistory = this.load(LS_KEYS.shift_hist, []);
+    this.currentTheme = this.load(LS_KEYS.theme, 'dark');
+    this.notifications = [];
   }
 
   load(key, fallback) {
@@ -148,6 +162,10 @@ class StateManager {
     // BUG-08 fix: include sambalList & savedOrders
     this.save(LS_KEYS.sambal, this.sambalList);
     this.save(LS_KEYS.saved_orders, this.savedOrders);
+    this.save(LS_KEYS.cust, this.customers);
+    this.save(LS_KEYS.audit, this.auditLog);
+    this.save(LS_KEYS.shift_hist, this.shiftHistory);
+    this.save(LS_KEYS.theme, this.currentTheme);
   }
 
   on(event, callback) {
@@ -325,7 +343,131 @@ class StateManager {
     this.sambalList = this.sambalList.filter(s => s.id !== sambalId);
     this.save(LS_KEYS.sambal, this.sambalList);
   }
+
+  // --- Audit Log Methods ---
+  logAudit(action, details = '', user = null) {
+    const entry = {
+      id: 'AUD-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      time: Date.now(),
+      user: user || (this.currentUser ? this.currentUser.nm : 'Sistem'),
+      action,
+      details: typeof details === 'object' ? JSON.stringify(details) : String(details)
+    };
+    this.auditLog.unshift(entry);
+    if (this.auditLog.length > 500) this.auditLog.pop();
+    this.save(LS_KEYS.audit, this.auditLog);
+    this.emit('audit:logged', entry);
+    return entry;
+  }
+
+  // --- Customer CRM Methods ---
+  saveCustomer(cust) {
+    if (!cust) return null;
+    let customer = { ...cust };
+    if (!customer.id) {
+      customer.id = 'CUST-' + Date.now();
+      customer.poin = Number(customer.poin) || 0;
+      customer.trxCount = Number(customer.trxCount) || 0;
+      customer.totalSpend = Number(customer.totalSpend) || 0;
+      customer.joined = Date.now();
+      this.customers.push(customer);
+    } else {
+      const idx = this.customers.findIndex(c => c.id === customer.id);
+      if (idx > -1) {
+        this.customers[idx] = { ...this.customers[idx], ...customer };
+        customer = this.customers[idx];
+      } else {
+        this.customers.push(customer);
+      }
+    }
+    this.save(LS_KEYS.cust, this.customers);
+    this.emit('customers:updated', this.customers);
+    return customer;
+  }
+
+  deleteCustomer(id) {
+    this.customers = this.customers.filter(c => c.id !== id);
+    this.save(LS_KEYS.cust, this.customers);
+    this.emit('customers:updated', this.customers);
+  }
+
+  addCustomerLoyalty(customerId, amountSpent) {
+    if (!customerId) return 0;
+    const cust = this.customers.find(c => c.id === customerId);
+    if (cust) {
+      const earned = Math.floor(amountSpent / 10000); // 1 poin per Rp 10.000
+      cust.poin = (Number(cust.poin) || 0) + earned;
+      cust.trxCount = (Number(cust.trxCount) || 0) + 1;
+      cust.totalSpend = (Number(cust.totalSpend) || 0) + amountSpent;
+      this.save(LS_KEYS.cust, this.customers);
+      this.emit('customers:updated', this.customers);
+      return earned;
+    }
+    return 0;
+  }
+
+  // --- Shift History Methods ---
+  saveShiftHistory(closedShift) {
+    if (!closedShift) return;
+    this.shiftHistory.unshift(closedShift);
+    this.save(LS_KEYS.shift_hist, this.shiftHistory);
+    this.emit('shifts:updated', this.shiftHistory);
+  }
+
+  // --- Theme Management ---
+  setTheme(theme) {
+    this.currentTheme = theme;
+    this.save(LS_KEYS.theme, theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', theme === 'light' ? '#f4f6fa' : '#0f131d');
+    this.emit('theme:changed', theme);
+  }
+
+  toggleTheme() {
+    const next = this.currentTheme === 'light' ? 'dark' : 'light';
+    this.setTheme(next);
+    return next;
+  }
+
+  // --- In-App Notifications Center ---
+  addNotification(title, message, type = 'info') {
+    const notif = {
+      id: 'NOTIF-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+      time: Date.now(),
+      title,
+      message,
+      type, // 'info', 'warning', 'error', 'success'
+      read: false
+    };
+    this.notifications.unshift(notif);
+    if (this.notifications.length > 50) this.notifications.pop();
+    this.emit('notifications:updated', this.notifications);
+    return notif;
+  }
+
+  getUnreadNotificationCount() {
+    return this.notifications.filter(n => !n.read).length;
+  }
+
+  markNotificationsRead() {
+    this.notifications.forEach(n => n.read = true);
+    this.emit('notifications:updated', this.notifications);
+  }
+
+  checkLowStockAlerts() {
+    const lowItems = this.inventory.filter(i => Number(i.stok) <= Number(i.min));
+    if (lowItems.length > 0) {
+      const names = lowItems.map(i => `${i.nm} (${i.stok} ${i.sat})`).join(', ');
+      this.addNotification('Stok Kritis!', `${lowItems.length} bahan baku mencapai batas aman: ${names}`, 'warning');
+    }
+    return lowItems;
+  }
 }
 
 // Global State Instance
 window.State = new StateManager();
+// Apply saved theme immediately
+if (window.State && window.State.currentTheme) {
+  document.documentElement.setAttribute('data-theme', window.State.currentTheme);
+}

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kapos-v3-cache-v5';
+const CACHE_NAME = 'kapos-v3-cache-v6';
 const ASSETS = [
   '/',
   'index.html',
@@ -12,13 +12,17 @@ const ASSETS = [
   'js/views/payment.js',
   'js/views/shift.js',
   'js/views/inventory.js',
+  'js/views/stock_tracker.js',
+  'js/views/menu.js',
   'js/views/reports.js',
   'js/views/settings.js',
+  'js/views/customers.js',
   'js/app.js',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-  'https://cdn.jsdelivr.net/npm/chart.js'
+  'https://cdn.jsdelivr.net/npm/chart.js',
+  'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'
 ];
 
 self.addEventListener('install', (event) => {
