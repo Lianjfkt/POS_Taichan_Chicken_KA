@@ -185,9 +185,10 @@ class ShiftView {
     const endTime = shift.selesai || Date.now();
     const shiftLogs = (window.State.cashLog || []).filter(l => l.tgl >= shift.mulai && l.tgl <= endTime);
     const shiftTrx = (window.State.transactions || []).filter(t => t.tgl >= shift.mulai && t.tgl <= endTime);
+    const shiftTrxValid = shiftTrx.filter(t => t.status !== 'void');
 
     const cashSales = shiftLogs.filter(l => l.kat === 'Penjualan POS').reduce((s, l) => s + l.jml, 0);
-    const nonCashSales = shiftTrx.filter(t => t.metode !== 'cash').reduce((s, t) => s + (t.total || 0), 0);
+    const nonCashSales = shiftTrxValid.filter(t => t.metode !== 'cash').reduce((s, t) => s + (t.total || 0), 0);
     const cashInOther = shiftLogs.filter(l => l.tipe === 'masuk' && l.kat !== 'Modal Awal Kasir' && l.kat !== 'Penjualan POS').reduce((s, l) => s + l.jml, 0);
     const cashOut = shiftLogs.filter(l => l.tipe === 'keluar').reduce((s, l) => s + l.jml, 0);
 

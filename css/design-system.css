@@ -1458,3 +1458,64 @@ body { display: flex; flex-direction: column; }
   background: var(--primary);
   color: #fff;
 }
+
+/* ==========================================================================
+   ORDERS VIEW & OWNER EMERGENCY ALARM SYSTEM
+   ========================================================================== */
+.orders-period-btn {
+  background: transparent;
+  border: none;
+  color: var(--secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.orders-period-btn:hover {
+  color: var(--on-surface);
+  background: rgba(255, 255, 255, 0.05);
+}
+.orders-period-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+/* Alarm Animations & Modal Effects */
+@keyframes alarm-pulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+  }
+  50% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.9));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+  }
+}
+
+.owner-alarm-card {
+  animation: alarm-border-glow 1s infinite alternate;
+}
+
+@keyframes alarm-border-glow {
+  0% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+  }
+  100% {
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.8), 0 0 80px rgba(239, 68, 68, 0.4);
+    border-color: #ff2222;
+  }
+}
+
+@media (max-width: 640px) {
+  .orders-action-text {
+    display: none;
+  }
+}
+

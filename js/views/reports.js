@@ -119,12 +119,13 @@ class ReportsView {
 
   render() {
     const trxs = this.getFilteredTransactions();
-    this.calculateKPIs(trxs);
+    const validTrxs = trxs.filter(t => t.status !== 'void');
+    this.calculateKPIs(validTrxs);
     this.renderChart();
-    this.renderTopProducts(trxs);
-    this.renderPaymentBreakdown(trxs);
-    this.renderPeakHours(trxs);
-    this.renderPNLBreakdown(trxs);
+    this.renderTopProducts(validTrxs);
+    this.renderPaymentBreakdown(validTrxs);
+    this.renderPeakHours(validTrxs);
+    this.renderPNLBreakdown(validTrxs);
     this.renderRecentTransactions(trxs);
   }
 
@@ -527,6 +528,10 @@ class ReportsView {
   }
 
   voidTransaction(orderNo) {
+    if (window.OrdersView && window.OrdersView.openVoidModal) {
+      window.OrdersView.openVoidModal(orderNo);
+      return;
+    }
     const trx = (window.State.transactions || []).find(t => t.no === orderNo);
     if (!trx) return;
 

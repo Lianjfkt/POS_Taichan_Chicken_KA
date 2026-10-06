@@ -168,6 +168,19 @@ class AuthView {
     if (window.SupabaseService) {
       window.SupabaseService.init();
     }
+
+    // Check for pending alarm if Owner logged in
+    if (isOwner && window.AlarmService) {
+      try {
+        const saved = localStorage.getItem('ka_owner_alarm_alert');
+        if (saved) {
+          const alertData = JSON.parse(saved);
+          if (alertData && !alertData.dismissed) {
+            window.AlarmService.handleIncomingAlarm(alertData);
+          }
+        }
+      } catch (e) {}
+    }
   }
 
   logout() {

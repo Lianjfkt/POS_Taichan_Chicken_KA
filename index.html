@@ -169,6 +169,10 @@
             <span class="material-symbols-outlined" style="font-size:24px;">point_of_sale</span>
             <span class="nav-label">POS</span>
           </a>
+          <a class="nav-item" data-view="orders" title="Riwayat Transaksi & Nota">
+            <span class="material-symbols-outlined" style="font-size:24px;">receipt_long</span>
+            <span class="nav-label">Riwayat</span>
+          </a>
           <a class="nav-item" data-view="shift" title="Shift & Kas Drawer">
             <span class="material-symbols-outlined" style="font-size:24px;">account_balance_wallet</span>
             <span class="nav-label">Shift</span>
@@ -335,6 +339,12 @@
                   <button class="btn btn-secondary" onclick="window.InventoryView && window.InventoryView.render();document.getElementById('fast-stock-modal').classList.add('open');" title="Update Cepat Ketersediaan Menu" style="white-space:nowrap;flex-shrink:0;">
                     <span class="material-symbols-outlined" style="font-size:16px;color:var(--warning);">bolt</span>
                     <span class="hidden-sm">Stock</span>
+                  </button>
+
+                  <!-- Riwayat Transaksi Quick Button -->
+                  <button class="btn btn-secondary" onclick="window.Router && window.Router.navigate('orders')" title="Buka Riwayat Transaksi" style="white-space:nowrap;flex-shrink:0;">
+                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">receipt_long</span>
+                    <span class="hidden-sm">Riwayat</span>
                   </button>
                 </div>
               </div>
@@ -601,6 +611,154 @@
                 </thead>
                 <tbody id="cust-table-body"></tbody>
               </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =====================================================
+             VIEW: RIWAYAT TRANSAKSI (KASIR & OWNER)
+        ===================================================== -->
+        <section id="view-orders" class="view-pane view-scroll">
+          <!-- Header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <h1 style="font-size:18px;font-weight:800;display:flex;align-items:center;gap:6px;">
+                  <span class="material-symbols-outlined" style="color:var(--primary);font-size:22px;">receipt_long</span>
+                  Riwayat Transaksi &amp; Nota
+                </h1>
+                <span class="badge info">KASIR &amp; OWNER</span>
+              </div>
+              <div style="font-size:12px;color:var(--secondary);">Pencarian nota, cetak ulang struk, dan pembatalan salah input dengan alarm owner</div>
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <!-- Period Selector -->
+              <div style="display:flex;background:var(--surface-container-low);padding:3px;border-radius:var(--radius-md);gap:2px;">
+                <button type="button" class="orders-period-btn active" data-period="today">Hari Ini</button>
+                <button type="button" class="orders-period-btn" data-period="yesterday">Kemarin</button>
+                <button type="button" class="orders-period-btn" data-period="week">7 Hari</button>
+                <button type="button" class="orders-period-btn" data-period="month">30 Hari</button>
+                <button type="button" class="orders-period-btn" data-period="all">Semua</button>
+              </div>
+
+              <!-- Export CSV -->
+              <button type="button" class="btn btn-secondary" onclick="window.OrdersView && window.OrdersView.exportCSV()" style="font-size:12px;padding:7px 12px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">download</span>
+                Ekspor CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Metric Cards -->
+          <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:16px;">
+            <div class="metric-card">
+              <div class="metric-icon" style="background:rgba(249,115,22,0.15);color:var(--primary);">
+                <span class="material-symbols-outlined">receipt</span>
+              </div>
+              <div>
+                <div class="metric-label">Nota Sukses</div>
+                <div class="metric-value font-mono" id="orders-kpi-total-count">0</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon" style="background:rgba(34,197,94,0.15);color:var(--success);">
+                <span class="material-symbols-outlined">payments</span>
+              </div>
+              <div>
+                <div class="metric-label">Total Omset</div>
+                <div class="metric-value font-mono" id="orders-kpi-total-sales" style="color:var(--success);font-size:16px;">Rp 0</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon" style="background:rgba(59,130,246,0.15);color:#3b82f6;">
+                <span class="material-symbols-outlined">shopping_bag</span>
+              </div>
+              <div>
+                <div class="metric-label">Rata-Rata / Nota</div>
+                <div class="metric-value font-mono" id="orders-kpi-avg-sales" style="font-size:16px;">Rp 0</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon" style="background:rgba(239,68,68,0.15);color:var(--error);">
+                <span class="material-symbols-outlined">cancel</span>
+              </div>
+              <div>
+                <div class="metric-label">Batal / Void</div>
+                <div class="metric-value font-mono" id="orders-kpi-void-count" style="color:var(--error);">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters & Search Toolbar -->
+          <div class="panel-card" style="padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <!-- Search -->
+            <div class="pos-search-wrapper" style="flex:1;min-width:240px;max-width:380px;">
+              <span class="material-symbols-outlined pos-search-icon">search</span>
+              <input type="text" id="orders-search-input" class="pos-search-input" placeholder="Cari No Nota, Pelanggan, Kasir, Menu...">
+            </div>
+
+            <!-- Filter Controls -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <!-- Kasir Filter -->
+              <div style="display:flex;align-items:center;gap:6px;">
+                <label style="font-size:11px;color:var(--secondary);white-space:nowrap;">Kasir:</label>
+                <select id="orders-filter-cashier" class="form-input" style="padding:6px 10px;font-size:12px;width:auto;">
+                  <option value="all">Semua Kasir</option>
+                </select>
+              </div>
+
+              <!-- Metode Bayar Filter -->
+              <div style="display:flex;align-items:center;gap:6px;">
+                <label style="font-size:11px;color:var(--secondary);white-space:nowrap;">Metode:</label>
+                <select id="orders-filter-payment" class="form-input" style="padding:6px 10px;font-size:12px;width:auto;">
+                  <option value="all">Semua Metode</option>
+                  <option value="cash">Tunai (Cash)</option>
+                  <option value="qris">QRIS</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+
+              <!-- Status Filter -->
+              <div style="display:flex;align-items:center;gap:6px;">
+                <label style="font-size:11px;color:var(--secondary);white-space:nowrap;">Status:</label>
+                <select id="orders-filter-status" class="form-input" style="padding:6px 10px;font-size:12px;width:auto;">
+                  <option value="all">Semua Status</option>
+                  <option value="success">Selesai</option>
+                  <option value="void">Batal / Void</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transactions List Table -->
+          <div class="panel-card" style="padding:0;overflow:hidden;">
+            <div style="overflow-x:auto;">
+              <table class="data-table" style="width:100%;">
+                <thead>
+                  <tr>
+                    <th style="padding:10px 14px;">No. Nota &amp; Waktu</th>
+                    <th style="padding:10px 14px;">Pelanggan &amp; Kasir</th>
+                    <th style="padding:10px 14px;">Detail Item Menu</th>
+                    <th style="padding:10px 14px;">Metode</th>
+                    <th style="padding:10px 14px;">Status</th>
+                    <th style="padding:10px 14px;text-align:right;">Total (Rp)</th>
+                    <th style="padding:10px 14px;text-align:center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-table-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- Footer Pagination / Info -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;gap:8px;">
+              <div style="font-size:12px;color:var(--secondary);" id="orders-count-info">Menampilkan 0 transaksi</div>
+              <button type="button" id="orders-load-more-btn" class="btn btn-secondary" onclick="window.OrdersView && window.OrdersView.loadMore()" style="font-size:12px;padding:6px 14px;display:none;">
+                Muat Lebih Banyak
+              </button>
             </div>
           </div>
         </section>
@@ -1279,6 +1437,10 @@
       <div class="mobile-nav-item active" data-view="pos">
         <span class="material-symbols-outlined" style="font-size:22px;">point_of_sale</span>
         <span>POS</span>
+      </div>
+      <div class="mobile-nav-item" data-view="orders">
+        <span class="material-symbols-outlined" style="font-size:22px;">receipt_long</span>
+        <span>Riwayat</span>
       </div>
       <div class="mobile-nav-item" data-view="shift">
         <span class="material-symbols-outlined" style="font-size:22px;">account_balance_wallet</span>
@@ -2289,6 +2451,146 @@
     </div>
   </div>
 
+  <!-- =============================================================== -->
+  <!-- MODAL: Detail Rincian Transaksi                                  -->
+  <!-- =============================================================== -->
+  <div id="order-detail-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="material-symbols-outlined" style="color:var(--primary);">receipt_long</span>
+          Rincian Transaksi Nota
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" id="order-detail-modal-body">
+        <!-- Populated dynamically by window.OrdersView.openDetailModal() -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-modal-cancel">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODAL: Pembatalan Transaksi / Salah Input (VOID)                -->
+  <!-- =============================================================== -->
+  <div id="order-void-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:520px;border:1px solid rgba(239,68,68,0.3);">
+      <div class="modal-header" style="border-bottom:1px solid rgba(239,68,68,0.2);">
+        <div class="modal-title" style="color:var(--error);display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined">warning</span>
+          Pembatalan / Salah Input Nota
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:16px;">
+        <div id="order-void-info">
+          <!-- Populated dynamically with order summary -->
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label class="form-label" style="font-weight:700;margin-bottom:6px;display:block;">
+            Pilih Alasan Pembatalan / Kesalahan Input <span style="color:var(--error);">*</span>
+          </label>
+          <select id="order-void-reason-select" class="form-input" style="width:100%;">
+            <option value="Salah input menu / pesanan">Salah input menu / pesanan</option>
+            <option value="Salah ketik jumlah porsi (QTY)">Salah ketik jumlah porsi (QTY)</option>
+            <option value="Pelanggan membatalkan pesanan">Pelanggan membatalkan pesanan</option>
+            <option value="Salah nominal / metode pembayaran">Salah nominal / metode pembayaran</option>
+            <option value="Pesanan ganda (double transaksi)">Pesanan ganda (double transaksi)</option>
+            <option value="Salah tipe order (dine-in / takeaway)">Salah tipe order (dine-in / takeaway)</option>
+            <option value="Lainnya">Lainnya (Tulis di catatan)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label class="form-label" style="font-weight:700;margin-bottom:6px;display:block;">
+            Keterangan / Catatan Tambahan (Opsional)
+          </label>
+          <textarea id="order-void-notes" class="form-input" rows="3" placeholder="Contoh: Pembeli minta ganti level kepedasan / salah pencet tombol..." style="width:100%;resize:vertical;"></textarea>
+        </div>
+
+        <!-- Warning Alert to Cashier -->
+        <div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:flex-start;">
+          <span class="material-symbols-outlined" style="color:var(--error);font-size:22px;flex-shrink:0;margin-top:2px;">campaign</span>
+          <div style="font-size:12px;color:var(--on-surface);line-height:1.4;">
+            <b style="color:var(--error);">PENTING &amp; TERPANCANG:</b> Pembatalan nota ini akan mengembalikan stok bahan baku, menyesuaikan kas toko, dan <b>SEKETIKA MEMBUNYIKAN ALARM KE OWNER</b>.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid rgba(239,68,68,0.15);">
+        <button type="button" class="btn btn-secondary btn-modal-cancel">Batal (Kembali)</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-order-void" style="background:var(--error);border-color:var(--error);font-weight:700;">
+          <span class="material-symbols-outlined">notifications_active</span>
+          Konfirmasi Batal &amp; Alarm Owner
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- MODAL: ALARM PERINGATAN DARURAT OWNER                            -->
+  <!-- =============================================================== -->
+  <div id="owner-alarm-modal" class="modal-overlay" style="z-index:99999;background:rgba(15,8,8,0.88);backdrop-filter:blur(10px);">
+    <div class="modal-card owner-alarm-card" style="max-width:540px;border:2px solid var(--error);box-shadow:0 0 35px rgba(239,68,68,0.5);">
+      <div class="modal-header" style="background:rgba(239,68,68,0.15);border-bottom:1px solid rgba(239,68,68,0.3);padding:16px;">
+        <div class="modal-title" style="color:var(--error);font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px;">
+          <span class="material-symbols-outlined alarm-siren-icon" style="font-size:28px;color:var(--error);animation:alarm-pulse 0.6s infinite alternate;">emergency</span>
+          <span>ALARM OWNER: TRANSAKSI DIBATALKAN / SALAH INPUT!</span>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="font-size:42px;margin-bottom:6px;animation:alarm-pulse 0.6s infinite alternate;">🚨</div>
+          <div style="font-size:15px;font-weight:800;color:var(--on-surface);">Peringatan Kasir Melakukan Pembatalan Nota</div>
+          <div style="font-size:12px;color:var(--secondary);margin-top:2px;">Harap tinjau alasan kesalahan input di bawah ini:</div>
+        </div>
+
+        <div style="background:var(--surface-container-low);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;margin-bottom:16px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+            <div>
+              <div style="color:var(--secondary);font-size:11px;">Nomor Nota:</div>
+              <div class="font-mono" id="alarm-modal-order-no" style="font-weight:800;color:var(--primary);font-size:14px;">-</div>
+            </div>
+            <div>
+              <div style="color:var(--secondary);font-size:11px;">Total Nominal:</div>
+              <div class="font-mono" id="alarm-modal-total" style="font-weight:800;color:var(--error);font-size:15px;">Rp 0</div>
+            </div>
+            <div>
+              <div style="color:var(--secondary);font-size:11px;">Kasir Pelaksana:</div>
+              <div style="font-weight:700;" id="alarm-modal-cashier">-</div>
+            </div>
+            <div>
+              <div style="color:var(--secondary);font-size:11px;">Waktu Pembatalan:</div>
+              <div style="font-weight:600;" id="alarm-modal-time">-</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="color:var(--secondary);font-size:11px;">Alasan Pembatalan / Salah Input:</div>
+            <div style="font-weight:800;color:var(--error);font-size:13px;margin-top:2px;" id="alarm-modal-reason">-</div>
+          </div>
+
+          <div style="margin-top:8px;">
+            <div style="color:var(--secondary);font-size:11px;">Catatan Kasir:</div>
+            <div style="font-style:italic;color:var(--on-surface);font-size:12px;margin-top:2px;" id="alarm-modal-notes">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:16px;background:rgba(239,68,68,0.05);border-top:1px solid rgba(239,68,68,0.2);display:flex;justify-content:center;">
+        <button type="button" class="btn btn-primary" id="btn-dismiss-owner-alarm" style="width:100%;padding:12px 20px;font-size:14px;font-weight:800;background:var(--error);border-color:var(--error);display:flex;align-items:center;justify-content:center;gap:8px;">
+          <span class="material-symbols-outlined" style="font-size:22px;">notifications_off</span>
+          Matikan Suara Alarm &amp; Konfirmasi
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast-wrap"></div>
 
@@ -2306,6 +2608,7 @@
   <script src="js/views/settings.js"></script>
   <script src="js/views/customers.js"></script>
   <script src="js/views/menu.js"></script>
+  <script src="js/views/orders.js"></script>
   <script src="js/app.js"></script>
 
   <!-- Vercel Speed Insights (auto-active only on Vercel, no-op locally) -->

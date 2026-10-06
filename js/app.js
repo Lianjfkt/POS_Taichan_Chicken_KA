@@ -5,7 +5,7 @@
 class AppRouter {
   constructor() {
     this.currentView = 'pos';
-    this.views = ['pos', 'shift', 'customers', 'inventory', 'menu', 'reports', 'settings'];
+    this.views = ['pos', 'orders', 'shift', 'customers', 'inventory', 'menu', 'reports', 'settings'];
   }
 
   init() {
@@ -15,6 +15,7 @@ class AppRouter {
     if (window.AuthView) window.AuthView.init();
     if (window.POSView) window.POSView.init();
     if (window.PaymentView) window.PaymentView.init();
+    if (window.OrdersView) window.OrdersView.init();
     if (window.ShiftView) window.ShiftView.init();
     if (window.CustomersView) window.CustomersView.init();
     if (window.InventoryView) window.InventoryView.init();
@@ -118,6 +119,8 @@ class AppRouter {
     if (viewName === 'pos' && window.POSView) {
       window.POSView.renderProducts();
       window.POSView.renderCart();
+    } else if (viewName === 'orders' && window.OrdersView) {
+      window.OrdersView.render();
     } else if (viewName === 'shift' && window.ShiftView) {
       window.ShiftView.render();
     } else if (viewName === 'inventory' && window.InventoryView) {
