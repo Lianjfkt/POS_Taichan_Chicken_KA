@@ -5,7 +5,7 @@
 class AppRouter {
   constructor() {
     this.currentView = 'pos';
-    this.views = ['pos', 'shift', 'kds', 'inventory', 'reports', 'settings'];
+    this.views = ['pos', 'shift', 'kds', 'inventory', 'menu', 'reports', 'settings'];
   }
 
   init() {
@@ -18,6 +18,7 @@ class AppRouter {
     if (window.KDSView) window.KDSView.init();
     if (window.ShiftView) window.ShiftView.init();
     if (window.InventoryView) window.InventoryView.init();
+    if (window.MenuView) window.MenuView.init();
     if (window.ReportsView) window.ReportsView.init();
     if (window.SettingsView) window.SettingsView.init();
 
@@ -113,6 +114,8 @@ class AppRouter {
       window.ShiftView.render();
     } else if (viewName === 'inventory' && window.InventoryView) {
       window.InventoryView.render();
+    } else if (viewName === 'menu' && window.MenuView) {
+      window.MenuView.render();
     } else if (viewName === 'reports' && window.ReportsView) {
       window.ReportsView.render();
     } else if (viewName === 'settings' && window.SettingsView) {

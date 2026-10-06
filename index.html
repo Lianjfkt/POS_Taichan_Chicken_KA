@@ -176,6 +176,10 @@
             <span class="material-symbols-outlined" style="font-size:24px;">inventory_2</span>
             <span class="nav-label">Stok</span>
           </a>
+          <a class="nav-item owner-only" data-view="menu" title="Manajemen Menu">
+            <span class="material-symbols-outlined" style="font-size:24px;">restaurant_menu</span>
+            <span class="nav-label">Menu</span>
+          </a>
           <a class="nav-item owner-only" data-view="reports" title="Laporan & Analitik">
             <span class="material-symbols-outlined" style="font-size:24px;">analytics</span>
             <span class="nav-label">Laporan</span>
@@ -827,9 +831,185 @@
           </div>
         </section>
 
+        <!-- =====================================================
+             VIEW 7: MANAJEMEN MENU (Kategori & Produk)
+        ===================================================== -->
+        <section id="view-menu" class="view-pane view-scroll">
+          <!-- Header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h1 style="font-size:18px;font-weight:800;">Manajemen Menu</h1>
+              <div style="font-size:12px;color:var(--secondary);margin-top:2px;">Kelola produk &amp; kategori yang tampil di POS Kasir</div>
+            </div>
+          </div>
+
+          <!-- Tab Switcher -->
+          <div style="display:flex;gap:4px;background:var(--surface);border-radius:12px;padding:4px;width:fit-content;">
+            <button id="menu-tab-products" class="btn active" style="border-radius:8px;padding:6px 18px;font-size:13px;">
+              <span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">lunch_dining</span>
+              Produk
+            </button>
+            <button id="menu-tab-categories" class="btn" style="border-radius:8px;padding:6px 18px;font-size:13px;">
+              <span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">category</span>
+              Kategori
+            </button>
+          </div>
+
+          <!-- ── PANEL: PRODUCTS ─────────────────────────────── -->
+          <div id="menu-panel-products">
+            <!-- Toolbar -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <div style="flex:1;min-width:180px;position:relative;">
+                <span class="material-symbols-outlined" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--secondary);">search</span>
+                <input type="text" id="menu-search" class="form-input" placeholder="Cari nama produk..." style="padding-left:36px;">
+              </div>
+              <select id="menu-cat-filter" class="form-input" style="min-width:160px;flex:0 0 auto;"></select>
+              <button id="btn-add-product" class="btn btn-primary" style="white-space:nowrap;">
+                <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                Tambah Produk
+              </button>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="menu-product-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
+          </div>
+
+          <!-- ── PANEL: CATEGORIES ───────────────────────────── -->
+          <div id="menu-panel-categories" style="display:none;">
+            <div style="display:flex;justify-content:flex-end;">
+              <button id="btn-add-category" class="btn btn-primary" style="white-space:nowrap;">
+                <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                Tambah Kategori
+              </button>
+            </div>
+            <div id="menu-category-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </section>
+
       </div><!-- /view-container -->
 
     </main><!-- /app-main -->
+
+    <!-- ================================================================
+         MODAL: TAMBAH / EDIT PRODUK
+    ================================================================ -->
+    <div id="menu-product-modal" class="modal-overlay">
+      <div class="modal-box" style="max-width:480px;width:calc(100vw - 40px);">
+        <div class="modal-header">
+          <div class="modal-title" id="mprod-modal-title">Tambah Produk Baru</div>
+          <button class="modal-close" id="menu-product-modal-close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="menu-product-form" style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <!-- Emoji & Name Row -->
+          <div style="display:flex;gap:12px;align-items:flex-end;">
+            <div style="text-align:center;">
+              <div id="mprod-emoji-preview" style="font-size:40px;line-height:1;margin-bottom:6px;">🍢</div>
+              <input type="text" id="mprod-emoji" class="form-input" placeholder="Emoji" maxlength="4" style="width:60px;text-align:center;font-size:18px;padding:6px;">
+            </div>
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+              <label class="form-label">Nama Produk <span style="color:var(--error);">*</span></label>
+              <input type="text" id="mprod-name" class="form-input" placeholder="Contoh: Taichan Pedas Lv.3" required>
+            </div>
+          </div>
+          <!-- Category & Spice -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Kategori <span style="color:var(--error);">*</span></label>
+              <select id="mprod-category" class="form-input" required></select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Level Pedas / Varian</label>
+              <input type="text" id="mprod-spice" class="form-input" placeholder="Contoh: Lv.3">
+            </div>
+          </div>
+          <!-- Price & Cost -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Harga Jual (Rp) <span style="color:var(--error);">*</span></label>
+              <input type="number" id="mprod-price" class="form-input" placeholder="18000" min="0" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">HPP / Modal (Rp)</label>
+              <input type="number" id="mprod-cost" class="form-input" placeholder="0" min="0">
+            </div>
+          </div>
+          <!-- Description -->
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Deskripsi Singkat</label>
+            <input type="text" id="mprod-desc" class="form-input" placeholder="Opsional">
+          </div>
+          <!-- Active Toggle -->
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input type="checkbox" id="mprod-active" checked style="width:18px;height:18px;cursor:pointer;">
+            <span style="font-size:13px;font-weight:600;">Aktif (tampil di POS Kasir)</span>
+          </label>
+          <!-- Actions -->
+          <div style="display:flex;gap:10px;padding-top:4px;">
+            <button type="button" class="btn btn-secondary" id="menu-product-modal-cancel" style="flex:1;">Batal</button>
+            <button type="submit" class="btn btn-primary" style="flex:2;">
+              <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+              Simpan Produk
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================================================================
+         MODAL: TAMBAH / EDIT KATEGORI
+    ================================================================ -->
+    <div id="menu-category-modal" class="modal-overlay">
+      <div class="modal-box" style="max-width:400px;width:calc(100vw - 40px);">
+        <div class="modal-header">
+          <div class="modal-title" id="mcat-modal-title">Tambah Kategori Baru</div>
+          <button class="modal-close" id="menu-category-modal-close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="menu-category-form" style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <!-- Emoji & Name -->
+          <div style="display:flex;gap:12px;align-items:flex-end;">
+            <div style="text-align:center;">
+              <div id="mcat-emoji-preview" style="font-size:40px;line-height:1;margin-bottom:6px;">🍽️</div>
+              <input type="text" id="mcat-emoji" class="form-input" placeholder="Emoji" maxlength="4" style="width:60px;text-align:center;font-size:18px;padding:6px;">
+            </div>
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+              <label class="form-label">Nama Kategori <span style="color:var(--error);">*</span></label>
+              <input type="text" id="mcat-name" class="form-input" placeholder="Contoh: Minuman" required>
+            </div>
+          </div>
+          <!-- Color & Order -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Warna Aksen</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="color" id="mcat-color" value="#f97316" style="width:42px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px;background:transparent;">
+                <span style="font-size:12px;color:var(--secondary);">Pilih warna</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Urutan Tampil</label>
+              <input type="number" id="mcat-order" class="form-input" value="0" min="0">
+            </div>
+          </div>
+          <!-- Active Toggle -->
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input type="checkbox" id="mcat-active" checked style="width:18px;height:18px;cursor:pointer;">
+            <span style="font-size:13px;font-weight:600;">Aktif (kategori tampil di POS)</span>
+          </label>
+          <!-- Actions -->
+          <div style="display:flex;gap:10px;padding-top:4px;">
+            <button type="button" class="btn btn-secondary" id="menu-category-modal-cancel" style="flex:1;">Batal</button>
+            <button type="submit" class="btn btn-primary" style="flex:2;">
+              <span class="material-symbols-outlined" style="font-size:16px;">save</span>
+              Simpan Kategori
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- MOBILE FLOATING CART PILL -->
     <div class="mobile-floating-cart" id="mobile-floating-cart-pill" onclick="window.POSView && window.POSView.openMobileCartDrawer()">
@@ -856,6 +1036,10 @@
       <div class="mobile-nav-item owner-only" data-view="inventory">
         <span class="material-symbols-outlined" style="font-size:22px;">inventory_2</span>
         <span>Stok</span>
+      </div>
+      <div class="mobile-nav-item owner-only" data-view="menu">
+        <span class="material-symbols-outlined" style="font-size:22px;">restaurant_menu</span>
+        <span>Menu</span>
       </div>
       <div class="mobile-nav-item owner-only" data-view="reports">
         <span class="material-symbols-outlined" style="font-size:22px;">analytics</span>
@@ -1614,6 +1798,7 @@
   <script src="js/views/inventory.js"></script>
   <script src="js/views/reports.js"></script>
   <script src="js/views/settings.js"></script>
+  <script src="js/views/menu.js"></script>
   <script src="js/app.js"></script>
 
   <!-- Vercel Speed Insights (auto-active only on Vercel, no-op locally) -->

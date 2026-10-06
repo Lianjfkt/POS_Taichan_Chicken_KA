@@ -1290,3 +1290,145 @@ body { display: flex; flex-direction: column; }
   .order-type-group { width: 100%; }
   .pos-search-wrapper { order: -1; width: 100%; max-width: none; }
 }
+
+/* ==========================================================================
+   MENU MANAGEMENT VIEW — Product Cards & Category Rows
+   ========================================================================== */
+
+/* ── Product Card ── */
+.menu-product-card {
+  background: var(--surface-container);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.menu-product-card:hover {
+  border-color: rgba(249, 115, 22, 0.35);
+  box-shadow: 0 4px 24px rgba(249, 115, 22, 0.12);
+  transform: translateY(-2px);
+}
+.menu-product-card.mpc-inactive {
+  opacity: 0.55;
+}
+.mpc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 14px 14px 8px;
+}
+.mpc-emoji {
+  font-size: 36px;
+  line-height: 1;
+}
+.mpc-body {
+  padding: 4px 14px 12px;
+  flex: 1;
+}
+.mpc-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--on-surface);
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+.mpc-cat {
+  font-size: 11px;
+  color: var(--secondary);
+  margin-bottom: 8px;
+}
+.mpc-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mpc-price {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.mpc-margin {
+  font-size: 11px;
+  color: var(--tertiary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.mpc-actions {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.mpc-btn {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 11px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+/* ── Category Row ── */
+.menu-cat-row {
+  background: var(--surface-container);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  transition: border-color 0.2s;
+}
+.menu-cat-row:hover {
+  border-color: rgba(249, 115, 22, 0.3);
+}
+.menu-cat-row.mcr-inactive {
+  opacity: 0.5;
+}
+.mcr-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.mcr-emoji {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.mcr-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+.mcr-meta {
+  font-size: 11px;
+  color: var(--secondary);
+  margin-top: 2px;
+}
+.mcr-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Tab switcher active state override for menu view */
+#menu-tab-products.active,
+#menu-tab-categories.active {
+  background: var(--primary);
+  color: #fff;
+}
