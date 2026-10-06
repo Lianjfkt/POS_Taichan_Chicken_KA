@@ -268,8 +268,14 @@ class POSView {
     const product = window.State.products.find(p => p.id === productId);
     if (!product) return;
 
-    // If product has spicy levels or customizable options, open modifier modal
-    if (product.kat === 'Taichan' || product.kat === 'Chicken' || product.lv) {
+    // BUG-10: gunakan p.on untuk cek ketersediaan (konsisten dengan state)
+    if (product.on === false) return;
+
+    // BUG-22 fix: buka modifier hanya jika ada sambal aktif ATAU produk punya level
+    const hasActiveSambal = (window.State.sambalList || []).some(s => s.aktif !== false);
+    const needsModifier = (product.kat === 'Taichan' || product.kat === 'Chicken' || product.lv) && hasActiveSambal;
+
+    if (needsModifier) {
       this.openModifierModal(product);
     } else {
       window.State.addToCart(product);
@@ -331,6 +337,13 @@ class POSView {
 
     this.updateModifierTotalPrice();
     if (modal) modal.classList.add('open');
+
+    // BUG-14 fix: backdrop click harus memanggil closeModifierModal() agar state di-reset
+    if (modal) {
+      modal.onclick = (e) => {
+        if (e.target === modal) this.closeModifierModal();
+      };
+    }
   }
 
   updateModifierTotalPrice() {
@@ -370,7 +383,11 @@ class POSView {
         return;
       }
 
-      container.innerHTML = cart.map((item, idx) => `
+      container.innerHTML = cart.map((item) => {
+        // BUG-07 fix: encode id+mod sebagai data attributes, bukan index posisi array
+        const safeId = item.id;
+        const safeMod = encodeURIComponent(item.mod || '');
+        return `
         <div class="cart-item">
           <div class="cart-item-header">
             <span class="cart-item-qty-badge">${item.qty}x</span>
@@ -378,24 +395,25 @@ class POSView {
               <div class="cart-item-title">${item.nm}</div>
               ${item.mod ? `<div class="cart-item-mod"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">local_fire_department</span> ${item.mod}</div>` : ''}
             </div>
-            <button class="cart-item-delete" onclick="window.State.updateCartQty(${idx}, -${item.qty})" title="Hapus">
+            <button class="cart-item-delete" onclick="window.State.removeCartItemById(${safeId}, decodeURIComponent('${safeMod}'))" title="Hapus">
               <span class="material-symbols-outlined" style="font-size:18px;">close</span>
             </button>
           </div>
           <div class="cart-item-footer">
             <div class="cart-qty-ctrl">
-              <button class="qty-btn" onclick="window.State.updateCartQty(${idx}, -1)">
+              <button class="qty-btn" onclick="window.State.updateCartQtyById(${safeId}, decodeURIComponent('${safeMod}'), -1)">
                 <span class="material-symbols-outlined" style="font-size:14px;">remove</span>
               </button>
               <span class="qty-val">${item.qty}</span>
-              <button class="qty-btn" onclick="window.State.updateCartQty(${idx}, 1)">
+              <button class="qty-btn" onclick="window.State.updateCartQtyById(${safeId}, decodeURIComponent('${safeMod}'), 1)">
                 <span class="material-symbols-outlined" style="font-size:14px;">add</span>
               </button>
             </div>
             <span class="cart-item-price">${window.State.formatRp(item.hr * item.qty)}</span>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     });
 
     // Update Totals

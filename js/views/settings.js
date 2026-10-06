@@ -208,7 +208,8 @@ class SettingsView {
             ${st.role.toUpperCase()}
           </span>
         </td>
-        <td class="font-mono" style="padding:10px 14px;color:var(--primary);font-weight:700">${st.pin || '1234'}</td>
+        <!-- BUG-05 fix: PIN dimasking, tidak tampil plaintext -->
+        <td class="font-mono" style="padding:10px 14px;color:var(--secondary);letter-spacing:4px">••••</td>
         <td style="padding:10px 14px;text-align:right">
           ${st.role !== 'owner' ? `
             <button class="btn btn-danger" style="padding:4px 8px;font-size:11px" onclick="window.SettingsView.deleteStaff(${st.id})">
@@ -229,12 +230,30 @@ class SettingsView {
 
     if (!nameInput || !userInput || !passInput) return;
 
+    const nm   = nameInput.value.trim();
+    const user = userInput.value.trim().toLowerCase();
+    const pw   = passInput.value;
+    const pin  = pinInput ? pinInput.value.trim() : '1234';
+
+    // BUG-25 fix: validasi lengkap sebelum menambah staf
+    if (!nm) { window.State.toast('Nama staf wajib diisi!', 'error'); return; }
+    if (!user) { window.State.toast('Username wajib diisi!', 'error'); return; }
+    if (window.State.staff.some(s => s.user.toLowerCase() === user)) {
+      window.State.toast(`Username "@${user}" sudah digunakan!`, 'error'); return;
+    }
+    if (!pw || pw.length < 4) {
+      window.State.toast('Password minimal 4 karakter!', 'error'); return;
+    }
+    if (!/^\d{4}$/.test(pin)) {
+      window.State.toast('PIN harus 4 digit angka!', 'error'); return;
+    }
+
     const newStaff = {
       id: Date.now(),
-      nm: nameInput.value.trim(),
-      user: userInput.value.trim().toLowerCase(),
-      pw: passInput.value,
-      pin: pinInput ? pinInput.value.trim() : '1234',
+      nm,
+      user,
+      pw,
+      pin,
       role: roleSelect ? roleSelect.value : 'kasir',
       on: true
     };
@@ -245,6 +264,7 @@ class SettingsView {
     nameInput.value = '';
     userInput.value = '';
     passInput.value = '';
+    if (pinInput) pinInput.value = '';
 
     const modal = document.getElementById('add-staff-modal');
     if (modal) modal.classList.remove('open');

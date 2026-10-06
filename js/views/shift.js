@@ -64,7 +64,12 @@ class ShiftView {
   }
 
   startShift(starterCash) {
-    const cashierName = window.State.currentUser ? window.State.currentUser.nm : 'Kasir';
+    // BUG-11 fix: pastikan ada user aktif sebelum buka shift
+    if (!window.State.currentUser) {
+      window.State.toast('Harap login terlebih dahulu sebelum membuka shift!', 'error');
+      return;
+    }
+    const cashierName = window.State.currentUser.nm;
     const newShift = {
       id: 'SH-' + Date.now(),
       staf: cashierName,
@@ -175,8 +180,10 @@ class ShiftView {
     if (!shift) return null;
 
     const starterCash = Number(shift.modalAwal) || 0;
-    const shiftLogs = (window.State.cashLog || []).filter(l => l.tgl >= shift.mulai);
-    const shiftTrx = (window.State.transactions || []).filter(t => t.tgl >= shift.mulai);
+    // BUG-17 fix: filter dengan batas waktu selesai agar tidak overlap antar shift
+    const endTime = shift.selesai || Date.now();
+    const shiftLogs = (window.State.cashLog || []).filter(l => l.tgl >= shift.mulai && l.tgl <= endTime);
+    const shiftTrx = (window.State.transactions || []).filter(t => t.tgl >= shift.mulai && t.tgl <= endTime);
 
     const cashSales = shiftLogs.filter(l => l.kat === 'Penjualan POS').reduce((s, l) => s + l.jml, 0);
     const nonCashSales = shiftTrx.filter(t => t.metode !== 'cash').reduce((s, t) => s + (t.total || 0), 0);

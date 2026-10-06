@@ -237,13 +237,15 @@ class InventoryView {
     `).join('');
   }
 
+  // BUG-10 fix: gunakan p.on saja sebagai mekanisme availability, bukan p.habis
   toggleProductAvailability(productId) {
     const product = window.State.products.find(p => p.id === productId);
     if (!product) return;
 
-    product.on = !product.on;
+    product.on = !(product.on !== false);
     window.State.save(LS_KEYS.prod, window.State.products);
     this.render();
+    if (window.POSView) window.POSView.renderProducts();
     window.State.toast(`Status ${product.nm}: ${product.on ? 'Tersedia' : 'Habis'}`, 'success');
   }
 
@@ -305,6 +307,10 @@ class InventoryView {
       ket: reason || 'Penyesuaian stok manual'
     });
     window.State.save(LS_KEYS.mut, window.State.stockMutations);
+
+    // BUG-18 fix: reset form setelah submit agar tidak ada nilai lama
+    if (qtyInput) qtyInput.value = '';
+    if (reasonInput) reasonInput.value = '';
 
     const modal = document.getElementById('adjust-stock-modal');
     if (modal) modal.classList.remove('open');
@@ -514,10 +520,11 @@ class InventoryView {
         </td>
         <td style="text-align:right;">
           <div style="display:flex;gap:6px;justify-content:flex-end;">
-            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="window.InventoryView.openSambalModal('${s.id}')">
+            <!-- BUG-09 fix: gunakan String(s.id) agar konsisten dengan type checking di openSambalModal -->
+            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="window.InventoryView.openSambalModal('${String(s.id)}')">
               <span class="material-symbols-outlined" style="font-size:14px;">edit</span>
             </button>
-            <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="window.InventoryView.deleteSambal('${s.id}')">
+            <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="window.InventoryView.deleteSambal('${String(s.id)}')">
               <span class="material-symbols-outlined" style="font-size:14px;">delete</span>
             </button>
           </div>
@@ -536,10 +543,11 @@ class InventoryView {
     if (!modal) return;
 
     if (editId) {
-      const item = (window.State.sambalList || []).find(s => s.id === editId);
+      // BUG-09 fix: gunakan loose equality (==) agar number id == string id
+      const item = (window.State.sambalList || []).find(s => String(s.id) === String(editId));
       if (!item) return;
       if (titleEl) titleEl.textContent = 'Edit Variasi Sambal';
-      if (idInput) idInput.value = item.id;
+      if (idInput) idInput.value = String(item.id);
       if (nameInput) nameInput.value = item.nm;
       if (priceInput) priceInput.value = item.hr || 0;
       if (aktifInput) aktifInput.checked = item.aktif !== false;
@@ -582,7 +590,9 @@ class InventoryView {
 
   deleteSambal(id) {
     if (!confirm('Hapus variasi sambal ini?')) return;
-    window.State.deleteSambal(id);
+    // BUG-09 fix: gunakan String comparison untuk handle number/string id
+    window.State.sambalList = (window.State.sambalList || []).filter(s => String(s.id) !== String(id));
+    window.State.save(LS_KEYS.sambal, window.State.sambalList);
     this.renderSambalTable();
     window.State.toast('Variasi sambal dihapus.', 'warning');
   }

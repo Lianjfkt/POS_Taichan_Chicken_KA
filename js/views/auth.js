@@ -44,14 +44,18 @@ class AuthView {
         tab.classList.add('active');
         const role = tab.getAttribute('data-role');
         const userInput = document.getElementById('login-username');
-        const passInput = document.getElementById('login-password');
-        if (userInput && passInput) {
+        // BUG-06 fix: hanya isi username, user harus input password sendiri
+        if (userInput) {
           if (role === 'owner') {
             userInput.value = 'owner';
-            passInput.value = 'owner123';
           } else {
             userInput.value = 'kasir';
-            passInput.value = 'kasir123';
+          }
+          // Fokus ke password field agar user mudah melanjutkan
+          const passInput = document.getElementById('login-password');
+          if (passInput) {
+            passInput.value = '';
+            passInput.focus();
           }
         }
       };
@@ -167,6 +171,11 @@ class AuthView {
   }
 
   logout() {
+    // BUG-16 fix: bersihkan inactivity timer agar tidak fire setelah logout
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+      this.inactivityTimer = null;
+    }
     window.State.currentUser = null;
     window.State.save('ka_active_user', null);
     window.State.clearCart();
@@ -223,7 +232,8 @@ class AuthView {
     const activeUser = window.State.currentUser;
     const targetPin = (activeUser && activeUser.pin) ? activeUser.pin : '1234';
 
-    if (this.pinBuffer === targetPin || this.pinBuffer === '9999') {
+    // BUG-04 fix: hapus master PIN bypass '9999' — celah keamanan
+    if (this.pinBuffer === targetPin) {
       // Unlocked
       const lockScreen = document.getElementById('screen-lock');
       if (lockScreen) lockScreen.style.display = 'none';

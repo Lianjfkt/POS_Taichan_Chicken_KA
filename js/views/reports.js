@@ -165,9 +165,9 @@ class ReportsView {
         revenueData.push(dayTotal);
       }
     } else {
-      // 30 days
+      // BUG-12 fix: step 1 agar semua 30 hari tampil (bukan i -= 2 yang hanya 15 titik)
       if (titleEl) titleEl.textContent = 'Tren Omzet 30 Hari Terakhir';
-      for (let i = 29; i >= 0; i -= 2) {
+      for (let i = 29; i >= 0; i--) {
         const d = new Date();
         d.setDate(now.getDate() - i);
         const dStr = window.State.formatDateShort(d);
@@ -342,6 +342,10 @@ class ReportsView {
       return;
     }
 
+    // BUG-13 fix: gunakan transaction cache global, hindari JSON.stringify di onclick (XSS risk)
+    window._reportTrxCache = window._reportTrxCache || {};
+    list.forEach(t => { window._reportTrxCache[t.no] = t; });
+
     tbody.innerHTML = list.map(t => `
       <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
         <td class="font-mono" style="padding:10px 14px;font-weight:700;color:var(--primary)">${t.no}</td>
@@ -353,7 +357,7 @@ class ReportsView {
         <td style="padding:10px 14px;font-size:11px;text-transform:uppercase;color:var(--secondary)">${t.metode || 'cash'}</td>
         <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right">${window.State.formatRp(t.total)}</td>
         <td style="padding:10px 14px;text-align:center">
-          <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px" onclick="window.PrinterService.openReceiptModal(${JSON.stringify(t).replace(/"/g, '&quot;')})">
+          <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px" onclick="window.PrinterService.openReceiptModal(window._reportTrxCache['${t.no}'])">
             <span class="material-symbols-outlined" style="font-size:14px">receipt</span>
           </button>
         </td>
@@ -368,8 +372,9 @@ class ReportsView {
       return;
     }
 
+    // BUG-24 fix: tambahkan kolom Pelanggan
     const rows = [
-      ['No. Nota', 'Tanggal', 'Kasir', 'Tipe Order', 'Metode', 'Total', 'Bayar', 'Kembali', 'Item Detail']
+      ['No. Nota', 'Tanggal', 'Kasir', 'Pelanggan', 'Tipe Order', 'Metode', 'Total', 'Bayar', 'Kembali', 'Item Detail']
     ];
 
     trxs.forEach(t => {
@@ -378,6 +383,7 @@ class ReportsView {
         t.no,
         window.State.formatDate(t.tgl),
         t.kasir || 'Kasir',
+        t.pelanggan || 'Umum',
         t.tipe || 'Dine-In',
         (t.metode || 'cash').toUpperCase(),
         t.total,

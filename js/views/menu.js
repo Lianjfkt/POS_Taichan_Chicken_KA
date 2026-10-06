@@ -361,6 +361,12 @@ class MenuView {
       const idx = window.State.categories.findIndex(c => c.id === this.editingCategory);
       if (idx > -1) {
         const oldName = window.State.categories[idx].nm;
+        // BUG-20 fix: cek duplikat nama saat edit (exclude diri sendiri)
+        if (name.toLowerCase() !== oldName.toLowerCase() &&
+            window.State.categories.some(c => c.id !== this.editingCategory && c.nm.toLowerCase() === name.toLowerCase())) {
+          window.State.toast('Nama kategori sudah ada!', 'error');
+          return;
+        }
         window.State.categories[idx] = {
           ...window.State.categories[idx],
           nm: name, emj: emoji, col: color, ord: order, on: isActive

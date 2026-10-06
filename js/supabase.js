@@ -29,13 +29,14 @@ class SupabaseService {
       this.setStatus('offline');
     }
 
-    // Auto retry when network changes
-    window.addEventListener('online', () => {
-      this.testConnection().then(() => this.syncOfflineQueue());
-    });
-    window.addEventListener('offline', () => {
-      this.setStatus('offline');
-    });
+    // BUG-19 fix: daftarkan listener hanya sekali meski init() dipanggil berkali-kali
+    if (!this._networkListenersAdded) {
+      this._onOnline = () => this.testConnection().then(() => this.syncOfflineQueue());
+      this._onOffline = () => this.setStatus('offline');
+      window.addEventListener('online', this._onOnline);
+      window.addEventListener('offline', this._onOffline);
+      this._networkListenersAdded = true;
+    }
   }
 
   setStatus(newStatus) {
@@ -155,14 +156,36 @@ class SupabaseService {
     }
   }
 
-  // Queue transaction when offline
-  queueTransaction(trx) {
+  // BUG-03 fix: langsung insert ke Supabase jika online, hanya queue jika offline
+  async queueTransaction(trx) {
+    if (this.status === 'online' && this.client) {
+      try {
+        const payload = {
+          order_no: trx.no || `ORD-${Date.now()}`,
+          order_type: trx.tipe || 'dine-in',
+          table_no: trx.meja || '',
+          cashier_id: trx.kasir || 'Kasir',
+          payment_method: trx.metode || 'cash',
+          subtotal: trx.subtotal || trx.total,
+          discount_amount: trx.diskon || 0,
+          total_amount: trx.total || 0,
+          paid_amount: trx.bayar || trx.total,
+          change_amount: trx.kembali || 0,
+          status: 'completed',
+          items: trx.items || [],
+          created_at: new Date(trx.tgl || Date.now()).toISOString()
+        };
+        const { error } = await this.client.from('orders').insert([payload]);
+        if (error) throw error;
+        return; // berhasil, tidak perlu masuk queue
+      } catch (err) {
+        console.warn('[Supabase] Direct insert failed, falling back to queue:', err);
+      }
+    }
+    // Offline atau insert gagal: masuk ke offline queue
     window.State.offlineQueue.push(trx);
     window.State.save(LS_KEYS.ofq, window.State.offlineQueue);
     this.setStatus(this.status);
-    if (this.status === 'online') {
-      this.syncOfflineQueue();
-    }
   }
 
   // Flush queued transactions to Supabase

@@ -151,6 +151,9 @@ class StateManager {
     this.save(LS_KEYS.set, this.settings);
     this.save(LS_KEYS.ofq, this.offlineQueue);
     this.save(LS_KEYS.sb, this.supabaseConfig);
+    // BUG-08 fix: include sambalList & savedOrders
+    this.save(LS_KEYS.sambal, this.sambalList);
+    this.save(LS_KEYS.saved_orders, this.savedOrders);
   }
 
   on(event, callback) {
@@ -199,6 +202,24 @@ class StateManager {
     if (this.cart[index].qty <= 0) {
       this.cart.splice(index, 1);
     }
+    this.emit('cart:change', this.cart);
+  }
+
+  // BUG-07 fix: stable cart update menggunakan id+mod, bukan index posisi
+  updateCartQtyById(productId, mod, delta) {
+    const idx = this.cart.findIndex(item =>
+      item.id === productId && item.mod === mod
+    );
+    if (idx === -1) return;
+    this.cart[idx].qty += delta;
+    if (this.cart[idx].qty <= 0) {
+      this.cart.splice(idx, 1);
+    }
+    this.emit('cart:change', this.cart);
+  }
+
+  removeCartItemById(productId, mod) {
+    this.cart = this.cart.filter(item => !(item.id === productId && item.mod === mod));
     this.emit('cart:change', this.cart);
   }
 

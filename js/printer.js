@@ -81,7 +81,14 @@ class PrinterService {
       const name = item.nm.substring(0, 20);
       const priceStr = window.State.formatRp(item.hr * item.qty).replace('Rp ', '');
       const spacing = 32 - name.length - priceStr.length;
-      parts.push(encoder.encode(name + ' '.repeat(Math.max(1, spacing)) + priceStr + '\n'));
+
+      // BUG-21 fix: jika overflow, cetak harga di baris terpisah
+      if (spacing < 1) {
+        parts.push(encoder.encode(name + '\n'));
+        parts.push(encoder.encode('  ' + ' '.repeat(32 - 2 - priceStr.length) + priceStr + '\n'));
+      } else {
+        parts.push(encoder.encode(name + ' '.repeat(spacing) + priceStr + '\n'));
+      }
       if (item.mod) {
         parts.push(encoder.encode(`  * ${item.mod}\n`));
       }

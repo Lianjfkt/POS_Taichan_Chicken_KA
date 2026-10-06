@@ -112,14 +112,16 @@ class PaymentView {
     const changeEl = document.getElementById('payment-change-amount');
     const btnSubmit = document.getElementById('btn-submit-payment');
 
-    const change = Math.max(0, this.paidAmount - this.currentTotal);
+    // BUG-01 fix: gunakan finalTotal setelah diskon
+    const finalTotal = Math.max(0, this.currentTotal - this.discountAmount);
+    const change = Math.max(0, this.paidAmount - finalTotal);
 
     if (changeEl) {
       changeEl.textContent = window.State.formatRp(change);
     }
 
     if (btnSubmit) {
-      if (this.selectedMethod === 'cash' && this.paidAmount < this.currentTotal) {
+      if (this.selectedMethod === 'cash' && this.paidAmount < finalTotal) {
         btnSubmit.disabled = true;
         btnSubmit.textContent = 'Uang Tunai Kurang';
       } else {
@@ -135,10 +137,15 @@ class PaymentView {
       return;
     }
 
-    const orderNumber = 'KA-' + String(Date.now()).slice(-6);
+    // BUG-02 fix: nomor nota lebih unik → tanggal + counter transaksi
+    const dateStr = window.State.formatDateShort(Date.now()).replace(/-/g, '');
+    const counter = String((window.State.transactions.length || 0) + 1).padStart(4, '0');
+    const orderNumber = `KA-${dateStr}-${counter}`;
     const cashierName = window.State.currentUser ? window.State.currentUser.nm : 'Kasir';
     const orderItems = JSON.parse(JSON.stringify(window.State.cart));
-    const change = Math.max(0, this.paidAmount - this.currentTotal);
+    // BUG-01 fix: total = currentTotal - discountAmount
+    const finalTotal = Math.max(0, this.currentTotal - this.discountAmount);
+    const change = Math.max(0, this.paidAmount - finalTotal);
 
     const transaction = {
       no: orderNumber,
@@ -146,11 +153,12 @@ class PaymentView {
       items: orderItems,
       subtotal: this.currentTotal,
       diskon: this.discountAmount,
-      total: this.currentTotal,
+      total: finalTotal,
       bayar: this.paidAmount,
       kembali: change,
       metode: this.selectedMethod,
       tipe: window.State.orderType,
+      pelanggan: window.State.currentCustomerName || 'Umum',
       kasir: cashierName
     };
 
@@ -173,7 +181,7 @@ class PaymentView {
         tgl: Date.now(),
         tipe: 'masuk',
         kat: 'Penjualan POS',
-        jml: this.currentTotal,
+        jml: finalTotal,
         ket: `Nota ${orderNumber}`,
         staf: cashierName
       });
