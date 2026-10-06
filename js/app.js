@@ -5,7 +5,7 @@
 class AppRouter {
   constructor() {
     this.currentView = 'pos';
-    this.views = ['pos', 'shift', 'kds', 'inventory', 'menu', 'reports', 'settings'];
+    this.views = ['pos', 'shift', 'inventory', 'menu', 'reports', 'settings'];
   }
 
   init() {
@@ -15,7 +15,6 @@ class AppRouter {
     if (window.AuthView) window.AuthView.init();
     if (window.POSView) window.POSView.init();
     if (window.PaymentView) window.PaymentView.init();
-    if (window.KDSView) window.KDSView.init();
     if (window.ShiftView) window.ShiftView.init();
     if (window.InventoryView) window.InventoryView.init();
     if (window.StockTracker) window.StockTracker.init();

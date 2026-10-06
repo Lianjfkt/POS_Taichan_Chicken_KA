@@ -175,7 +175,6 @@ class SettingsView {
       tgl: Date.now(),
       kasir: 'Tester',
       tipe: 'Dine-In',
-      meja: '99',
       items: [
         { nm: 'Taichan Pedas Lv.3', qty: 2, hr: 18000, mod: 'Lv.3, Sambal Pisah' },
         { nm: 'Es Teh Manis', qty: 2, hr: 5000, mod: 'Manis Sedang' }

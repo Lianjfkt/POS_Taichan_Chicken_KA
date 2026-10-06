@@ -10,8 +10,6 @@ const LS_KEYS = {
   kas:   'ka_kaslog',
   sesi:  'ka_sesi',
   pt:    'ka_pt',
-  op:    'ka_op',
-  dp:    'ka_dp',
   inv:   'ka_inv',
   mut:   'ka_mut',
   st:    'ka_st',
@@ -102,8 +100,6 @@ class StateManager {
     this.cashLog    = this.load(LS_KEYS.kas, []);
     this.activeShift = this.load(LS_KEYS.sesi, null);
     this.receivables = this.load(LS_KEYS.pt, []);
-    this.onProcessOrders = this.load(LS_KEYS.op, []);
-    this.kitchenOrders = this.load(LS_KEYS.dp, []);
     this.inventory  = this.load(LS_KEYS.inv, DEFAULT_INVENTORY);
     this.stockMutations = this.load(LS_KEYS.mut, []);
     this.staff      = this.load(LS_KEYS.st, DEFAULT_STAFF);
@@ -142,8 +138,6 @@ class StateManager {
     this.save(LS_KEYS.kas, this.cashLog);
     this.save(LS_KEYS.sesi, this.activeShift);
     this.save(LS_KEYS.pt, this.receivables);
-    this.save(LS_KEYS.op, this.onProcessOrders);
-    this.save(LS_KEYS.dp, this.kitchenOrders);
     this.save(LS_KEYS.inv, this.inventory);
     this.save(LS_KEYS.mut, this.stockMutations);
     this.save(LS_KEYS.st, this.staff);

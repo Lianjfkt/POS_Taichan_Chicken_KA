@@ -111,9 +111,6 @@ class SupabaseService {
       }
 
       this.channel = this.client.channel('schema-db-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
-          this.handleOrderChange(payload);
-        })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory_items' }, payload => {
           this.handleInventoryChange(payload);
         })
@@ -124,24 +121,6 @@ class SupabaseService {
         });
     } catch (e) {
       console.warn('[Supabase] Realtime subscription error:', e);
-    }
-  }
-
-  handleOrderChange(payload) {
-    if (payload.eventType === 'INSERT') {
-      const exists = window.State.kitchenOrders.some(o => o.id === payload.new.order_no);
-      if (!exists && payload.new.status !== 'completed') {
-        window.State.kitchenOrders.unshift({
-          id: payload.new.order_no,
-          meja: payload.new.table_no || 'Take Away',
-          tipe: payload.new.order_type || 'dine-in',
-          items: payload.new.items || [],
-          status: payload.new.status || 'menunggu',
-          waktu: new Date(payload.new.created_at).getTime()
-        });
-        window.State.save(LS_KEYS.dp, window.State.kitchenOrders);
-        window.State.emit('kds:new_order', payload.new);
-      }
     }
   }
 
@@ -163,7 +142,7 @@ class SupabaseService {
         const payload = {
           order_no: trx.no || `ORD-${Date.now()}`,
           order_type: trx.tipe || 'dine-in',
-          table_no: trx.meja || '',
+          table_no: '',
           cashier_id: trx.kasir || 'Kasir',
           payment_method: trx.metode || 'cash',
           subtotal: trx.subtotal || trx.total,
@@ -201,7 +180,7 @@ class SupabaseService {
         const payload = {
           order_no: item.no || `ORD-${Date.now()}`,
           order_type: item.tipe || 'dine-in',
-          table_no: item.meja || '',
+          table_no: '',
           cashier_id: item.kasir || 'Kasir',
           payment_method: item.metode || 'cash',
           subtotal: item.subtotal || item.total,
