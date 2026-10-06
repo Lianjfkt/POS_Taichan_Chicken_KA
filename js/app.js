@@ -51,30 +51,37 @@ class AppRouter {
   }
 
   bindNavigation() {
-    // Desktop Sidebar Links
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.onclick = (e) => {
-        e.preventDefault();
-        const targetView = item.getAttribute('data-view');
-        if (targetView) this.navigate(targetView);
-      };
-    });
+    // Use event delegation so owner-only items revealed post-login are handled
+    const sidebarNav = document.querySelector('.sidebar-nav');
+    if (sidebarNav) {
+      sidebarNav.addEventListener('click', (e) => {
+        const item = e.target.closest('.nav-item[data-view]');
+        if (item) {
+          e.preventDefault();
+          const targetView = item.getAttribute('data-view');
+          if (targetView) this.navigate(targetView);
+        }
+      });
+    }
 
-    // Mobile Dock Navigation Links
-    document.querySelectorAll('.mobile-nav-item').forEach(item => {
-      item.onclick = (e) => {
-        e.preventDefault();
-        const targetView = item.getAttribute('data-view');
-        if (targetView) this.navigate(targetView);
-      };
-    });
+    const mobileDock = document.querySelector('.mobile-nav-dock');
+    if (mobileDock) {
+      mobileDock.addEventListener('click', (e) => {
+        const item = e.target.closest('.mobile-nav-item[data-view]');
+        if (item) {
+          e.preventDefault();
+          const targetView = item.getAttribute('data-view');
+          if (targetView) this.navigate(targetView);
+        }
+      });
+    }
   }
 
   navigate(viewName) {
     if (!this.views.includes(viewName)) return;
 
     // Check RBAC permissions for Owner views
-    const ownerOnlyViews = ['inventory', 'reports', 'settings'];
+    const ownerOnlyViews = ['inventory', 'menu', 'reports', 'settings'];
     const activeUser = window.State.currentUser;
 
     if (ownerOnlyViews.includes(viewName)) {
