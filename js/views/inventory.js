@@ -27,7 +27,7 @@ class InventoryView {
       };
     }
 
-    // Subtab Buttons (Bahan Baku / Resep BOM / Sambal)
+    // Subtab Buttons (Bahan Baku / Resep BOM / Sambal / Stock Harian)
     document.querySelectorAll('.inv-subtab-btn').forEach(btn => {
       btn.onclick = () => {
         document.querySelectorAll('.inv-subtab-btn').forEach(b => b.classList.remove('active'));
@@ -37,10 +37,17 @@ class InventoryView {
         const rawTab    = document.getElementById('inventory-raw-tab');
         const bomTab    = document.getElementById('inventory-bom-tab');
         const sambalTab = document.getElementById('inventory-sambal-tab');
+        const stockTab  = document.getElementById('inventory-stock-harian-tab');
 
-        if (rawTab)    rawTab.style.display    = (this.activeTab === 'raw')    ? 'flex' : 'none';
-        if (bomTab)    bomTab.style.display    = (this.activeTab === 'bom')    ? 'flex' : 'none';
-        if (sambalTab) sambalTab.style.display = (this.activeTab === 'sambal') ? 'flex' : 'none';
+        if (rawTab)    rawTab.style.display    = (this.activeTab === 'raw')           ? 'flex' : 'none';
+        if (bomTab)    bomTab.style.display    = (this.activeTab === 'bom')           ? 'flex' : 'none';
+        if (sambalTab) sambalTab.style.display = (this.activeTab === 'sambal')        ? 'flex' : 'none';
+        if (stockTab)  stockTab.style.display  = (this.activeTab === 'stock_harian')  ? 'flex' : 'none';
+
+        // Init stock tracker on first open
+        if (this.activeTab === 'stock_harian' && window.StockTracker) {
+          window.StockTracker.render();
+        }
       };
     });
 

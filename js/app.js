@@ -18,6 +18,7 @@ class AppRouter {
     if (window.KDSView) window.KDSView.init();
     if (window.ShiftView) window.ShiftView.init();
     if (window.InventoryView) window.InventoryView.init();
+    if (window.StockTracker) window.StockTracker.init();
     if (window.MenuView) window.MenuView.init();
     if (window.ReportsView) window.ReportsView.init();
     if (window.SettingsView) window.SettingsView.init();

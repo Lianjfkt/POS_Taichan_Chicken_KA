@@ -516,6 +516,10 @@
               <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">local_fire_department</span>
               <span>Variasi Sambal &amp; Pelengkap</span>
             </button>
+            <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="stock_harian">
+              <span class="material-symbols-outlined" style="font-size:16px;color:var(--tertiary);">monitoring</span>
+              <span>Stock Harian 🍢🍗</span>
+            </button>
           </div>
 
           <!-- Tab 1: Raw Ingredients Table -->
@@ -582,6 +586,27 @@
                 </thead>
                 <tbody id="inventory-sambal-tbody"></tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- Tab 4: Daily Stock Tracker -->
+          <div id="inventory-stock-harian-tab" class="section-card" style="flex:1;display:none;flex-direction:column;padding:0;background:transparent;border:none;">
+            <!-- Sub-tabs: Taichan | Chicken -->
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <button id="st-subtab-taichan" class="btn btn-secondary active" style="font-size:12px;">
+                🍢 Taichan (Tusuk)
+              </button>
+              <button id="st-subtab-chicken" class="btn btn-secondary" style="font-size:12px;">
+                🍗 Ayam (Potong)
+              </button>
+            </div>
+            <!-- Taichan Content -->
+            <div id="st-tab-taichan-content">
+              <div id="st-taichan-content"></div>
+            </div>
+            <!-- Chicken Content -->
+            <div id="st-tab-chicken-content" style="display:none;">
+              <div id="st-chicken-content"></div>
             </div>
           </div>
         </section>
@@ -1638,6 +1663,77 @@
   </div>
 
   <!-- =================================================================
+       MODAL: ADD TAICHAN BATCH (Stock Tracker)
+  ================================================================= -->
+  <div class="modal-overlay" id="st-modal-taichan">
+    <div class="modal-card" style="max-width:420px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">🍢 Tambah Batch Taichan</div>
+          <div class="modal-subtitle">Catat stok mentah taichan hari ini</div>
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="st-form-taichan">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Jumlah Stok Mentah (Tusuk)</label>
+            <input type="number" id="st-modal-taichan-qty" class="form-input font-mono" min="1" placeholder="Contoh: 100" required>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Keterangan (opsional)</label>
+            <input type="text" id="st-modal-taichan-notes" class="form-input" placeholder="Contoh: Stok pagi dari supplier">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <span class="material-symbols-outlined">add</span> Simpan Batch
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       MODAL: ADD CHICKEN BATCH (Stock Tracker)
+  ================================================================= -->
+  <div class="modal-overlay" id="st-modal-chicken">
+    <div class="modal-card" style="max-width:420px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">🍗 Tambah Batch Ayam</div>
+          <div class="modal-subtitle">Bagian: <strong id="st-modal-chicken-part-label">-</strong></div>
+        </div>
+        <button class="modal-close btn-modal-cancel">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="st-form-chicken">
+        <input type="hidden" id="st-modal-chicken-part-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Jumlah Stok Mentah (Potong)</label>
+            <input type="number" id="st-modal-chicken-qty" class="form-input font-mono" min="1" placeholder="Contoh: 30" required>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Keterangan (opsional)</label>
+            <input type="text" id="st-modal-chicken-notes" class="form-input" placeholder="Contoh: Restock siang hari">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-modal-cancel">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <span class="material-symbols-outlined">add</span> Simpan Batch
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================================
        MODAL: ADD INVENTORY ITEM
   ================================================================= -->
   <div class="modal-overlay" id="add-inventory-modal">
@@ -1796,6 +1892,7 @@
   <script src="js/views/payment.js"></script>
   <script src="js/views/shift.js"></script>
   <script src="js/views/inventory.js"></script>
+  <script src="js/views/stock_tracker.js"></script>
   <script src="js/views/reports.js"></script>
   <script src="js/views/settings.js"></script>
   <script src="js/views/menu.js"></script>
