@@ -341,6 +341,18 @@
 
               <!-- Product Grid -->
               <div class="catalog-grid" id="pos-product-grid"></div>
+
+              <!-- Mobile Floating Cart Pill (only visible on mobile ≤768px) -->
+              <div id="mobile-floating-cart-pill" class="mobile-cart-pill" onclick="window.POSView && window.POSView.openMobileCartDrawer()">
+                <div class="mobile-cart-pill-left">
+                  <span class="material-symbols-outlined" style="font-size:20px;flex-shrink:0;">shopping_cart</span>
+                  <span id="mobile-pill-count" style="font-size:13px;font-weight:700;">0 Item</span>
+                </div>
+                <div class="mobile-cart-pill-right">
+                  <span id="mobile-pill-total" class="font-mono" style="font-size:15px;font-weight:800;">Rp 0</span>
+                  <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0;">expand_less</span>
+                </div>
+              </div>
             </div>
 
             <!-- ZONE C: Persistent Cart -->

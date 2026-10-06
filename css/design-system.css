@@ -1205,8 +1205,19 @@ body { display: flex; flex-direction: column; }
 /* -----------------------------------------------------------------
    RESPONSIVE
 ----------------------------------------------------------------- */
+/* -----------------------------------------------------------------
+   TABLET BREAKPOINT — narrow zones
+----------------------------------------------------------------- */
 @media (max-width: 1024px) {
   :root { --zone-a-w: 156px; --zone-c-w: 320px; }
+}
+
+/* -----------------------------------------------------------------
+   MOBILE FLOATING CART PILL
+   (visible only on ≤768px, replaces Zone C sidebar)
+----------------------------------------------------------------- */
+.mobile-cart-pill {
+  display: none; /* hidden by default (desktop) */
 }
 
 @media (max-width: 768px) {
@@ -1219,21 +1230,91 @@ body { display: flex; flex-direction: column; }
   .pos-layout { flex-direction: column; }
   .zone-a {
     width: 100%; height: auto; flex-direction: row;
-    overflow-x: auto; border-right: none;
+    overflow-x: auto; overflow-y: hidden;
+    border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px 12px; gap: 6px;
+    flex-shrink: 0;
   }
   .zone-a-label { display: none; }
   .cat-pill { width: auto; white-space: nowrap; flex-shrink: 0; }
+
+  /* Zone B: fills remaining space, has pill at bottom */
+  .zone-b {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Catalog grid: leave room for floating pill (56px) + some breathing space */
+  .catalog-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    padding-bottom: 72px; /* room for the floating pill */
+  }
+
+  /* Zone C: hidden on mobile — replaced by drawer + pill */
   .zone-c { display: none; }
-  .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+
+  /* Mobile floating cart pill — shown when cart has items */
+  .mobile-cart-pill {
+    display: flex;
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 52px;
+    background: linear-gradient(135deg, var(--primary-container) 0%, #dc6519 100%);
+    color: #fff;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 -2px 16px rgba(249, 115, 22, 0.4);
+    transition: opacity var(--transition-fast);
+    /* Hidden until cart has items — controlled by .has-items class in JS */
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(100%);
+    transition: transform var(--transition-spring), opacity var(--transition-fast);
+  }
+  .mobile-cart-pill.has-items {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .mobile-cart-pill-left {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .mobile-cart-pill-right {
+    display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+    font-weight: 800;
+  }
+
+  /* Pos top bar: allow wrapping on narrow screens */
+  .pos-top-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
 }
 
 @media (max-width: 480px) {
-  .catalog-grid { grid-template-columns: 1fr 1fr; padding: 10px 12px; gap: 8px; }
+  .catalog-grid { grid-template-columns: 1fr 1fr; padding: 10px 12px 72px; gap: 8px; }
   .pos-top-bar { flex-wrap: wrap; }
   .order-type-group { width: 100%; }
   .pos-search-wrapper { order: -1; width: 100%; max-width: none; }
+  .app-header { padding: 0 10px; gap: 4px; }
+  /* Hide omzet/trx pills on very small screens to prevent header overflow */
+  #header-omzet-val,
+  #header-trx-val { font-size: 10px; }
+  .brand-mark-name { font-size: 13px; }
+  .brand-version-badge { display: none; }
 }
 
 /* ==========================================================================
