@@ -35,7 +35,21 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
 
   <!-- Stitch Design System -->
-  <link rel="stylesheet" href="css/design-system.css?v=3.3.0">
+  <link rel="stylesheet" href="css/design-system.css?v=3.3.1">
+
+  <!-- Mobile Viewport Height Fix -->
+  <script>
+    // Fix for mobile 100vh bug (browser chrome causes overflow)
+    function setVH() {
+      var vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', vh + 'px');
+    }
+    setVH();
+    window.addEventListener('resize', setVH);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setVH);
+    }
+  </script>
 </head>
 <body>
 
@@ -353,7 +367,7 @@
             <div class="zone-b">
               <!-- POS Operational Top Bar -->
               <div class="pos-top-bar">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
                   <!-- Order Type Switcher -->
                   <div class="order-type-group">
                     <button type="button" class="order-type-btn btn-order-type active" data-type="dine-in">
@@ -371,9 +385,9 @@
                   </div>
                 </div>
 
-                <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:400px;justify-content:flex-end;">
+                <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;justify-content:flex-end;">
                   <!-- Search -->
-                  <div class="pos-search-wrapper" style="width:100%;">
+                  <div class="pos-search-wrapper" style="flex:1;min-width:0;max-width:380px;">
                     <span class="material-symbols-outlined pos-search-icon">search</span>
                     <input type="text" id="pos-search-input" class="pos-search-input" placeholder="Cari menu (Ctrl+F)...">
                     <button type="button" class="pos-search-clear" id="pos-search-clear">
