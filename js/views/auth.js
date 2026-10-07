@@ -143,6 +143,14 @@ class AuthView {
     if (userRoleEl) userRoleEl.textContent = user.role.toUpperCase();
     if (userInitialEl) userInitialEl.textContent = (user.nm || 'U').charAt(0).toUpperCase();
 
+    // Mobile quick panel user sync
+    const mobUserName = document.getElementById('mobile-quick-user-name');
+    const mobUserRole = document.getElementById('mobile-quick-user-role');
+    const mobUserInit = document.getElementById('mobile-quick-user-initial');
+    if (mobUserName) mobUserName.textContent = user.nm;
+    if (mobUserRole) mobUserRole.textContent = user.role.toUpperCase();
+    if (mobUserInit) mobUserInit.textContent = (user.nm || 'U').charAt(0).toUpperCase();
+
     // Toggle Owner-only elements
     const isOwner = user.role === 'owner';
     document.querySelectorAll('.owner-only').forEach(el => {

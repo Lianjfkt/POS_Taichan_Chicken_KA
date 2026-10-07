@@ -651,6 +651,12 @@ class POSView {
     if (omzetEl) omzetEl.textContent = window.State.formatRp(omzet);
     if (trxEl) trxEl.textContent = `${todayTrx.length} Trx`;
 
+    // Mobile quick panel stats sync
+    const mobOmzetEl = document.getElementById('mobile-quick-omzet');
+    const mobTrxEl = document.getElementById('mobile-quick-trx');
+    if (mobOmzetEl) mobOmzetEl.textContent = window.State.formatRp(omzet);
+    if (mobTrxEl) mobTrxEl.textContent = `${todayTrx.length} Trx`;
+
     const lowItems = (window.State.inventory || []).filter(i => Number(i.stok) <= Number(i.min));
     const stokPill = document.getElementById('header-stok-pill');
     const stokVal = document.getElementById('header-stok-val');
@@ -658,6 +664,9 @@ class POSView {
       stokVal.textContent = `${lowItems.length} Kritis`;
       stokPill.style.display = lowItems.length > 0 ? 'inline-flex' : 'none';
     }
+
+    const mobStokVal = document.getElementById('mobile-quick-stok');
+    if (mobStokVal) mobStokVal.textContent = `${lowItems.length} Kritis`;
 
     const unreadCount = window.State.getUnreadNotificationCount();
     const notifBadge = document.getElementById('header-notif-badge');

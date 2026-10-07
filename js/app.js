@@ -50,6 +50,51 @@ class AppRouter {
         }
       };
     }
+
+    // Mobile Header Expand Panel toggle
+    const btnMobileExpand = document.getElementById('btn-mobile-header-expand');
+    const mobileQuickPanel = document.getElementById('mobile-header-quick-panel');
+    if (btnMobileExpand && mobileQuickPanel) {
+      btnMobileExpand.onclick = () => {
+        mobileQuickPanel.classList.toggle('open');
+      };
+    }
+
+    // Mobile quick logout trigger
+    const btnQuickLogout = document.getElementById('btn-mobile-quick-logout');
+    if (btnQuickLogout) {
+      btnQuickLogout.onclick = () => {
+        if (confirm('Yakin ingin keluar dari akun kasir/owner?')) {
+          if (window.AuthView) window.AuthView.logout();
+        }
+      };
+    }
+
+    // Mobile More Menu Sheet triggers
+    window.toggleMobileMoreSheet = (force) => {
+      const sheet = document.getElementById('mobile-more-sheet');
+      if (!sheet) return;
+      if (typeof force === 'boolean') {
+        sheet.classList.toggle('open', force);
+      } else {
+        sheet.classList.toggle('open');
+      }
+    };
+
+    const moreSheet = document.getElementById('mobile-more-sheet');
+    if (moreSheet) {
+      moreSheet.addEventListener('click', (e) => {
+        const item = e.target.closest('.mobile-sheet-btn[data-view]');
+        if (item) {
+          e.preventDefault();
+          const targetView = item.getAttribute('data-view');
+          if (targetView) {
+            window.toggleMobileMoreSheet(false);
+            this.navigate(targetView);
+          }
+        }
+      });
+    }
   }
 
   bindNavigation() {
@@ -96,6 +141,11 @@ class AppRouter {
     this.currentView = viewName;
     window.State.activeView = viewName;
 
+    // Close mobile panels upon navigation
+    const mobileQuickPanel = document.getElementById('mobile-header-quick-panel');
+    if (mobileQuickPanel) mobileQuickPanel.classList.remove('open');
+    if (window.toggleMobileMoreSheet) window.toggleMobileMoreSheet(false);
+
     // 1. Switch View Panes
     document.querySelectorAll('.view-pane').forEach(pane => {
       pane.classList.remove('active');
@@ -109,10 +159,15 @@ class AppRouter {
       item.classList.toggle('active', v === viewName);
     });
 
-    // 3. Update Mobile Bottom Nav Active Tab
+    // 3. Update Mobile Bottom Nav Active Tab (3 Tabs)
+    const isMoreSubView = ['shift', 'customers', 'inventory', 'menu', 'reports', 'settings'].includes(viewName);
     document.querySelectorAll('.mobile-nav-item').forEach(item => {
       const v = item.getAttribute('data-view');
-      item.classList.toggle('active', v === viewName);
+      if (item.id === 'btn-mobile-more-menu') {
+        item.classList.toggle('active', isMoreSubView);
+      } else {
+        item.classList.toggle('active', v === viewName);
+      }
     });
 
     // 4. Trigger target view renders
