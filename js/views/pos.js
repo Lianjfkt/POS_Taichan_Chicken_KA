@@ -434,13 +434,19 @@ class POSView {
     const btnCheckout = document.getElementById('btn-pos-checkout');
     const btnHold = document.getElementById('btn-hold-cart');
     const btnDrawerCheckout = document.getElementById('btn-drawer-checkout');
+    const btnDrawerHold = document.getElementById('btn-hold-cart-mobile');
+    const drawerBadge = document.getElementById('mobile-drawer-badge-count');
 
     subtotalEls.forEach(el => { if (el) el.textContent = window.State.formatRp(subtotal); });
     totalEls.forEach(el => { if (el) el.textContent = window.State.formatRp(subtotal); });
 
+    const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+    if (drawerBadge) drawerBadge.textContent = `${totalQty} Item`;
+
     if (btnCheckout) btnCheckout.disabled = cart.length === 0;
     if (btnHold) btnHold.disabled = cart.length === 0;
     if (btnDrawerCheckout) btnDrawerCheckout.disabled = cart.length === 0;
+    if (btnDrawerHold) btnDrawerHold.disabled = cart.length === 0;
 
     // Update saved orders badge
     this.updateSavedOrdersBadge();
@@ -585,13 +591,22 @@ class POSView {
     const drawer = document.getElementById('mobile-cart-drawer');
     if (drawer) {
       drawer.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      const nameMobile = document.getElementById('pos-customer-name-mobile');
+      if (nameMobile && window.State.currentCustomerName) {
+        nameMobile.value = window.State.currentCustomerName;
+      }
     }
   }
 
   toggleMobileCartDrawer() {
     const drawer = document.getElementById('mobile-cart-drawer');
     if (drawer) {
-      drawer.classList.toggle('open');
+      if (drawer.classList.contains('open')) {
+        this.closeMobileCartDrawer();
+      } else {
+        this.openMobileCartDrawer();
+      }
     }
   }
 
@@ -599,6 +614,7 @@ class POSView {
     const drawer = document.getElementById('mobile-cart-drawer');
     if (drawer) {
       drawer.classList.remove('open');
+      document.body.style.overflow = '';
     }
   }
 

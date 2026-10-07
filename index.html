@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
 
   <!-- Stitch Design System -->
-  <link rel="stylesheet" href="css/design-system.css?v=3.2.0">
+  <link rel="stylesheet" href="css/design-system.css?v=3.3.0">
 </head>
 <body>
 
@@ -398,17 +398,7 @@
               <!-- Product Grid -->
               <div class="catalog-grid" id="pos-product-grid"></div>
 
-              <!-- Mobile Floating Cart Pill (only visible on mobile ≤768px) -->
-              <div id="mobile-floating-cart-pill" class="mobile-cart-pill" onclick="window.POSView && window.POSView.openMobileCartDrawer()">
-                <div class="mobile-cart-pill-left">
-                  <span class="material-symbols-outlined" style="font-size:20px;flex-shrink:0;">shopping_cart</span>
-                  <span id="mobile-pill-count" style="font-size:13px;font-weight:700;">0 Item</span>
-                </div>
-                <div class="mobile-cart-pill-right">
-                  <span id="mobile-pill-total" class="font-mono" style="font-size:15px;font-weight:800;">Rp 0</span>
-                  <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0;">expand_less</span>
-                </div>
-              </div>
+
             </div>
 
             <!-- ZONE C: Persistent Cart -->
@@ -1466,16 +1456,23 @@
       </div>
     </div>
 
-    <!-- MOBILE FLOATING CART PILL -->
+    <!-- MOBILE FLOATING CART PILL (Fixed above dock) -->
     <div class="mobile-floating-cart" id="mobile-floating-cart-pill" onclick="window.POSView && window.POSView.openMobileCartDrawer()">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="material-symbols-outlined">shopping_bag</span>
-        <span style="font-weight:800;" id="mobile-pill-count">0 Item</span>
+      <div class="mobile-floating-cart-info">
+        <div class="mobile-floating-cart-badge">
+          <span class="material-symbols-outlined" style="font-size:20px;">shopping_bag</span>
+          <span id="mobile-pill-count">0 Item</span>
+        </div>
+        <span style="opacity:0.35;font-size:12px;">|</span>
+        <div class="mobile-floating-cart-price">
+          <span class="font-mono" id="mobile-pill-total">Rp 0</span>
+        </div>
+        <span class="material-symbols-outlined" style="font-size:16px;opacity:0.6;margin-left:2px;">expand_less</span>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="font-mono" style="font-weight:800;font-size:15px;" id="mobile-pill-total">Rp 0</span>
-        <span class="material-symbols-outlined">expand_less</span>
-      </div>
+      <button type="button" class="mobile-floating-cart-pay-btn" id="btn-mobile-pill-pay" onclick="event.stopPropagation(); if (window.State.cart.length > 0) { window.PaymentView && window.PaymentView.openPaymentModal(); } else { window.POSView && window.POSView.openMobileCartDrawer(); }" title="Langsung Proses Bayar">
+        <span>Bayar</span>
+        <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+      </button>
     </div>
 
     <!-- MOBILE BOTTOM NAVIGATION DOCK (3 TABS) -->
@@ -1540,50 +1537,62 @@
   <!-- =================================================================
        MOBILE: SLIDE-UP CART BOTTOM SHEET
   ================================================================= -->
-  <div id="mobile-cart-drawer" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(10,14,24,0.85);backdrop-filter:blur(12px);z-index:150;" onclick="event.target===this&&window.POSView&&window.POSView.closeMobileCartDrawer()">
-    <div style="position:absolute;bottom:0;left:0;right:0;max-height:90vh;background:var(--surface-container);border-top:1px solid rgba(255,255,255,0.08);border-radius:24px 24px 0 0;display:flex;flex-direction:column;box-shadow:var(--shadow-xl);overflow:hidden;">
+  <div id="mobile-cart-drawer" class="mobile-cart-drawer-overlay" onclick="event.target===this && window.POSView && window.POSView.closeMobileCartDrawer()">
+    <div class="mobile-cart-drawer-card">
       <!-- Drag Handle -->
-      <div style="display:flex;justify-content:center;padding:10px 0 0;cursor:grab;flex-shrink:0;">
-        <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.2);"></div>
+      <div class="mobile-cart-drawer-handle-bar" onclick="window.POSView && window.POSView.closeMobileCartDrawer()">
+        <div class="mobile-cart-drawer-handle"></div>
       </div>
-      <div style="padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-        <div style="font-size:16px;font-weight:700;">Keranjang Pesanan</div>
+
+      <!-- Drawer Header -->
+      <div class="mobile-cart-drawer-header">
+        <div class="mobile-cart-drawer-title-box">
+          <div style="font-size:16px;font-weight:800;color:var(--on-surface);display:flex;align-items:center;gap:8px;">
+            <span>Keranjang Pesanan</span>
+            <span class="badge badge-warning" id="mobile-drawer-badge-count" style="font-size:11px;font-weight:800;padding:2px 8px;">0 Item</span>
+          </div>
+          <div style="font-size:11px;color:var(--secondary);">Periksa pesanan &amp; proses pembayaran</div>
+        </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <button type="button" onclick="window.POSView && window.POSView.openSavedOrdersModal()" title="Order Tersimpan" style="position:relative;width:32px;height:32px;padding:0;border-radius:var(--radius-md);background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;">
-            <span class="material-symbols-outlined" style="font-size:18px;color:var(--warning);">bookmark</span>
+          <button type="button" onclick="window.POSView && window.POSView.openSavedOrdersModal()" title="Order Tersimpan" class="btn-drawer-header-action" style="color:var(--warning);">
+            <span class="material-symbols-outlined" style="font-size:18px;">bookmark</span>
           </button>
-          <button class="modal-close" id="btn-close-cart-drawer">
-            <span class="material-symbols-outlined">close</span>
+          <button type="button" class="btn-drawer-header-action modal-close" id="btn-close-cart-drawer" onclick="window.POSView && window.POSView.closeMobileCartDrawer()">
+            <span class="material-symbols-outlined" style="font-size:20px;">close</span>
           </button>
         </div>
       </div>
+
       <!-- Customer Name in Drawer -->
-      <div style="padding:10px 16px 8px;flex-shrink:0;">
+      <div class="mobile-cart-drawer-cust">
         <div style="position:relative;">
           <span class="material-symbols-outlined" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--secondary);pointer-events:none;">person</span>
-          <input type="text" id="pos-customer-name-mobile" class="form-input" placeholder="Atas nama pelanggan..." style="padding-left:34px;height:38px;font-size:13px;">
+          <input type="text" id="pos-customer-name-mobile" class="form-input" placeholder="Nama Pelanggan (opsional)..." style="padding-left:34px;height:38px;font-size:13px;border-radius:var(--radius-md);">
         </div>
       </div>
-      <div id="mobile-drawer-cart-items" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px 4px;display:flex;flex-direction:column;gap:8px;"></div>
-      <div style="padding:14px 20px;background:var(--surface-container-low);border-top:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:10px;flex-shrink:0;">
-        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;">
-          <span>TOTAL</span>
-          <span class="font-mono" style="color:var(--primary);" id="mobile-drawer-total">Rp 0</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
-          <button class="btn-checkout" id="btn-drawer-checkout" onclick="window.PaymentView && window.PaymentView.openPaymentModal();window.POSView && window.POSView.closeMobileCartDrawer();">
-            <span class="material-symbols-outlined">payments</span>
-            Bayar Sekarang
-          </button>
-          <button type="button" id="btn-hold-cart-mobile" onclick="window.POSView && window.POSView.saveCurrentOrder()" title="Simpan / Hold Order" style="background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:0 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--warning);">
+
+      <!-- Scrollable Cart Items Container -->
+      <div id="mobile-drawer-cart-items" class="mobile-cart-drawer-items"></div>
+
+      <!-- Sticky Bottom Footer: Total + Big Touch-friendly Pay Button -->
+      <div class="mobile-cart-drawer-footer">
+        <div class="mobile-cart-drawer-summary">
+          <div style="display:flex;flex-direction:column;">
+            <span style="font-size:11px;font-weight:700;color:var(--secondary);text-transform:uppercase;letter-spacing:0.04em;">Total Tagihan</span>
+            <span class="font-mono" style="font-size:19px;font-weight:800;color:var(--primary);" id="mobile-drawer-total">Rp 0</span>
+          </div>
+          <button type="button" id="btn-hold-cart-mobile" onclick="window.POSView && window.POSView.saveCurrentOrder()" title="Simpan / Hold Order" class="btn-drawer-hold">
             <span class="material-symbols-outlined" style="font-size:18px;">bookmark_add</span>
-            Hold
+            <span>Hold</span>
           </button>
         </div>
+        <button type="button" class="btn-checkout btn-drawer-pay" id="btn-drawer-checkout" onclick="window.PaymentView && window.PaymentView.openPaymentModal();window.POSView && window.POSView.closeMobileCartDrawer();">
+          <span class="material-symbols-outlined" style="font-size:22px;">payments</span>
+          <span>BAYAR SEKARANG</span>
+        </button>
       </div>
     </div>
   </div>
-  <style>#mobile-cart-drawer.open { display: flex !important; }</style>
 
   <!-- =================================================================
        MODAL: MODIFIERS (SAMBAL VARIATIONS & TOPPINGS)
@@ -2663,21 +2672,21 @@
   <div id="toast-wrap"></div>
 
   <!-- Modular Application Scripts -->
-  <script src="js/state.js?v=3.2.0"></script>
-  <script src="js/supabase.js?v=3.2.0"></script>
-  <script src="js/printer.js?v=3.2.0"></script>
-  <script src="js/views/auth.js?v=3.2.0"></script>
-  <script src="js/views/pos.js?v=3.2.0"></script>
-  <script src="js/views/payment.js?v=3.2.0"></script>
-  <script src="js/views/shift.js?v=3.2.0"></script>
-  <script src="js/views/inventory.js?v=3.2.0"></script>
-  <script src="js/views/stock_tracker.js?v=3.2.0"></script>
-  <script src="js/views/reports.js?v=3.2.0"></script>
-  <script src="js/views/settings.js?v=3.2.0"></script>
-  <script src="js/views/customers.js?v=3.2.0"></script>
-  <script src="js/views/menu.js?v=3.2.0"></script>
-  <script src="js/views/orders.js?v=3.2.0"></script>
-  <script src="js/app.js?v=3.2.0"></script>
+  <script src="js/state.js?v=3.3.0"></script>
+  <script src="js/supabase.js?v=3.3.0"></script>
+  <script src="js/printer.js?v=3.3.0"></script>
+  <script src="js/views/auth.js?v=3.3.0"></script>
+  <script src="js/views/pos.js?v=3.3.0"></script>
+  <script src="js/views/payment.js?v=3.3.0"></script>
+  <script src="js/views/shift.js?v=3.3.0"></script>
+  <script src="js/views/inventory.js?v=3.3.0"></script>
+  <script src="js/views/stock_tracker.js?v=3.3.0"></script>
+  <script src="js/views/reports.js?v=3.3.0"></script>
+  <script src="js/views/settings.js?v=3.3.0"></script>
+  <script src="js/views/customers.js?v=3.3.0"></script>
+  <script src="js/views/menu.js?v=3.3.0"></script>
+  <script src="js/views/orders.js?v=3.3.0"></script>
+  <script src="js/app.js?v=3.3.0"></script>
 
   <!-- Vercel Speed Insights (auto-active only on Vercel, no-op locally) -->
   <script defer src="/_vercel/speed-insights/script.js"></script>
