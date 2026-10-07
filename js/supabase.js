@@ -12,6 +12,8 @@ class SupabaseService {
 
   init() {
     const config = window.State.supabaseConfig;
+    const isNetOnline = navigator.onLine !== false;
+
     if (config && config.url && config.anonKey) {
       try {
         if (window.supabase) {
@@ -20,18 +22,28 @@ class SupabaseService {
           });
           this.testConnection();
           this.subscribeRealtime();
+        } else {
+          this.setStatus(isNetOnline ? 'online' : 'offline');
         }
       } catch (err) {
         console.error('[Supabase] Init error:', err);
-        this.setStatus('offline');
+        this.setStatus(isNetOnline ? 'online' : 'offline');
       }
     } else {
-      this.setStatus('offline');
+      // Standalone / Local PWA mode (Supabase cloud not yet configured)
+      // When internet is available, show ONLINE and keep offline banner hidden
+      this.setStatus(isNetOnline ? 'online' : 'offline');
     }
 
-    // BUG-19 fix: daftarkan listener hanya sekali meski init() dipanggil berkali-kali
+    // Network connectivity change listeners
     if (!this._networkListenersAdded) {
-      this._onOnline = () => this.testConnection().then(() => this.syncOfflineQueue());
+      this._onOnline = () => {
+        if (this.client) {
+          this.testConnection().then(() => this.syncOfflineQueue());
+        } else {
+          this.setStatus('online');
+        }
+      };
       this._onOffline = () => this.setStatus('offline');
       window.addEventListener('online', this._onOnline);
       window.addEventListener('offline', this._onOffline);
@@ -46,20 +58,24 @@ class SupabaseService {
     const offlineBanner = document.getElementById('global-offline-banner');
 
     if (badge) {
-      badge.className = `status-pill ${newStatus}`;
+      badge.className = `sync-pill ${newStatus}`;
     }
     if (badgeText) {
-      if (newStatus === 'online') badgeText.textContent = 'ONLINE';
-      else if (newStatus === 'syncing') badgeText.textContent = 'SYNCING';
-      else badgeText.textContent = 'OFFLINE';
+      if (newStatus === 'online') {
+        badgeText.textContent = this.client ? 'CLOUD SYNC' : 'ONLINE';
+      } else if (newStatus === 'syncing') {
+        badgeText.textContent = 'SYNCING';
+      } else {
+        badgeText.textContent = 'OFFLINE';
+      }
     }
 
     if (offlineBanner) {
       if (newStatus === 'offline') {
-        const queueCount = window.State.offlineQueue.length;
+        const queueCount = (window.State.offlineQueue || []).length;
         const bannerTxt = document.getElementById('offline-banner-text');
         if (bannerTxt) {
-          bannerTxt.textContent = `Mode Offline Aktif — Transaksi tersimpan di penyimpanan lokal (${queueCount} Nota Pending).`;
+          bannerTxt.textContent = `Mode Offline — Transaksi tersimpan di penyimpanan lokal (${queueCount} Nota Pending).`;
         }
         offlineBanner.classList.add('active');
       } else {
@@ -69,17 +85,21 @@ class SupabaseService {
 
     window.State.emit('sync:status', {
       status: this.status,
-      queueCount: window.State.offlineQueue.length
+      queueCount: (window.State.offlineQueue || []).length
     });
   }
 
   async testConnection(customUrl, customKey) {
     const url = customUrl || (window.State.supabaseConfig ? window.State.supabaseConfig.url : null);
     const key = customKey || (window.State.supabaseConfig ? window.State.supabaseConfig.anonKey : null);
+    const isNetOnline = navigator.onLine !== false;
 
     if (!url || !key || !window.supabase) {
-      this.setStatus('offline');
-      return { success: false, message: 'URL atau Anon Key belum dikonfigurasi.' };
+      this.setStatus(isNetOnline ? 'online' : 'offline');
+      return { 
+        success: isNetOnline, 
+        message: isNetOnline ? 'Koneksi internet aktif (Mode Penyimpanan Lokal Standalone).' : 'Tidak ada koneksi internet.' 
+      };
     }
 
     try {
@@ -96,8 +116,9 @@ class SupabaseService {
       return { success: true, message: 'Berhasil terhubung ke Supabase Cloud!' };
     } catch (err) {
       console.warn('[Supabase] Connection failed:', err);
-      this.setStatus('offline');
-      return { success: false, message: `Gagal terhubung: ${err.message || 'Cek koneksi internet/kredensial'}` };
+      // Supabase server connection error, but internet may still be online
+      this.setStatus(isNetOnline ? 'online' : 'offline');
+      return { success: false, message: `Gagal terhubung ke Cloud: ${err.message || 'Cek URL & Anon Key'}` };
     }
   }
 

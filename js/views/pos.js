@@ -195,10 +195,7 @@ class POSView {
 
     html += `
       <button class="cat-pill ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="window.POSView.selectCategory('all')">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
-          <span class="material-symbols-outlined cat-icon">restaurant_menu</span>
-          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Semua Menu</span>
-        </div>
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Semua Menu</span>
         <span class="cat-count">${totalCount}</span>
       </button>
     `;
@@ -209,10 +206,7 @@ class POSView {
       const isActive = this.selectedCategory === cat.nm;
       html += `
         <button class="cat-pill ${isActive ? 'active' : ''}" onclick="window.POSView.selectCategory('${cat.nm}')">
-          <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
-            <span class="cat-icon">${cat.emj || '🍽️'}</span>
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cat.nm}</span>
-          </div>
+          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cat.nm}</span>
           <span class="cat-count">${count}</span>
         </button>
       `;
@@ -259,12 +253,11 @@ class POSView {
       const isUnavailable = p.habis === true;
       return `
         <div class="product-card ${isUnavailable ? 'unavailable' : ''}" onclick="window.POSView.handleProductClick(${p.id})" style="${isUnavailable ? 'opacity:0.5;cursor:not-allowed;' : ''}">
-          <div class="product-img-box">
-            <span style="font-size:${p.emj ? '32' : '28'}px;">${p.emj || '🍢'}</span>
-            ${isUnavailable ? '<span class="product-badge out">HABIS</span>' : ''}
-            ${p.lv && !isUnavailable ? `<span class="product-badge" style="background:rgba(249,115,22,0.85);color:#fff;">${p.lv}</span>` : ''}
+          <div class="product-card-top">
+            <div class="product-title">${p.nm}</div>
+            ${p.lv && !isUnavailable ? `<span class="product-badge" style="position:static;background:rgba(249,115,22,0.85);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;flex-shrink:0;">${p.lv}</span>` : ''}
+            ${isUnavailable ? '<span class="product-badge out" style="position:static;flex-shrink:0;">HABIS</span>' : ''}
           </div>
-          <div class="product-title">${p.nm}</div>
           <div class="product-foot">
             <span class="product-price">${window.State.formatRp(p.hr)}</span>
             <button class="add-btn" ${isUnavailable ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''} onclick="event.stopPropagation();window.POSView.handleProductClick(${p.id})">
