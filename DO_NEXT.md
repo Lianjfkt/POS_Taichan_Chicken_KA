@@ -12,7 +12,7 @@
 
 ### TASK 1 — Pembatasan Akses Riwayat Transaksi untuk Kasir
 
-**Status:** ⏳ Belum dikerjakan
+**Status:** ✅ Selesai (2026-10-08)
 
 **Deskripsi:**
 Kasir hanya boleh melihat transaksi dan dapat mengajukan refund jika diperlukan, **TANPA bisa melihat nominal penjualan (Rp)**.
@@ -34,29 +34,14 @@ Kasir hanya boleh melihat transaksi dan dapat mengajukan refund jika diperlukan,
 | Tombol Ekspor CSV | ❌ Disembunyikan | ✅ Bisa lihat |
 | Tombol Refund / Void | ✅ Bisa akses | ✅ Bisa akses |
 
-**File yang perlu diubah:**
-- `js/views/orders.js`
-  - `renderKPIs()` → sembunyikan nilai Rp jika `role === 'kasir'`, tampilkan `—`
-  - `renderList()` → kolom total (Rp) render sebagai `•••` atau `—` jika kasir
-  - Sembunyikan tombol Ekspor CSV jika kasir
-- `index.html`
-  - Tombol Ekspor CSV → tambahkan class `owner-only`
-  - Header pill omzet (`header-omzet-val`) → sembunyikan jika kasir
-- `js/app.js` atau `js/state.js` → tambahkan helper `State.isOwner()` jika belum ada
-
-**Catatan Teknis:**
-- Cek role via `window.State.currentUser?.role === 'owner'`
-- Bisa pakai pattern: set class `role-kasir` atau `role-owner` pada `<body>` saat login
-- CSS: `.role-kasir .owner-only-value { visibility: hidden; }` untuk hide nilai tanpa geser layout
-
 ---
 
 ### TASK 2 — Kasir: Update Stock Harian Tanpa Melihat Total Nilai + Audit Trail
 
-**Status:** ⏳ Belum dikerjakan
+**Status:** ✅ Selesai (2026-10-08)
 
 **Deskripsi:**
-Kasir dapat melakukan **update stok harian** (input jumlah bahan baku tersedia/terpakai), namun **tidak bisa melihat harga & total nilai stok (Rp)**. Setiap perubahan stok oleh kasir dicatat sebagai **audit log** agar owner bisa mendeteksi ketidaksesuaian.
+Kasir dapat melakukan **update stok harian** (input jumlah bahan baku tersedia/terpakai), namun **tidak bisa melihat harga & total nilai stok (Rp)** serta rekonsiliasi total proses & terjual disembunyikan (blind audit). Setiap perubahan stok oleh kasir dicatat sebagai **audit log** (`State.addStockAuditLog`) agar owner bisa mendeteksi ketidaksesuaian fisik.
 
 **Detail Akses:**
 
@@ -73,42 +58,11 @@ Kasir dapat melakukan **update stok harian** (input jumlah bahan baku tersedia/t
 | Edit / hapus bahan baku | ❌ Tidak boleh | ✅ Bisa |
 | Lihat Log Audit perubahan stok | ❌ Tidak boleh | ✅ Bisa lihat |
 
-**Audit Trail — Format Log:**
-```json
-{
-  "id": "uuid",
-  "timestamp": "2026-10-08T09:00:00+07:00",
-  "kasir": "nama_kasir",
-  "item_id": "bahan_baku_id",
-  "item_name": "Ayam Taichan",
-  "qty_before": 50,
-  "qty_after": 35,
-  "delta": -15,
-  "keterangan": "Update harian"
-}
-```
-
-**Storage:** `localStorage` key `ka_stock_audit_log` (array, max 500 entri, FIFO)
-
-**File yang perlu diubah:**
-- `js/state.js`
-  - Tambahkan `addStockAuditLog(entry)` — push ke array, trim jika > 500
-  - Tambahkan `getStockAuditLog()` — return array sorted by timestamp desc
-- `js/views/inventory.js`
-  - Sembunyikan kolom harga & total nilai jika kasir
-  - Sembunyikan tombol "Tambah Bahan Baku" & "Edit" & "Hapus" jika kasir
-  - Tambahkan tab baru: **"Log Audit"** (owner only)
-  - Di tab Log Audit: tabel dengan kolom Waktu, Kasir, Item, Sebelum, Sesudah, Selisih
-- `js/views/stock_tracker.js`
-  - Saat kasir submit update stok → panggil `State.addStockAuditLog(entry)` sebelum save
-- `index.html`
-  - Pastikan tombol owner-only di inventory punya class `owner-only`
-
 ---
 
 ## 🟡 PRIORITAS MENENGAH
 
-*(Tambahkan task di sini)*
+*(Tambahkan task baru di sini ketika ada kebutuhan)*
 
 ---
 
@@ -127,6 +81,8 @@ Kasir dapat melakukan **update stok harian** (input jumlah bahan baku tersedia/t
 - [x] KPI cards desktop: 4-column grid dengan accent strip
 - [x] Tambahkan komponen panel-card ke design system
 - [x] PWA offline support untuk semua asset baru
+- [x] TASK 1: Pembatasan akses riwayat transaksi & nominal penjualan untuk kasir (masked `••••`, omzet masked `—`, modal rincian masked)
+- [x] TASK 2: Update stock harian kasir blind audit (total proses tersembunyi) + pencatatan log audit stok & tab Log Audit untuk Owner
 
 ---
 

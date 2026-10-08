@@ -361,6 +361,7 @@ class OrdersView {
     const trxs = this.getFilteredTransactions();
     const successfulTrxs = trxs.filter(t => t.status !== 'void');
     const voidTrxs = trxs.filter(t => t.status === 'void');
+    const isOwner = window.State.isOwner();
 
     const totalSales = successfulTrxs.reduce((sum, t) => sum + (t.total || 0), 0);
     const avgSales = successfulTrxs.length > 0 ? Math.round(totalSales / successfulTrxs.length) : 0;
@@ -370,9 +371,10 @@ class OrdersView {
     const elAvgSales = document.getElementById('orders-kpi-avg-sales');
     const elVoidCount = document.getElementById('orders-kpi-void-count');
 
+    // Kasir hanya bisa lihat jumlah transaksi, BUKAN nominal Rp
     if (elTotalTrx) elTotalTrx.textContent = successfulTrxs.length;
-    if (elTotalSales) elTotalSales.textContent = window.State.formatRp(totalSales);
-    if (elAvgSales) elAvgSales.textContent = window.State.formatRp(avgSales);
+    if (elTotalSales) elTotalSales.textContent = isOwner ? window.State.formatRp(totalSales) : '—';
+    if (elAvgSales) elAvgSales.textContent = isOwner ? window.State.formatRp(avgSales) : '—';
     if (elVoidCount) {
       elVoidCount.textContent = voidTrxs.length;
       const card = elVoidCount.closest('.metric-card');
@@ -384,6 +386,10 @@ class OrdersView {
         }
       }
     }
+
+    // Sembunyikan tombol Ekspor CSV dari kasir
+    const btnExport = document.querySelector('[onclick*="exportCSV"]');
+    if (btnExport) btnExport.style.display = isOwner ? '' : 'none';
   }
 
   renderList() {
@@ -419,6 +425,8 @@ class OrdersView {
     window._ordersCache = window._ordersCache || {};
     paginated.forEach(t => { window._ordersCache[t.no] = t; });
 
+    const isOwner = window.State.isOwner();
+
     tbody.innerHTML = paginated.map(t => {
       const isVoid = t.status === 'void';
       const statusBadge = isVoid 
@@ -436,6 +444,11 @@ class OrdersView {
         const icon = window.FoodIcons ? window.FoodIcons.get(i.emj || i.nm, { size: 18 }) : '';
         return `<div style="display:flex;align-items:center;gap:5px;margin:2px 0;">${icon}<span style="font-weight:600;">${i.nm}</span> <span style="color:var(--primary);font-weight:700;">x${i.qty}</span>${mod}</div>`;
       }).join('');
+
+      // Nominal total: owner bisa lihat, kasir hanya lihat tanda '••••'
+      const totalDisplay = isOwner
+        ? `<div style="font-weight:800;font-size:14px;${isVoid ? 'text-decoration:line-through;color:var(--secondary);' : 'color:var(--on-surface);'}">${window.State.formatRp(t.total)}</div>${t.diskon ? `<div style="font-size:10px;color:var(--tertiary);">Hemat ${window.State.formatRp(t.diskon)}</div>` : ''}`
+        : `<div style="font-weight:700;font-size:14px;color:var(--secondary);letter-spacing:0.1em;" title="Nominal tidak ditampilkan untuk kasir">••••</div>`;
 
       return `
         <tr style="border-bottom:1px solid rgba(255,255,255,0.05);${isVoid ? 'opacity:0.65;background:rgba(239,68,68,0.03);' : ''}">
@@ -461,10 +474,7 @@ class OrdersView {
             ${isVoid && t.voidReason ? `<div style="font-size:10px;color:var(--error);margin-top:4px;font-style:italic;line-height:1.2;">Alasan: ${t.voidReason}</div>` : ''}
           </td>
           <td class="font-mono" style="padding:12px 14px;text-align:right;vertical-align:top;">
-            <div style="font-weight:800;font-size:14px;${isVoid ? 'text-decoration:line-through;color:var(--secondary);' : 'color:var(--on-surface);'}">
-              ${window.State.formatRp(t.total)}
-            </div>
-            ${t.diskon ? `<div style="font-size:10px;color:var(--success);">Hemat ${window.State.formatRp(t.diskon)}</div>` : ''}
+            ${totalDisplay}
           </td>
           <td style="padding:12px 14px;text-align:center;white-space:nowrap;vertical-align:top;">
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
@@ -515,6 +525,8 @@ class OrdersView {
 
     const isVoid = trx.status === 'void';
 
+    const isOwner = window.State.isOwner();
+
     body.innerHTML = `
       <div style="background:var(--surface-container-low);padding:14px;border-radius:12px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -559,7 +571,7 @@ class OrdersView {
                 ${i.mod ? `<div style="font-size:11px;color:var(--secondary);">${i.mod}</div>` : ''}
               </div>
             </div>
-            <div class="font-mono" style="font-weight:700;">${window.State.formatRp(i.hr * i.qty)}</div>
+            <div class="font-mono" style="font-weight:700;">${isOwner ? window.State.formatRp(i.hr * i.qty) : '—'}</div>
           </div>
         `).join('')}
       </div>
@@ -567,25 +579,25 @@ class OrdersView {
       <div style="background:var(--surface-container-low);padding:12px;border-radius:10px;font-size:12px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
           <span style="color:var(--secondary);">Subtotal:</span>
-          <span class="font-mono">${window.State.formatRp(trx.subtotal || trx.total)}</span>
+          <span class="font-mono">${isOwner ? window.State.formatRp(trx.subtotal || trx.total) : '••••'}</span>
         </div>
         ${trx.diskon ? `
           <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:var(--success);">
             <span>Diskon / Potongan:</span>
-            <span class="font-mono">- ${window.State.formatRp(trx.diskon)}</span>
+            <span class="font-mono">${isOwner ? '- ' + window.State.formatRp(trx.diskon) : '••••'}</span>
           </div>
         ` : ''}
         <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:4px;">
           <span>TOTAL:</span>
-          <span class="font-mono" style="color:var(--primary);">${window.State.formatRp(trx.total)}</span>
+          <span class="font-mono" style="color:var(--primary);">${isOwner ? window.State.formatRp(trx.total) : '••••'}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:4px;color:var(--secondary);">
           <span>Bayar (${(trx.metode || 'cash').toUpperCase()}):</span>
-          <span class="font-mono">${window.State.formatRp(trx.bayar || trx.total)}</span>
+          <span class="font-mono">${isOwner ? window.State.formatRp(trx.bayar || trx.total) : '••••'}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:2px;color:var(--secondary);">
           <span>Kembalian:</span>
-          <span class="font-mono">${window.State.formatRp(trx.kembali || 0)}</span>
+          <span class="font-mono">${isOwner ? window.State.formatRp(trx.kembali || 0) : '••••'}</span>
         </div>
       </div>
     `;
@@ -602,13 +614,14 @@ class OrdersView {
     const modal = document.getElementById('order-void-modal');
     if (!modal) return;
 
+    const isOwner = window.State.isOwner();
     const infoEl = document.getElementById('order-void-info');
     if (infoEl) {
       infoEl.innerHTML = `
         <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:12px;margin-bottom:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div class="font-mono" style="font-weight:800;color:var(--primary);font-size:14px;">${trx.no}</div>
-            <div class="font-mono" style="font-weight:800;color:var(--error);font-size:15px;">${window.State.formatRp(trx.total)}</div>
+            <div class="font-mono" style="font-weight:800;color:var(--error);font-size:15px;">${isOwner ? window.State.formatRp(trx.total) : '••••'}</div>
           </div>
           <div style="font-size:12px;color:var(--secondary);margin-top:4px;">
             Kasir: <b>${trx.kasir || '-'}</b> • Pelanggan: <b>${trx.pelanggan || 'Umum'}</b> • Waktu: ${window.State.formatDate(trx.tgl)}

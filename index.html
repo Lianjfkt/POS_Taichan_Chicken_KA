@@ -873,7 +873,7 @@
                 <span class="material-symbols-outlined" style="font-size:16px;color:var(--warning);">bolt</span>
                 Fast Stock
               </button>
-              <button class="btn btn-primary" onclick="document.getElementById('add-inventory-modal').classList.add('open');">
+              <button class="btn btn-primary owner-only" id="btn-add-inventory-modal" onclick="document.getElementById('add-inventory-modal').classList.add('open');">
                 <span class="material-symbols-outlined">add</span>
                 Tambah Bahan
               </button>
@@ -886,7 +886,7 @@
               <span class="material-symbols-outlined" style="font-size:16px;">inventory_2</span>
               <span>Bahan Baku &amp; Stok Fisik</span>
             </button>
-            <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="bom">
+            <button type="button" class="btn btn-secondary inv-subtab-btn owner-only" id="inv-subtab-bom-btn" data-tab="bom">
               <span class="material-symbols-outlined" style="font-size:16px;">receipt_long</span>
               <span>Resep Menu &amp; HPP (BOM)</span>
             </button>
@@ -897,6 +897,10 @@
             <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="stock_harian">
               <span class="material-symbols-outlined" style="font-size:16px;color:var(--tertiary);">monitoring</span>
               <span>Stock Harian 🍢🍗</span>
+            </button>
+            <button type="button" class="btn btn-secondary inv-subtab-btn owner-only" id="inv-subtab-audit-btn" data-tab="audit">
+              <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">history_edu</span>
+              <span>Log Audit Stok 📋</span>
             </button>
           </div>
 
@@ -985,6 +989,39 @@
             <!-- Chicken Content -->
             <div id="st-tab-chicken-content" style="display:none;">
               <div id="st-chicken-content"></div>
+            </div>
+          </div>
+
+          <!-- Tab 5: Stock Audit Trail (Owner Only) -->
+          <div id="inventory-audit-tab" class="section-card owner-only" style="flex:1;display:none;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+              <div>
+                <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;">
+                  <span class="material-symbols-outlined" style="color:var(--primary);font-size:18px;">history_edu</span>
+                  Log Audit Perubahan Stok (Kasir &amp; Sistem)
+                </div>
+                <div style="font-size:11px;color:var(--secondary);margin-top:2px;">Rekam jejak setiap input/update stok harian oleh kasir untuk audit Owner jika ada ketidaksesuaian fisik</div>
+              </div>
+              <button class="btn btn-secondary" style="font-size:11px;padding:6px 12px;" onclick="window.InventoryView && window.InventoryView.renderAuditTable()">
+                <span class="material-symbols-outlined" style="font-size:14px;">refresh</span> Segarkan Log
+              </button>
+            </div>
+            <div style="overflow-y:auto;flex:1;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Waktu</th>
+                    <th>Kasir / Petugas</th>
+                    <th>Item / Bahan</th>
+                    <th>Tipe Update</th>
+                    <th style="text-align:center;">Sebelum</th>
+                    <th style="text-align:center;">Sesudah</th>
+                    <th style="text-align:center;">Selisih</th>
+                    <th>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-audit-tbody"></tbody>
+              </table>
             </div>
           </div>
         </section>

@@ -151,11 +151,16 @@ class AuthView {
     if (mobUserRole) mobUserRole.textContent = user.role.toUpperCase();
     if (mobUserInit) mobUserInit.textContent = (user.nm || 'U').charAt(0).toUpperCase();
 
-    // Toggle Owner-only elements
+    // Toggle Owner-only elements & classes
     const isOwner = user.role === 'owner';
+    document.body.classList.toggle('role-owner', isOwner);
+    document.body.classList.toggle('role-kasir', !isOwner);
     document.querySelectorAll('.owner-only').forEach(el => {
       el.style.display = isOwner ? '' : 'none';
     });
+    if (window.POSView && window.POSView.updateHeaderMetrics) {
+      window.POSView.updateHeaderMetrics();
+    }
 
     const loginScreen = document.getElementById('screen-login');
     const appScreen = document.getElementById('screen-app');

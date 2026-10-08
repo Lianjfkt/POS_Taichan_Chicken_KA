@@ -666,15 +666,16 @@ class POSView {
     const todayStr = window.State.formatDateShort(Date.now());
     const todayTrx = (window.State.transactions || []).filter(t => window.State.formatDateShort(t.tgl) === todayStr);
     const omzet = todayTrx.reduce((s, t) => s + (t.total || 0), 0);
+    const isOwner = window.State && window.State.isOwner();
     const omzetEl = document.getElementById('header-omzet-val');
     const trxEl = document.getElementById('header-trx-val');
-    if (omzetEl) omzetEl.textContent = window.State.formatRp(omzet);
+    if (omzetEl) omzetEl.textContent = isOwner ? window.State.formatRp(omzet) : '—';
     if (trxEl) trxEl.textContent = `${todayTrx.length} Trx`;
 
     // Mobile quick panel stats sync
     const mobOmzetEl = document.getElementById('mobile-quick-omzet');
     const mobTrxEl = document.getElementById('mobile-quick-trx');
-    if (mobOmzetEl) mobOmzetEl.textContent = window.State.formatRp(omzet);
+    if (mobOmzetEl) mobOmzetEl.textContent = isOwner ? window.State.formatRp(omzet) : '—';
     if (mobTrxEl) mobTrxEl.textContent = `${todayTrx.length} Trx`;
 
     const lowItems = (window.State.inventory || []).filter(i => Number(i.stok) <= Number(i.min));

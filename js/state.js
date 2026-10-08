@@ -414,6 +414,55 @@ class StateManager {
     this.emit('shifts:updated', this.shiftHistory);
   }
 
+  // --- RBAC Helper ---
+  /**
+   * Returns true if the currently logged-in user is Owner.
+   * Use this to guard owner-only values/features in any view.
+   */
+  isOwner() {
+    return !!(this.currentUser && this.currentUser.role === 'owner');
+  }
+
+  // --- Stock Audit Log (Kasir stock update trail for Owner audit) ---
+  addStockAuditLog(entry) {
+    if (!this.stockAuditLog) this.stockAuditLog = [];
+    const log = {
+      id: 'STLOG-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+      timestamp: Date.now(),
+      kasir: this.currentUser ? this.currentUser.nm : 'Sistem',
+      kasirRole: this.currentUser ? this.currentUser.role : 'unknown',
+      itemId: entry.itemId,
+      itemName: entry.itemName,
+      qtyBefore: entry.qtyBefore,
+      qtyAfter: entry.qtyAfter,
+      delta: (entry.qtyAfter - entry.qtyBefore),
+      satuan: entry.satuan || '',
+      tipe: entry.tipe || 'update', // 'tambah' | 'kurang' | 'set' | 'batch_taichan' | 'batch_chicken'
+      keterangan: entry.keterangan || ''
+    };
+    this.stockAuditLog.unshift(log);
+    if (this.stockAuditLog.length > 500) this.stockAuditLog.pop();
+    try {
+      localStorage.setItem('ka_stock_audit_log', JSON.stringify(this.stockAuditLog));
+    } catch (e) {
+      console.warn('[State] Failed to save stock audit log:', e);
+    }
+    this.emit('stockaudit:logged', log);
+    return log;
+  }
+
+  getStockAuditLog() {
+    if (!this.stockAuditLog) {
+      try {
+        const raw = localStorage.getItem('ka_stock_audit_log');
+        this.stockAuditLog = raw ? JSON.parse(raw) : [];
+      } catch {
+        this.stockAuditLog = [];
+      }
+    }
+    return this.stockAuditLog;
+  }
+
   // --- Theme Management ---
   setTheme(theme) {
     this.currentTheme = theme;

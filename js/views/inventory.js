@@ -38,15 +38,20 @@ class InventoryView {
         const bomTab    = document.getElementById('inventory-bom-tab');
         const sambalTab = document.getElementById('inventory-sambal-tab');
         const stockTab  = document.getElementById('inventory-stock-harian-tab');
+        const auditTab  = document.getElementById('inventory-audit-tab');
 
         if (rawTab)    rawTab.style.display    = (this.activeTab === 'raw')           ? 'flex' : 'none';
         if (bomTab)    bomTab.style.display    = (this.activeTab === 'bom')           ? 'flex' : 'none';
         if (sambalTab) sambalTab.style.display = (this.activeTab === 'sambal')        ? 'flex' : 'none';
         if (stockTab)  stockTab.style.display  = (this.activeTab === 'stock_harian')  ? 'flex' : 'none';
+        if (auditTab)  auditTab.style.display  = (this.activeTab === 'audit')         ? 'flex' : 'none';
 
         // Init stock tracker on first open
         if (this.activeTab === 'stock_harian' && window.StockTracker) {
           window.StockTracker.render();
+        }
+        if (this.activeTab === 'audit') {
+          this.renderAuditTable();
         }
       };
     });
@@ -99,12 +104,21 @@ class InventoryView {
     this.renderBomTable();
     this.renderFastStock();
     this.renderSambalTable();
+    if (this.activeTab === 'audit') {
+      this.renderAuditTable();
+    }
   }
 
   // 1. Render Raw Ingredients Table
   renderRawTable() {
     const tbody = document.getElementById('inventory-table-tbody');
     if (!tbody) return;
+
+    const isOwner = window.State && window.State.isOwner();
+
+    // Toggle Owner-only add button in inventory
+    const addBtn = document.getElementById('btn-add-inventory-modal');
+    if (addBtn) addBtn.style.display = isOwner ? '' : 'none';
 
     let items = window.State.inventory || [];
     if (this.searchQuery) {
@@ -137,8 +151,8 @@ class InventoryView {
             ${isOut ? '<span class="badge error" style="margin-left:6px;">HABIS</span>' : (isCritical ? '<span class="badge warning" style="margin-left:6px;">MENIPIS</span>' : '')}
           </td>
           <td class="font-mono" style="padding:12px 16px;color:var(--secondary)">${item.min} ${item.sat}</td>
-          <td class="font-mono" style="padding:12px 16px;color:var(--primary)">${window.State.formatRp(item.hr)}</td>
-          <td class="font-mono" style="padding:12px 16px;font-weight:700">${window.State.formatRp(item.stok * item.hr)}</td>
+          <td class="font-mono" style="padding:12px 16px;color:var(--primary)">${isOwner ? window.State.formatRp(item.hr) : '—'}</td>
+          <td class="font-mono" style="padding:12px 16px;font-weight:700">${isOwner ? window.State.formatRp(item.stok * item.hr) : '••••'}</td>
           <td style="padding:12px 16px;text-align:right">
             <button class="btn btn-secondary" style="padding:6px 12px;font-size:11px" onclick="window.InventoryView.openAdjustModal(${item.id})">
               <span class="material-symbols-outlined" style="font-size:14px">tune</span> Sesuaikan
@@ -218,6 +232,7 @@ class InventoryView {
     const fastStockGrid = document.getElementById('fast-stock-grid');
     if (!fastStockGrid) return;
 
+    const isOwner = window.State && window.State.isOwner();
     const products = window.State.products.filter(p => p.on !== false);
     fastStockGrid.innerHTML = products.map(p => `
       <div style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);padding:12px;display:flex;align-items:center;justify-content:space-between">
@@ -225,7 +240,7 @@ class InventoryView {
           ${window.FoodIcons ? window.FoodIcons.get(p.emj || p.nm, { size: 32 }) : `<span style="font-size:24px">${p.emj || '🍢'}</span>`}
           <div>
             <div style="font-weight:700;font-size:13px">${p.nm}</div>
-            <div style="font-size:11px;color:var(--primary)">${window.State.formatRp(p.hr)}</div>
+            <div style="font-size:11px;color:var(--primary)">${isOwner ? window.State.formatRp(p.hr) : ''}</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
@@ -307,6 +322,19 @@ class InventoryView {
       ket: reason || 'Penyesuaian stok manual'
     });
     window.State.save(LS_KEYS.mut, window.State.stockMutations);
+
+    // Record Stock Audit Log for Owner inspection
+    if (window.State && window.State.addStockAuditLog) {
+      window.State.addStockAuditLog({
+        itemId: item.id,
+        itemName: item.nm,
+        qtyBefore: prevStock,
+        qtyAfter: item.stok,
+        satuan: item.sat,
+        tipe: type,
+        keterangan: reason || 'Penyesuaian stok bahan baku'
+      });
+    }
 
     // BUG-18 fix: reset form setelah submit agar tidak ada nilai lama
     if (qtyInput) qtyInput.value = '';
@@ -595,6 +623,57 @@ class InventoryView {
     window.State.save(LS_KEYS.sambal, window.State.sambalList);
     this.renderSambalTable();
     window.State.toast('Variasi sambal dihapus.', 'warning');
+  }
+
+  // 5. Render Stock Audit Trail (Owner Only)
+  renderAuditTable() {
+    const tbody = document.getElementById('inventory-audit-tbody');
+    if (!tbody) return;
+
+    const isOwner = window.State && window.State.isOwner();
+    const subtabBtn = document.getElementById('inv-subtab-audit-btn');
+    if (subtabBtn) subtabBtn.style.display = isOwner ? '' : 'none';
+
+    if (!isOwner) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--secondary);">Hanya Owner yang dapat mengakses Log Audit Stok.</td></tr>`;
+      return;
+    }
+
+    const logs = (window.State && window.State.getStockAuditLog) ? window.State.getStockAuditLog() : [];
+    if (!logs || logs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--secondary);">Belum ada riwayat audit stok tercatat.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = logs.map(l => {
+      const dateStr = window.State.formatDate ? window.State.formatDate(l.timestamp) : new Date(l.timestamp).toLocaleString('id-ID');
+      const isPositive = (l.delta > 0);
+      const isNegative = (l.delta < 0);
+      const deltaColor = isPositive ? 'var(--tertiary)' : (isNegative ? 'var(--error)' : 'var(--secondary)');
+      const deltaPrefix = isPositive ? '+' : '';
+
+      return `
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px;">
+          <td style="padding:10px 14px;color:var(--secondary);white-space:nowrap;">${dateStr}</td>
+          <td style="padding:10px 14px;font-weight:600;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="badge ${l.kasirRole === 'owner' ? 'primary' : 'secondary'}" style="font-size:10px;padding:2px 6px;">${(l.kasirRole || 'user').toUpperCase()}</span>
+              <span>${l.kasir}</span>
+            </div>
+          </td>
+          <td style="padding:10px 14px;font-weight:700;color:var(--on-surface);">${l.itemName}</td>
+          <td style="padding:10px 14px;">
+            <span class="badge" style="background:rgba(255,255,255,0.06);font-size:10px;text-transform:uppercase;">${l.tipe}</span>
+          </td>
+          <td class="font-mono" style="padding:10px 14px;text-align:center;color:var(--secondary);">${l.qtyBefore} ${l.satuan}</td>
+          <td class="font-mono" style="padding:10px 14px;text-align:center;font-weight:700;">${l.qtyAfter} ${l.satuan}</td>
+          <td class="font-mono" style="padding:10px 14px;text-align:center;font-weight:800;color:${deltaColor};">
+            ${deltaPrefix}${l.delta} ${l.satuan}
+          </td>
+          <td style="padding:10px 14px;color:var(--secondary);max-width:200px;">${l.keterangan || '-'}</td>
+        </tr>
+      `;
+    }).join('');
   }
 }
 

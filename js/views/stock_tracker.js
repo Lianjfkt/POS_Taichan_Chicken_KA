@@ -83,19 +83,56 @@ class StockTrackerView {
     const data = this._loadData();
     data.taichan.push({ id: 'TC-'+Date.now(), date: this._today(), raw: qty, fried: 0, notes: notes || '' });
     this._saveData(data);
+    if (window.State && window.State.addStockAuditLog) {
+      window.State.addStockAuditLog({
+        itemId: 'taichan',
+        itemName: 'Sate Taichan',
+        qtyBefore: 0,
+        qtyAfter: qty,
+        satuan: 'tusuk',
+        tipe: 'batch_taichan_raw',
+        keterangan: notes ? `Tambah batch mentah: ${notes}` : 'Tambah batch mentah'
+      });
+    }
   }
 
   _updateTaichanFried(batchId, fried) {
     const data = this._loadData();
     const b = data.taichan.find(x => x.id === batchId);
-    if (b) b.fried = Math.min(Number(fried)||0, b.raw);
-    this._saveData(data);
+    if (b) {
+      const prevFried = b.fried || 0;
+      b.fried = Math.min(Number(fried)||0, b.raw);
+      this._saveData(data);
+      if (window.State && window.State.addStockAuditLog) {
+        window.State.addStockAuditLog({
+          itemId: 'taichan',
+          itemName: `Sate Taichan (${b.date})`,
+          qtyBefore: prevFried,
+          qtyAfter: b.fried,
+          satuan: 'tusuk',
+          tipe: 'batch_taichan_fried',
+          keterangan: `Update goreng batch ${b.date}`
+        });
+      }
+    }
   }
 
   _deleteTaichanBatch(batchId) {
     const data = this._loadData();
-    data.taichan = data.taichan.filter(b => b.id !== batchId);
+    const b = data.taichan.find(x => x.id === batchId);
+    data.taichan = data.taichan.filter(x => x.id !== batchId);
     this._saveData(data);
+    if (b && window.State && window.State.addStockAuditLog) {
+      window.State.addStockAuditLog({
+        itemId: 'taichan',
+        itemName: `Sate Taichan (${b.date})`,
+        qtyBefore: b.raw,
+        qtyAfter: 0,
+        satuan: 'tusuk',
+        tipe: 'delete_batch',
+        keterangan: `Hapus batch taichan ${b.id}`
+      });
+    }
   }
 
   // ── Chicken CRUD ──────────────────────────────────────────────────────
@@ -105,20 +142,64 @@ class StockTrackerView {
     if (!data.chicken[part]) data.chicken[part] = [];
     data.chicken[part].push({ id: `CH-${part}-${Date.now()}`, date: this._today(), raw: qty, fried: 0, notes: notes || '' });
     this._saveData(data);
+    const partCfg = CHICKEN_PARTS.find(p => p.id === part);
+    const partLabel = partCfg ? partCfg.label : part;
+    if (window.State && window.State.addStockAuditLog) {
+      window.State.addStockAuditLog({
+        itemId: `chicken_${part}`,
+        itemName: `Ayam Potong - ${partLabel}`,
+        qtyBefore: 0,
+        qtyAfter: qty,
+        satuan: 'potong',
+        tipe: 'batch_chicken_raw',
+        keterangan: notes ? `Tambah batch mentah: ${notes}` : 'Tambah batch mentah'
+      });
+    }
   }
 
   _updateChickenFried(part, batchId, fried) {
     const data = this._loadData();
     if (!data.chicken[part]) return;
     const b = data.chicken[part].find(x => x.id === batchId);
-    if (b) b.fried = Math.min(Number(fried)||0, b.raw);
-    this._saveData(data);
+    if (b) {
+      const prevFried = b.fried || 0;
+      b.fried = Math.min(Number(fried)||0, b.raw);
+      this._saveData(data);
+      const partCfg = CHICKEN_PARTS.find(p => p.id === part);
+      const partLabel = partCfg ? partCfg.label : part;
+      if (window.State && window.State.addStockAuditLog) {
+        window.State.addStockAuditLog({
+          itemId: `chicken_${part}`,
+          itemName: `Ayam Potong - ${partLabel} (${b.date})`,
+          qtyBefore: prevFried,
+          qtyAfter: b.fried,
+          satuan: 'potong',
+          tipe: 'batch_chicken_fried',
+          keterangan: `Update goreng batch ${b.date}`
+        });
+      }
+    }
   }
 
   _deleteChickenBatch(part, batchId) {
     const data = this._loadData();
-    if (data.chicken[part]) data.chicken[part] = data.chicken[part].filter(b => b.id !== batchId);
+    if (!data.chicken[part]) return;
+    const b = data.chicken[part].find(x => x.id === batchId);
+    data.chicken[part] = data.chicken[part].filter(x => x.id !== batchId);
     this._saveData(data);
+    const partCfg = CHICKEN_PARTS.find(p => p.id === part);
+    const partLabel = partCfg ? partCfg.label : part;
+    if (b && window.State && window.State.addStockAuditLog) {
+      window.State.addStockAuditLog({
+        itemId: `chicken_${part}`,
+        itemName: `Ayam Potong - ${partLabel} (${b.date})`,
+        qtyBefore: b.raw,
+        qtyAfter: 0,
+        satuan: 'potong',
+        tipe: 'delete_batch',
+        keterangan: `Hapus batch ayam ${partLabel}`
+      });
+    }
   }
 
   // ── Summaries ─────────────────────────────────────────────────────────
@@ -168,6 +249,7 @@ class StockTrackerView {
     const sum  = this._taichanSummary(data);
     const soldMap = this._taichanSoldToday();
     const taichanProds = (window.State.products || []).filter(p => p.kat === 'Taichan');
+    const isOwner = window.State && window.State.isOwner();
 
     const soldRows = taichanProds.length
       ? taichanProds.map(p => {
@@ -196,7 +278,7 @@ class StockTrackerView {
                 <span style="font-size:11px;color:var(--secondary);">/ ${b.raw}</span>
               </div>
             </td>
-            <td class="font-mono" style="padding:10px 12px;color:${b.fried>0?'var(--tertiary)':'var(--secondary)'};">${b.fried} tusuk</td>
+            <td class="font-mono" style="padding:10px 12px;color:${b.fried>0?'var(--tertiary)':'var(--secondary)'};">${isOwner ? b.fried + ' tusuk' : '••'}</td>
             <td style="padding:10px 12px;font-size:12px;color:var(--secondary);">${b.notes||'-'}</td>
             <td style="padding:10px 12px;text-align:right;">
               <button class="btn btn-secondary" style="padding:4px 8px;color:var(--error);"
@@ -208,20 +290,32 @@ class StockTrackerView {
         }).join('')
       : `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--secondary);font-size:13px;">Belum ada batch. Klik "Tambah Batch" untuk mulai.</td></tr>`;
 
-    el.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;">
-        ${this._summaryCard('🍢','Stok Mentah',sum.totalRaw+' tusuk','var(--on-surface)')}
-        ${this._summaryCard('🔥','Sudah Digoreng',sum.totalFried+' tusuk','var(--warning)')}
-        ${this._summaryCard('💸','Terjual Hari Ini',sum.totalSold+' tusuk','var(--primary)')}
-        ${this._summaryCard('📦','Sisa Matang',sum.sisa+' tusuk',sum.sisa>0?'var(--tertiary)':'var(--secondary)')}
-      </div>
-      <div class="section-card" style="margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
-          <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">point_of_sale</span>
-          Penjualan Taichan Hari Ini (dari POS)
+    const summarySection = isOwner
+      ? `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;">
+          ${this._summaryCard('🍢','Stok Mentah',sum.totalRaw+' tusuk','var(--on-surface)')}
+          ${this._summaryCard('🔥','Sudah Digoreng',sum.totalFried+' tusuk','var(--warning)')}
+          ${this._summaryCard('💸','Terjual Hari Ini',sum.totalSold+' tusuk','var(--primary)')}
+          ${this._summaryCard('📦','Sisa Matang',sum.sisa+' tusuk',sum.sisa>0?'var(--tertiary)':'var(--secondary)')}
         </div>
-        ${soldRows}
-      </div>
+        <div class="section-card" style="margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">point_of_sale</span>
+            Penjualan Taichan Hari Ini (dari POS)
+          </div>
+          ${soldRows}
+        </div>`
+      : `
+        <div style="background:var(--surface-container);border:1px dashed rgba(255,255,255,0.12);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+          <span class="material-symbols-outlined" style="font-size:26px;color:var(--primary);">verified_user</span>
+          <div>
+            <div style="font-weight:700;font-size:13px;color:var(--on-surface);">Mode Input Stok Kasir (Blind Audit)</div>
+            <div style="font-size:12px;color:var(--secondary);margin-top:2px;">Rekonsiliasi total proses &amp; sisa dihitung otomatis untuk audit Owner. Masukkan jumlah mentah &amp; goreng riil di bawah.</div>
+          </div>
+        </div>`;
+
+    el.innerHTML = `
+      ${summarySection}
       <div class="section-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <div>
@@ -249,6 +343,7 @@ class StockTrackerView {
     const el = document.getElementById('st-chicken-content');
     if (!el) return;
     const data = this._loadData();
+    const isOwner = window.State && window.State.isOwner();
 
     const cards = CHICKEN_PARTS.map(part => {
       const batches  = data.chicken[part.id] || [];
@@ -260,7 +355,7 @@ class StockTrackerView {
       const miniBatches = freshB.length
         ? freshB.map(b => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid rgba(255,255,255,0.04);font-size:11px;">
             <span style="color:var(--secondary);">${b.date}</span>
-            <span class="font-mono">${b.raw}<span style="color:var(--secondary);"> mentah</span> / <span style="color:var(--warning);">${b.fried} goreng</span></span>
+            <span class="font-mono">${b.raw}<span style="color:var(--secondary);"> mentah</span> / <span style="color:var(--warning);">${isOwner ? b.fried + ' goreng' : '••'}</span></span>
           </div>`).join('')
         : `<div style="text-align:center;font-size:11px;color:var(--secondary);padding:8px 0;">Tidak ada stok aktif</div>`;
 
@@ -278,12 +373,12 @@ class StockTrackerView {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
           <div style="background:var(--surface-container-low);border-radius:6px;padding:8px;text-align:center;">
             <div style="font-size:10px;color:var(--secondary);">Total Mentah</div>
-            <div class="font-mono" style="font-size:18px;font-weight:800;">${totalRaw}</div>
+            <div class="font-mono" style="font-size:18px;font-weight:800;">${isOwner ? totalRaw : '••'}</div>
             <div style="font-size:10px;color:var(--secondary);">potong</div>
           </div>
           <div style="background:var(--surface-container-low);border-radius:6px;padding:8px;text-align:center;">
             <div style="font-size:10px;color:var(--secondary);">Total Goreng</div>
-            <div class="font-mono" style="font-size:18px;font-weight:800;color:var(--warning);">${totalFried}</div>
+            <div class="font-mono" style="font-size:18px;font-weight:800;color:var(--warning);">${isOwner ? totalFried : '••'}</div>
             <div style="font-size:10px;color:var(--secondary);">potong</div>
           </div>
         </div>
@@ -315,7 +410,7 @@ class StockTrackerView {
               <span style="font-size:11px;color:var(--secondary);">/ ${b.raw}</span>
             </div>
           </td>
-          <td class="font-mono" style="padding:10px 12px;color:${b.fried>0?'var(--tertiary)':'var(--secondary)'};">${b.fried} potong</td>
+          <td class="font-mono" style="padding:10px 12px;color:${b.fried>0?'var(--tertiary)':'var(--secondary)'};">${isOwner ? b.fried + ' potong' : '••'}</td>
           <td style="padding:10px 12px;font-size:12px;color:var(--secondary);">${b.notes||'-'}</td>
           <td style="padding:10px 12px;text-align:right;">
             <button class="btn btn-secondary" style="padding:4px 8px;color:var(--error);"
