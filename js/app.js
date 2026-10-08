@@ -128,7 +128,7 @@ class AppRouter {
     if (!this.views.includes(viewName)) return;
 
     // Check RBAC permissions for Owner views
-    const ownerOnlyViews = ['inventory', 'menu', 'reports', 'settings'];
+    const ownerOnlyViews = ['menu', 'reports', 'settings'];
     const activeUser = window.State.currentUser;
 
     if (ownerOnlyViews.includes(viewName)) {

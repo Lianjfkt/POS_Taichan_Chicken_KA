@@ -218,6 +218,10 @@
             <span class="material-symbols-outlined">receipt_long</span>
             <span class="nav-label">Riwayat</span>
           </a>
+          <a class="nav-item" data-view="inventory" title="Update Stok Harian (Taichan, Ayam & Bahan)">
+            <span class="material-symbols-outlined">inventory_2</span>
+            <span class="nav-label">Update Stok</span>
+          </a>
           <a class="nav-item" data-view="shift" title="Shift & Kas Drawer">
             <span class="material-symbols-outlined">account_balance_wallet</span>
             <span class="nav-label">Shift & Kas</span>
@@ -227,12 +231,8 @@
             <span class="nav-label">Member</span>
           </a>
 
-          <div class="sidebar-section-label">Owner</div>
+          <div class="sidebar-section-label owner-only">Owner</div>
 
-          <a class="nav-item owner-only" data-view="inventory" title="Inventaris & Stok">
-            <span class="material-symbols-outlined">inventory_2</span>
-            <span class="nav-label">Stok Bahan</span>
-          </a>
           <a class="nav-item owner-only" data-view="menu" title="Manajemen Menu">
             <span class="material-symbols-outlined">restaurant_menu</span>
             <span class="nav-label">Kelola Menu</span>
@@ -437,10 +437,16 @@
                     </button>
                   </div>
 
-                  <!-- Fast Stock -->
+                  <!-- Update Stok Harian Button -->
+                  <button class="btn btn-secondary" onclick="if(window.Router){window.Router.navigate('inventory');if(window.InventoryView){window.InventoryView.switchTab('stock_harian');}}" title="Update Stok Harian (Taichan, Ayam & Bahan)" style="white-space:nowrap;flex-shrink:0;">
+                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--tertiary);">inventory_2</span>
+                    <span class="hidden-sm">Update Stok</span>
+                  </button>
+
+                  <!-- Fast Stock (Availability Toggle) -->
                   <button class="btn btn-secondary" onclick="window.InventoryView && window.InventoryView.render();document.getElementById('fast-stock-modal').classList.add('open');" title="Update Cepat Ketersediaan Menu" style="white-space:nowrap;flex-shrink:0;">
                     <span class="material-symbols-outlined" style="font-size:16px;color:var(--warning);">bolt</span>
-                    <span class="hidden-sm">Stock</span>
+                    <span class="hidden-sm">Fast Stock</span>
                   </button>
 
                   <!-- Riwayat Transaksi Quick Button -->
@@ -882,21 +888,21 @@
 
           <!-- Inventory Subtabs -->
           <div style="display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:10px;overflow-x:auto;">
-            <button type="button" class="btn btn-secondary active inv-subtab-btn" data-tab="raw">
+            <button type="button" class="btn btn-secondary active inv-subtab-btn" data-tab="stock_harian" id="inv-subtab-stock-harian-btn">
+              <span class="material-symbols-outlined" style="font-size:16px;color:var(--tertiary);">monitoring</span>
+              <span>Stock Harian 🍢🍗</span>
+            </button>
+            <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="raw" id="inv-subtab-raw-btn">
               <span class="material-symbols-outlined" style="font-size:16px;">inventory_2</span>
               <span>Bahan Baku &amp; Stok Fisik</span>
-            </button>
-            <button type="button" class="btn btn-secondary inv-subtab-btn owner-only" id="inv-subtab-bom-btn" data-tab="bom">
-              <span class="material-symbols-outlined" style="font-size:16px;">receipt_long</span>
-              <span>Resep Menu &amp; HPP (BOM)</span>
             </button>
             <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="sambal">
               <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">local_fire_department</span>
               <span>Variasi Sambal &amp; Pelengkap</span>
             </button>
-            <button type="button" class="btn btn-secondary inv-subtab-btn" data-tab="stock_harian">
-              <span class="material-symbols-outlined" style="font-size:16px;color:var(--tertiary);">monitoring</span>
-              <span>Stock Harian 🍢🍗</span>
+            <button type="button" class="btn btn-secondary inv-subtab-btn owner-only" id="inv-subtab-bom-btn" data-tab="bom">
+              <span class="material-symbols-outlined" style="font-size:16px;">receipt_long</span>
+              <span>Resep Menu &amp; HPP (BOM)</span>
             </button>
             <button type="button" class="btn btn-secondary inv-subtab-btn owner-only" id="inv-subtab-audit-btn" data-tab="audit">
               <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">history_edu</span>
@@ -905,7 +911,7 @@
           </div>
 
           <!-- Tab 1: Raw Ingredients Table -->
-          <div id="inventory-raw-tab" class="section-card" style="flex:1;display:flex;flex-direction:column;">
+          <div id="inventory-raw-tab" class="section-card" style="flex:1;display:none;flex-direction:column;">
             <div style="overflow-y:auto;flex:1;">
               <table class="data-table">
                 <thead>
@@ -972,7 +978,7 @@
           </div>
 
           <!-- Tab 4: Daily Stock Tracker -->
-          <div id="inventory-stock-harian-tab" class="section-card" style="flex:1;display:none;flex-direction:column;padding:0;background:transparent;border:none;">
+          <div id="inventory-stock-harian-tab" class="section-card" style="flex:1;display:flex;flex-direction:column;padding:0;background:transparent;border:none;">
             <!-- Sub-tabs: Taichan | Chicken -->
             <div style="display:flex;gap:8px;margin-bottom:16px;">
               <button id="st-subtab-taichan" class="btn btn-secondary active" style="font-size:12px;">
@@ -1606,9 +1612,9 @@
             <span class="material-symbols-outlined mobile-sheet-btn-icon" style="color:#a78bfa;">group</span>
             <span class="mobile-sheet-btn-label">Member</span>
           </div>
-          <div class="mobile-sheet-btn owner-only" data-view="inventory">
+          <div class="mobile-sheet-btn" data-view="inventory">
             <span class="material-symbols-outlined mobile-sheet-btn-icon" style="color:#34d399;">inventory_2</span>
-            <span class="mobile-sheet-btn-label">Stok Bahan</span>
+            <span class="mobile-sheet-btn-label">Update Stok</span>
           </div>
           <div class="mobile-sheet-btn owner-only" data-view="menu">
             <span class="material-symbols-outlined mobile-sheet-btn-icon" style="color:#f59e0b;">restaurant_menu</span>

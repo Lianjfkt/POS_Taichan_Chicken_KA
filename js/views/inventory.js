@@ -5,16 +5,44 @@
 class InventoryView {
   constructor() {
     this.searchQuery = '';
-    this.activeTab = 'raw'; // 'raw', 'bom', or 'sambal'
+    this.activeTab = 'stock_harian'; // 'stock_harian', 'raw', 'bom', 'sambal', 'audit'
     this.activeEditingProduct = null;
   }
 
   init() {
     this.bindEvents();
+    this.switchTab(this.activeTab);
     this.render();
 
     window.State.on(LS_KEYS.inv, () => this.render());
     window.State.on(LS_KEYS.prod, () => this.render());
+  }
+
+  switchTab(tabName) {
+    this.activeTab = tabName;
+    document.querySelectorAll('.inv-subtab-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-tab') === tabName);
+    });
+
+    const rawTab    = document.getElementById('inventory-raw-tab');
+    const bomTab    = document.getElementById('inventory-bom-tab');
+    const sambalTab = document.getElementById('inventory-sambal-tab');
+    const stockTab  = document.getElementById('inventory-stock-harian-tab');
+    const auditTab  = document.getElementById('inventory-audit-tab');
+
+    if (rawTab)    rawTab.style.display    = (this.activeTab === 'raw')           ? 'flex' : 'none';
+    if (bomTab)    bomTab.style.display    = (this.activeTab === 'bom')           ? 'flex' : 'none';
+    if (sambalTab) sambalTab.style.display = (this.activeTab === 'sambal')        ? 'flex' : 'none';
+    if (stockTab)  stockTab.style.display  = (this.activeTab === 'stock_harian')  ? 'flex' : 'none';
+    if (auditTab)  auditTab.style.display  = (this.activeTab === 'audit')         ? 'flex' : 'none';
+
+    // Init stock tracker when open
+    if (this.activeTab === 'stock_harian' && window.StockTracker) {
+      window.StockTracker.render();
+    }
+    if (this.activeTab === 'audit') {
+      this.renderAuditTable();
+    }
   }
 
   bindEvents() {
@@ -30,29 +58,8 @@ class InventoryView {
     // Subtab Buttons (Bahan Baku / Resep BOM / Sambal / Stock Harian)
     document.querySelectorAll('.inv-subtab-btn').forEach(btn => {
       btn.onclick = () => {
-        document.querySelectorAll('.inv-subtab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.activeTab = btn.getAttribute('data-tab');
-
-        const rawTab    = document.getElementById('inventory-raw-tab');
-        const bomTab    = document.getElementById('inventory-bom-tab');
-        const sambalTab = document.getElementById('inventory-sambal-tab');
-        const stockTab  = document.getElementById('inventory-stock-harian-tab');
-        const auditTab  = document.getElementById('inventory-audit-tab');
-
-        if (rawTab)    rawTab.style.display    = (this.activeTab === 'raw')           ? 'flex' : 'none';
-        if (bomTab)    bomTab.style.display    = (this.activeTab === 'bom')           ? 'flex' : 'none';
-        if (sambalTab) sambalTab.style.display = (this.activeTab === 'sambal')        ? 'flex' : 'none';
-        if (stockTab)  stockTab.style.display  = (this.activeTab === 'stock_harian')  ? 'flex' : 'none';
-        if (auditTab)  auditTab.style.display  = (this.activeTab === 'audit')         ? 'flex' : 'none';
-
-        // Init stock tracker on first open
-        if (this.activeTab === 'stock_harian' && window.StockTracker) {
-          window.StockTracker.render();
-        }
-        if (this.activeTab === 'audit') {
-          this.renderAuditTable();
-        }
+        const tab = btn.getAttribute('data-tab');
+        this.switchTab(tab);
       };
     });
 

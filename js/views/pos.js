@@ -581,20 +581,28 @@ class POSView {
 
   updateMobileFloatingCart() {
     const pill = document.getElementById('mobile-floating-cart-pill');
+    if (!pill) return;
+
+    if (window.innerWidth >= 769) {
+      pill.classList.remove('has-items');
+      pill.style.display = 'none';
+      return;
+    }
+
     const countEl = document.getElementById('mobile-pill-count');
     const totalEl = document.getElementById('mobile-pill-total');
 
     const totalQty = window.State.cart.reduce((s, i) => s + i.qty, 0);
     const totalPrice = window.State.getCartTotal();
 
-    if (pill) {
-      if (totalQty > 0) {
-        pill.classList.add('has-items');
-        if (countEl) countEl.textContent = `${totalQty} Item`;
-        if (totalEl) totalEl.textContent = window.State.formatRp(totalPrice);
-      } else {
-        pill.classList.remove('has-items');
-      }
+    if (totalQty > 0) {
+      pill.classList.add('has-items');
+      pill.style.display = 'flex';
+      if (countEl) countEl.textContent = `${totalQty} Item`;
+      if (totalEl) totalEl.textContent = window.State.formatRp(totalPrice);
+    } else {
+      pill.classList.remove('has-items');
+      pill.style.display = 'none';
     }
   }
 

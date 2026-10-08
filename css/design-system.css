@@ -1172,8 +1172,10 @@ body { display: flex; flex-direction: column; }
   0%   { transform: scale(0.8) translateY(20px); opacity: 0; }
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
-.mobile-floating-cart.has-items {
-  display: flex !important;
+@media (max-width: 768px) {
+  .mobile-floating-cart.has-items {
+    display: flex !important;
+  }
 }
 .mobile-floating-cart-info {
   display: flex;
@@ -1509,6 +1511,8 @@ body { display: flex; flex-direction: column; }
 .mobile-quick-panel,
 .mobile-sheet-overlay,
 .mobile-floating-cart,
+.mobile-floating-cart.has-items,
+#mobile-floating-cart-pill,
 .mobile-nav-dock,
 .mobile-cart-drawer-overlay,
 .mobile-only-flex {

@@ -12,6 +12,8 @@
   .mobile-only-flex,
   .mobile-nav-dock,
   .mobile-floating-cart,
+  .mobile-floating-cart.has-items,
+  #mobile-floating-cart-pill,
   .mobile-cart-drawer-overlay,
   .mobile-quick-panel {
     display: none !important;
