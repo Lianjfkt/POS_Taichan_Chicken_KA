@@ -403,18 +403,25 @@ class ReportsView {
       return;
     }
 
-    tbody.innerHTML = sorted.map((p, idx) => `
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
-        <td style="padding:10px 14px;font-weight:700">
-          <span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.06);text-align:center;line-height:20px;font-size:11px;margin-right:6px">${idx + 1}</span>
-          ${p.nm}
-        </td>
-        <td style="padding:10px 14px;color:var(--secondary)">${p.kat || '-'}</td>
-        <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right">${p.qty} terjual</td>
-        <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right;color:var(--primary)">${window.State.formatRp(p.revenue)}</td>
-        <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right;color:var(--tertiary)">${window.State.formatRp(p.profit)}</td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = sorted.map((p, idx) => {
+      const prod = (window.State.products || []).find(pr => pr.id === p.id);
+      const icon = window.FoodIcons ? window.FoodIcons.get(prod?.emj || p.kat || p.nm, { size: 22 }) : '';
+      return `
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:10px 14px;font-weight:700">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.06);text-align:center;line-height:20px;font-size:11px;flex-shrink:0;">${idx + 1}</span>
+              ${icon}
+              <span>${p.nm}</span>
+            </div>
+          </td>
+          <td style="padding:10px 14px;color:var(--secondary)">${p.kat || '-'}</td>
+          <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right">${p.qty} terjual</td>
+          <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right;color:var(--primary)">${window.State.formatRp(p.revenue)}</td>
+          <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right;color:var(--tertiary)">${window.State.formatRp(p.profit)}</td>
+        </tr>
+      `;
+    }).join('');
   }
 
   renderPaymentBreakdown(trxs) {

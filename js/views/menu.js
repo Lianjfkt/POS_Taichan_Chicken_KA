@@ -85,14 +85,18 @@ class MenuView {
     if (productEmoji) {
       productEmoji.oninput = () => {
         const prev = document.getElementById('mprod-emoji-preview');
-        if (prev) prev.textContent = productEmoji.value || '🍢';
+        if (prev) {
+          prev.innerHTML = window.FoodIcons ? window.FoodIcons.get(productEmoji.value || '🍢', { size: 48 }) : (productEmoji.value || '🍢');
+        }
       };
     }
     const catEmoji = document.getElementById('mcat-emoji');
     if (catEmoji) {
       catEmoji.oninput = () => {
         const prev = document.getElementById('mcat-emoji-preview');
-        if (prev) prev.textContent = catEmoji.value || '🍽️';
+        if (prev) {
+          prev.innerHTML = window.FoodIcons ? window.FoodIcons.get(catEmoji.value || '🍽️', { size: 48 }) : (catEmoji.value || '🍽️');
+        }
       };
     }
   }
@@ -162,10 +166,11 @@ class MenuView {
     const margin = p.hr - (p.md || 0);
     const marginPct = p.hr > 0 ? Math.round((margin / p.hr) * 100) : 0;
     const activeClass = isActive ? '' : 'mpc-inactive';
+    const iconHtml = window.FoodIcons ? window.FoodIcons.get(p.emj || p.kat || '🍢', { size: 48 }) : ('<div class="mpc-emoji">' + (p.emj || '🍢') + '</div>');
 
     return '<div class="menu-product-card ' + activeClass + '">' +
       '<div class="mpc-header">' +
-        '<div class="mpc-emoji">' + (p.emj || '🍢') + '</div>' +
+        iconHtml +
         '<div style="display:flex;gap:4px;flex-wrap:wrap;">' +
           '<span class="badge ' + (isActive ? 'success' : 'danger') + '" style="font-size:10px;padding:2px 7px;">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
           (p.lv ? '<span class="badge warning" style="font-size:10px;padding:2px 7px;">' + p.lv + '</span>' : '') +
@@ -211,11 +216,10 @@ class MenuView {
       const prodCount = (window.State.products || []).filter(p => p.kat === c.nm).length;
       const isActive = c.on !== false;
       const inactiveClass = isActive ? '' : 'mcr-inactive';
+      const catIconHtml = window.FoodIcons ? window.FoodIcons.get(c.emj || c.nm, { size: 42 }) : ('<div class="mcr-emoji">' + (c.emj || '🍽️') + '</div>');
       return '<div class="menu-cat-row ' + inactiveClass + '">' +
         '<div class="mcr-left">' +
-          '<div class="mcr-emoji" style="background:' + (c.col || '#f97316') + '22;border:2px solid ' + (c.col || '#f97316') + '55;">' +
-            (c.emj || '🍽️') +
-          '</div>' +
+          catIconHtml +
           '<div>' +
             '<div class="mcr-name">' + c.nm + '</div>' +
             '<div class="mcr-meta">' + prodCount + ' produk · Urutan ' + (c.ord ?? 0) + '</div>' +
@@ -251,8 +255,12 @@ class MenuView {
     document.getElementById('mprod-name').value = p ? p.nm : '';
     document.getElementById('mprod-price').value = p ? p.hr : '';
     document.getElementById('mprod-cost').value = p ? (p.md || 0) : '';
-    document.getElementById('mprod-emoji').value = p ? (p.emj || '🍢') : '🍢';
-    document.getElementById('mprod-emoji-preview').textContent = p ? (p.emj || '🍢') : '🍢';
+    const initialEmoji = p ? (p.emj || '🍢') : '🍢';
+    document.getElementById('mprod-emoji').value = initialEmoji;
+    const prevEl = document.getElementById('mprod-emoji-preview');
+    if (prevEl) {
+      prevEl.innerHTML = window.FoodIcons ? window.FoodIcons.get(initialEmoji, { size: 48 }) : initialEmoji;
+    }
     document.getElementById('mprod-spice').value = p ? (p.lv || '') : '';
     document.getElementById('mprod-desc').value = p ? (p.desc || '') : '';
     document.getElementById('mprod-active').checked = p ? (p.on !== false) : true;
@@ -338,8 +346,12 @@ class MenuView {
     document.getElementById('mcat-modal-title').textContent = isEdit ? 'Edit Kategori' : 'Tambah Kategori Baru';
 
     document.getElementById('mcat-name').value = c ? c.nm : '';
-    document.getElementById('mcat-emoji').value = c ? (c.emj || '🍽️') : '🍽️';
-    document.getElementById('mcat-emoji-preview').textContent = c ? (c.emj || '🍽️') : '🍽️';
+    const initialCatEmoji = c ? (c.emj || '🍽️') : '🍽️';
+    document.getElementById('mcat-emoji').value = initialCatEmoji;
+    const catPrevEl = document.getElementById('mcat-emoji-preview');
+    if (catPrevEl) {
+      catPrevEl.innerHTML = window.FoodIcons ? window.FoodIcons.get(initialCatEmoji, { size: 48 }) : initialCatEmoji;
+    }
     document.getElementById('mcat-color').value = c ? (c.col || '#f97316') : '#f97316';
     document.getElementById('mcat-order').value = c ? (c.ord ?? 0) : (window.State.categories.length);
     document.getElementById('mcat-active').checked = c ? (c.on !== false) : true;

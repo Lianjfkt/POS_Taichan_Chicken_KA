@@ -125,7 +125,7 @@ class InventoryView {
       return `
         <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
           <td style="padding:12px 16px;display:flex;align-items:center;gap:10px">
-            <span style="font-size:24px">${item.emj || '📦'}</span>
+            ${window.FoodIcons ? window.FoodIcons.get(item.emj || item.nm, { size: 32 }) : `<span style="font-size:24px">${item.emj || '📦'}</span>`}
             <div>
               <div style="font-weight:700;color:var(--on-surface)">${item.nm}</div>
               <div style="font-size:11px;color:var(--secondary)">${item.kat || 'Umum'}</div>
@@ -189,7 +189,7 @@ class InventoryView {
       return `
         <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
           <td style="padding:12px 16px;display:flex;align-items:center;gap:10px">
-            <span style="font-size:24px">${product.emj || '🍢'}</span>
+            ${window.FoodIcons ? window.FoodIcons.get(product.emj || product.nm, { size: 32 }) : `<span style="font-size:24px">${product.emj || '🍢'}</span>`}
             <div>
               <div style="font-weight:700;color:var(--on-surface)">${product.nm}</div>
               <div style="font-size:11px;color:var(--secondary)">${product.kat}</div>
@@ -222,7 +222,7 @@ class InventoryView {
     fastStockGrid.innerHTML = products.map(p => `
       <div style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);padding:12px;display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:24px">${p.emj || '🍢'}</span>
+          ${window.FoodIcons ? window.FoodIcons.get(p.emj || p.nm, { size: 32 }) : `<span style="font-size:24px">${p.emj || '🍢'}</span>`}
           <div>
             <div style="font-weight:700;font-size:13px">${p.nm}</div>
             <div style="font-size:11px;color:var(--primary)">${window.State.formatRp(p.hr)}</div>

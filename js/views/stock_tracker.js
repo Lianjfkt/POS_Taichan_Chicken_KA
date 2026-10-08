@@ -153,8 +153,9 @@ class StockTrackerView {
   }
 
   _summaryCard(emoji, label, value, color) {
-    return `<div style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);padding:14px 12px;">
-      <div style="font-size:22px;margin-bottom:4px;">${emoji}</div>
+    const iconHtml = window.FoodIcons ? window.FoodIcons.get(emoji, { size: 30 }) : `<div style="font-size:22px;">${emoji}</div>`;
+    return `<div style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);padding:14px 12px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="margin-bottom:6px;">${iconHtml}</div>
       <div style="font-size:10px;color:var(--secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">${label}</div>
       <div class="font-mono" style="font-size:20px;font-weight:800;color:${color};margin-top:4px;">${value}</div>
     </div>`;
@@ -171,8 +172,9 @@ class StockTrackerView {
     const soldRows = taichanProds.length
       ? taichanProds.map(p => {
           const qty = soldMap[p.id] || 0;
+          const icon = window.FoodIcons ? window.FoodIcons.get(p.emj || '🍢', { size: 20 }) : (p.emj || '🍢');
           return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-            <span style="font-size:13px;">${p.emj||'🍢'} ${p.nm}</span>
+            <span style="font-size:13px;display:inline-flex;align-items:center;gap:6px;">${icon} ${p.nm}</span>
             <span class="font-mono" style="font-weight:700;color:${qty>0?'var(--primary)':'var(--secondary)'};">${qty} tusuk</span>
           </div>`;
         }).join('')

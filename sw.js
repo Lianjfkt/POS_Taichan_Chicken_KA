@@ -1,11 +1,14 @@
-const CACHE_NAME = 'kapos-v3-cache-v9';
+const CACHE_NAME = 'kapos-v3-cache-v10';
 const ASSETS = [
   '/',
   'index.html',
   'manifest.json',
   'css/design-system.css',
+  'css/web.css',
+  'css/mobile.css',
   'js/state.js',
   'js/supabase.js',
+  'js/food_icons.js',
   'js/printer.js',
   'js/views/auth.js',
   'js/views/pos.js',
@@ -17,6 +20,7 @@ const ASSETS = [
   'js/views/reports.js',
   'js/views/settings.js',
   'js/views/customers.js',
+  'js/views/orders.js',
   'js/app.js',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200',

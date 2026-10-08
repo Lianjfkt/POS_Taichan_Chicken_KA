@@ -433,7 +433,8 @@ class OrdersView {
 
       const itemsSummary = (t.items || []).map(i => {
         const mod = i.mod ? ` <span style="color:var(--secondary);font-size:10px;">(${i.mod})</span>` : '';
-        return `<div><span style="font-weight:600;">${i.nm}</span> <span style="color:var(--primary);font-weight:700;">x${i.qty}</span>${mod}</div>`;
+        const icon = window.FoodIcons ? window.FoodIcons.get(i.emj || i.nm, { size: 18 }) : '';
+        return `<div style="display:flex;align-items:center;gap:5px;margin:2px 0;">${icon}<span style="font-weight:600;">${i.nm}</span> <span style="color:var(--primary);font-weight:700;">x${i.qty}</span>${mod}</div>`;
       }).join('');
 
       return `
@@ -550,10 +551,13 @@ class OrdersView {
       <div style="font-weight:700;font-size:13px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:4px;">Rincian Menu:</div>
       <div style="max-height:180px;overflow-y:auto;margin-bottom:14px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px;">
         ${(trx.items || []).map(i => `
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,0.05);font-size:12px;">
-            <div>
-              <div style="font-weight:600;">${i.nm} x${i.qty}</div>
-              ${i.mod ? `<div style="font-size:11px;color:var(--secondary);">${i.mod}</div>` : ''}
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,0.05);font-size:12px;align-items:center;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${window.FoodIcons ? window.FoodIcons.get(i.emj || i.nm, { size: 24 }) : ''}
+              <div>
+                <div style="font-weight:600;">${i.nm} x${i.qty}</div>
+                ${i.mod ? `<div style="font-size:11px;color:var(--secondary);">${i.mod}</div>` : ''}
+              </div>
             </div>
             <div class="font-mono" style="font-weight:700;">${window.State.formatRp(i.hr * i.qty)}</div>
           </div>
