@@ -297,7 +297,11 @@
     'kemasan': 'cup',
     'cup': 'cup',
     'lainnya': 'utensils',
-    'other': 'utensils'
+    'other': 'utensils',
+    'food': 'food',
+    'semua': 'food',
+    'semua menu': 'food',
+    'all': 'food'
   };
 
   /**
@@ -307,11 +311,16 @@
     if (!input) return 'taichan';
     const str = String(input).trim().toLowerCase();
 
+    // Direct ICONS key match
+    if (ICONS[input]) return input;
+    if (ICONS[str]) return str;
+
     // Direct emoji / key match
     if (ICON_MAP[input]) return ICON_MAP[input];
     if (ICON_MAP[str]) return ICON_MAP[str];
 
     // Substring searches
+    if (str.includes('semua') || str.includes('all') || str === 'food') return 'food';
     if (str.includes('taichan') || str.includes('sate') || str.includes('tusuk')) return 'taichan';
     if (str.includes('chicken') || str.includes('ayam') || str.includes('crispy')) return 'chicken';
     if (str.includes('jeruk') || str.includes('citrus') || str.includes('orange')) return 'citrus';
