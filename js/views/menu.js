@@ -169,11 +169,9 @@ class MenuView {
     const marginColor = marginPct < 0 ? 'color:var(--error)' : '';
     const marginIcon = marginPct < 0 ? 'trending_down' : 'trending_up';
     const activeClass = isActive ? '' : 'mpc-inactive';
-    const iconHtml = window.FoodIcons ? window.FoodIcons.get(p.emj || p.kat || '🍢', { size: 48 }) : ('<div class="mpc-emoji">' + (p.emj || '🍢') + '</div>');
 
     return '<div class="menu-product-card ' + activeClass + '">' +
       '<div class="mpc-header">' +
-        iconHtml +
         '<div style="display:flex;gap:4px;flex-wrap:wrap;">' +
           '<span class="badge ' + (isActive ? 'success' : 'danger') + '" style="font-size:10px;padding:2px 7px;">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
           (p.lv ? '<span class="badge warning" style="font-size:10px;padding:2px 7px;">' + p.lv + '</span>' : '') +
@@ -223,17 +221,15 @@ class MenuView {
       const prodCount = (window.State.products || []).filter(p => p.kat === c.nm).length;
       const isActive = c.on !== false;
       const inactiveClass = isActive ? '' : 'mcr-inactive';
-      const catIconHtml = window.FoodIcons ? window.FoodIcons.get(c.emj || c.nm, { size: 42 }) : ('<div class="mcr-emoji">' + (c.emj || '🍽️') + '</div>');
       return '<div class="menu-cat-row ' + inactiveClass + '">' +
         '<div class="mcr-left">' +
-          catIconHtml +
+          '<div class="mcr-color-dot" style="background:' + (c.col || '#f97316') + ';"></div>' +
           '<div>' +
             '<div class="mcr-name">' + c.nm + '</div>' +
             '<div class="mcr-meta">' + prodCount + ' produk · Urutan ' + (c.ord ?? 0) + '</div>' +
           '</div>' +
         '</div>' +
         '<div class="mcr-actions">' +
-          '<div style="width:10px;height:10px;border-radius:50%;background:' + (c.col || '#f97316') + ';"></div>' +
           '<span class="badge ' + (isActive ? 'success' : 'danger') + '" style="font-size:10px;">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
           '<button class="btn btn-secondary" style="padding:4px 10px;font-size:12px;" onclick="window.MenuView.openCategoryModal(\'' + c.id + '\')">' +
             '<span class="material-symbols-outlined" style="font-size:13px;">edit</span> Edit' +

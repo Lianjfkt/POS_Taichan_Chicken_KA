@@ -193,10 +193,8 @@ class POSView {
 
     let html = `<div class="zone-a-label">Kategori Menu</div>`;
 
-    const allIcon = window.FoodIcons ? window.FoodIcons.get('food', { size: 22 }) : '';
     html += `
       <button class="cat-pill ${this.selectedCategory === 'all' ? 'active' : ''}" onclick="window.POSView.selectCategory('all')">
-        ${allIcon}
         <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">Semua Menu</span>
         <span class="cat-count">${totalCount}</span>
       </button>
@@ -206,10 +204,8 @@ class POSView {
       if (cat.on === false) return;
       const count = products.filter(p => p.kat === cat.nm).length;
       const isActive = this.selectedCategory === cat.nm;
-      const catIcon = window.FoodIcons ? window.FoodIcons.get(cat.emj || cat.nm, { size: 22 }) : '';
       html += `
         <button class="cat-pill ${isActive ? 'active' : ''}" onclick="window.POSView.selectCategory('${cat.nm}')">
-          ${catIcon}
           <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">${cat.nm}</span>
           <span class="cat-count">${count}</span>
         </button>
@@ -256,15 +252,15 @@ class POSView {
     grid.innerHTML = list.map(p => {
       // BUG-J fix: gunakan p.on === false konsisten dengan handleProductClick & State
       const isUnavailable = p.on === false || p.habis === true;
-      const iconHtml = window.FoodIcons ? window.FoodIcons.get(p.emj || p.kat || '🍢', { size: 38 }) : '';
+      const katLabel = p.kat ? `<span class="product-cat-label">${p.kat}</span>` : '';
       return `
         <div class="product-card ${isUnavailable ? 'unavailable' : ''}" onclick="window.POSView.handleProductClick(${p.id})" style="${isUnavailable ? 'opacity:0.5;cursor:not-allowed;' : ''}">
           <div class="product-card-top">
-            ${iconHtml}
             <div style="flex:1;min-width:0;">
               <div class="product-title">${p.nm}</div>
-              <div style="display:flex;align-items:center;gap:4px;margin-top:3px;flex-wrap:wrap;">
-                ${p.lv && !isUnavailable ? `<span class="product-badge" style="position:static;background:rgba(249,115,22,0.85);color:#fff;font-size:9.5px;padding:1px 5px;border-radius:4px;flex-shrink:0;">${p.lv}</span>` : ''}
+              <div style="display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;">
+                ${katLabel}
+                ${p.lv && !isUnavailable ? `<span class="product-badge" style="position:static;background:rgba(249,115,22,0.85);color:#fff;font-size:9px;padding:1px 5px;border-radius:4px;flex-shrink:0;">${p.lv}</span>` : ''}
                 ${isUnavailable ? '<span class="product-badge out" style="position:static;flex-shrink:0;">HABIS</span>' : ''}
               </div>
             </div>
@@ -407,7 +403,6 @@ class POSView {
         <div class="cart-item">
           <div class="cart-item-header">
             <span class="cart-item-qty-badge">${item.qty}x</span>
-            ${window.FoodIcons ? window.FoodIcons.get(item.emj || item.nm || '🍢', { size: 26 }) : ''}
             <div style="flex:1;min-width:0;">
               <div class="cart-item-title">${item.nm}</div>
               ${item.mod ? `<div class="cart-item-mod"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">local_fire_department</span> ${item.mod}</div>` : ''}
