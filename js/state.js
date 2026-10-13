@@ -23,8 +23,13 @@ const LS_KEYS = {
   cust:   'ka_cust',
   audit:  'ka_audit',
   shift_hist: 'ka_shift_hist',
-  theme:  'ka_theme'
+  theme:  'ka_theme',
+  // BUG-E fix: tambah key active user & stock audit ke registry
+  active_user: 'ka_active_user',
+  stock_audit: 'ka_stock_audit_log'
 };
+// BUG-D/BUG-A fix: expose LS_KEYS ke global agar bisa diakses dari orders.js, shift.js, supabase.js, dll
+window.LS_KEYS = LS_KEYS;
 
 const DEFAULT_CUSTOMERS = [
   { id: 'CUST-001', nm: 'Pelanggan Umum', hp: '-', poin: 0, trxCount: 0, totalSpend: 0, joined: 1717000000000 },
@@ -166,6 +171,10 @@ class StateManager {
     this.save(LS_KEYS.audit, this.auditLog);
     this.save(LS_KEYS.shift_hist, this.shiftHistory);
     this.save(LS_KEYS.theme, this.currentTheme);
+    // BUG-M fix: include stockAuditLog agar masuk backup
+    if (this.stockAuditLog) {
+      this.save(LS_KEYS.stock_audit, this.stockAuditLog);
+    }
   }
 
   on(event, callback) {
@@ -443,7 +452,8 @@ class StateManager {
     this.stockAuditLog.unshift(log);
     if (this.stockAuditLog.length > 500) this.stockAuditLog.pop();
     try {
-      localStorage.setItem('ka_stock_audit_log', JSON.stringify(this.stockAuditLog));
+      // BUG-M fix: gunakan LS_KEYS.stock_audit agar konsisten
+      localStorage.setItem(LS_KEYS.stock_audit, JSON.stringify(this.stockAuditLog));
     } catch (e) {
       console.warn('[State] Failed to save stock audit log:', e);
     }
@@ -454,7 +464,7 @@ class StateManager {
   getStockAuditLog() {
     if (!this.stockAuditLog) {
       try {
-        const raw = localStorage.getItem('ka_stock_audit_log');
+        const raw = localStorage.getItem(LS_KEYS.stock_audit);
         this.stockAuditLog = raw ? JSON.parse(raw) : [];
       } catch {
         this.stockAuditLog = [];

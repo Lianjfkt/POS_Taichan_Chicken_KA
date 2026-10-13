@@ -231,6 +231,11 @@ class ShiftView {
     }
 
     const summary = this.getShiftFinancialSummary(shift);
+    // BUG-P fix: guard null jika shift sudah ditutup di tab lain (multi-tab race)
+    if (!summary) {
+      window.State.toast('Data shift tidak valid. Halaman ini mungkin sudah tidak sinkron.', 'error');
+      return;
+    }
     const discrepancy = physicalCash - summary.saldoSistem;
     let statusDiscrepancy = 'PAS';
     if (discrepancy > 0) statusDiscrepancy = 'LEBIH';
@@ -320,7 +325,9 @@ class ShiftView {
     if (activeShiftCard) activeShiftCard.style.display = 'block';
 
     const summary = this.getShiftFinancialSummary(shift);
-    const shiftLogs = (window.State.cashLog || []).filter(l => l.tgl >= shift.mulai);
+    // BUG-G fix: filter cashLog dengan batas waktu atas agar log shift lama tidak bocor
+    const shiftEndTime = shift.selesai || Date.now();
+    const shiftLogs = (window.State.cashLog || []).filter(l => l.tgl >= shift.mulai && l.tgl <= shiftEndTime);
 
     const nameEl = document.getElementById('shift-active-staff');
     const timeEl = document.getElementById('shift-active-time');

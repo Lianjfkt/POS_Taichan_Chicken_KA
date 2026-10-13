@@ -252,6 +252,13 @@ class PaymentView {
     const disc = redeemableSteps * 5000;
     this.pointsDiscount = disc;
 
+    // BUG-F fix: disable tombol setelah tukar agar tidak double-click
+    const btnRedeem = document.getElementById('btn-redeem-points');
+    if (btnRedeem) {
+      btnRedeem.disabled = true;
+      btnRedeem.textContent = `✓ ${redeemableSteps * 10} Poin Ditukarkan`;
+    }
+
     window.State.toast(`Menukarkan ${redeemableSteps * 10} poin dengan Diskon ${window.State.formatRp(disc)}!`, 'success');
     this.applyDiscount();
   }
@@ -333,7 +340,9 @@ class PaymentView {
 
     const dateStr = window.State.formatDateShort(Date.now()).replace(/-/g, '');
     const counter = String((window.State.transactions.length || 0) + 1).padStart(4, '0');
-    const orderNumber = `KA-${dateStr}-${counter}`;
+    // BUG-I fix: tambah suffix random 3 karakter agar tidak duplikat setelah backup-restore
+    const suffix = Date.now().toString(36).toUpperCase().slice(-3);
+    const orderNumber = `KA-${dateStr}-${counter}-${suffix}`;
     const cashierName = window.State.currentUser ? window.State.currentUser.nm : 'Kasir';
     const orderItems = JSON.parse(JSON.stringify(window.State.cart));
     const change = Math.max(0, this.paidAmount - finalTotal);
@@ -375,6 +384,8 @@ class PaymentView {
         if (cust) {
           const usedPoints = (this.pointsDiscount / 5000) * 10;
           cust.poin = Math.max(0, (cust.poin || 0) - usedPoints);
+          // BUG-B fix: simpan perubahan poin segera agar tidak hilang jika proses gagal
+          window.State.save(LS_KEYS.cust, window.State.customers);
         }
       }
       const earned = window.State.addCustomerLoyalty(this.selectedCustomerId, finalTotal);

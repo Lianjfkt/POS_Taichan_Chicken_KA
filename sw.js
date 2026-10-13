@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kapos-v3-cache-v11';
+const CACHE_NAME = 'kapos-v3-cache-v12'; // bumped: bug fixes 2026-10-13
 const ASSETS = [
   '/',
   'index.html',

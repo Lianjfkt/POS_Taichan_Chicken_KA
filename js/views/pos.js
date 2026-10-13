@@ -254,7 +254,8 @@ class POSView {
     }
 
     grid.innerHTML = list.map(p => {
-      const isUnavailable = p.habis === true;
+      // BUG-J fix: gunakan p.on === false konsisten dengan handleProductClick & State
+      const isUnavailable = p.on === false || p.habis === true;
       const iconHtml = window.FoodIcons ? window.FoodIcons.get(p.emj || p.kat || '🍢', { size: 38 }) : '';
       return `
         <div class="product-card ${isUnavailable ? 'unavailable' : ''}" onclick="window.POSView.handleProductClick(${p.id})" style="${isUnavailable ? 'opacity:0.5;cursor:not-allowed;' : ''}">
@@ -283,8 +284,8 @@ class POSView {
     const product = window.State.products.find(p => p.id === productId);
     if (!product) return;
 
-    // BUG-10: gunakan p.on untuk cek ketersediaan (konsisten dengan state)
-    if (product.on === false) return;
+    // BUG-J fix: cek konsisten dengan render — produk nonaktif atau habis tidak bisa diklik
+    if (product.on === false || product.habis === true) return;
 
     // BUG-22 fix: buka modifier hanya jika ada sambal aktif ATAU produk punya level
     const hasActiveSambal = (window.State.sambalList || []).some(s => s.aktif !== false);

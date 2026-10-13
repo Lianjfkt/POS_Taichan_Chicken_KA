@@ -150,7 +150,8 @@ class SupabaseService {
       const idx = window.State.inventory.findIndex(i => i.id === payload.new.id);
       if (idx > -1) {
         window.State.inventory[idx].stok = payload.new.current_stock;
-        window.State.save(LS_KEYS.inv, window.State.inventory);
+        // BUG-A fix: gunakan window.LS_KEYS agar tidak ReferenceError
+        window.State.save(window.LS_KEYS.inv, window.State.inventory);
         window.State.emit('inventory:update', window.State.inventory);
       }
     }

@@ -165,6 +165,9 @@ class MenuView {
     const isActive = p.on !== false;
     const margin = p.hr - (p.md || 0);
     const marginPct = p.hr > 0 ? Math.round((margin / p.hr) * 100) : 0;
+    // BUG-Q fix: tandai margin negatif dengan warna merah & ikon warning
+    const marginColor = marginPct < 0 ? 'color:var(--error)' : '';
+    const marginIcon = marginPct < 0 ? 'trending_down' : 'trending_up';
     const activeClass = isActive ? '' : 'mpc-inactive';
     const iconHtml = window.FoodIcons ? window.FoodIcons.get(p.emj || p.kat || '🍢', { size: 48 }) : ('<div class="mpc-emoji">' + (p.emj || '🍢') + '</div>');
 
@@ -181,7 +184,11 @@ class MenuView {
         '<div class="mpc-cat">' + (p.kat || '—') + '</div>' +
         '<div class="mpc-price-row">' +
           '<span class="mpc-price">' + window.State.formatRp(p.hr) + '</span>' +
-          '<span class="mpc-margin"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;">trending_up</span>' + marginPct + '%</span>' +
+          '<span class="mpc-margin" style="' + marginColor + '">' +
+            '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;">' + marginIcon + '</span>' +
+            marginPct + '%' +
+            (marginPct < 0 ? ' ⚠️' : '') +
+          '</span>' +
         '</div>' +
       '</div>' +
       '<div class="mpc-actions">' +

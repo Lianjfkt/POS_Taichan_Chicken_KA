@@ -14,7 +14,8 @@ class AuthView {
     this.resetInactivityTimer();
 
     // Check if previous session exists
-    const savedUser = window.State.load('ka_active_user', null);
+    // BUG-E fix: gunakan window.LS_KEYS.active_user agar konsisten dengan registry
+    const savedUser = window.State.load(window.LS_KEYS.active_user, null);
     if (savedUser) {
       this.loginSuccess(savedUser);
     } else {
@@ -132,7 +133,8 @@ class AuthView {
 
   loginSuccess(user) {
     window.State.currentUser = user;
-    window.State.save('ka_active_user', user);
+    // BUG-E fix: gunakan window.LS_KEYS.active_user
+    window.State.save(window.LS_KEYS.active_user, user);
 
     // Update UI User Pill & Permissions
     const userNameEl = document.getElementById('header-user-name');
@@ -203,7 +205,8 @@ class AuthView {
       this.inactivityTimer = null;
     }
     window.State.currentUser = null;
-    window.State.save('ka_active_user', null);
+    // BUG-E fix: gunakan window.LS_KEYS.active_user
+    window.State.save(window.LS_KEYS.active_user, null);
     window.State.clearCart();
     this.showLogin();
     window.State.toast('Anda telah keluar dari aplikasi.', 'warning');

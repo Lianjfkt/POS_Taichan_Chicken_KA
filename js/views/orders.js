@@ -690,19 +690,17 @@ class OrdersView {
     window.State.save(LS_KEYS.inv, window.State.inventory);
     window.State.save(LS_KEYS.mut, window.State.stockMutations);
 
-    // 3. Adjust cash log if it was cash payment
-    if (trx.metode === 'cash') {
-      window.State.cashLog.unshift({
-        id: Date.now(),
-        tgl: Date.now(),
-        tipe: 'keluar',
-        kat: 'Void Transaksi',
-        jml: trx.total,
-        ket: `Batal Nota ${trx.no} - ${reason}`,
-        staf: currentUser
-      });
-      window.State.save(LS_KEYS.kas, window.State.cashLog);
-    }
+    // 3. Adjust cash log for ALL payment methods (BUG-C fix: sebelumnya hanya cash)
+    window.State.cashLog.unshift({
+      id: Date.now(),
+      tgl: Date.now(),
+      tipe: 'keluar',
+      kat: `Void Transaksi (${(trx.metode || 'cash').toUpperCase()})`,
+      jml: trx.total,
+      ket: `Batal Nota ${trx.no} - ${reason}`,
+      staf: currentUser
+    });
+    window.State.save(LS_KEYS.kas, window.State.cashLog);
 
     // 4. Log audit trail
     window.State.logAudit('TRANSACTION_VOID_ALARM', {

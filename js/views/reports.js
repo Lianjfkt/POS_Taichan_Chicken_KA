@@ -187,13 +187,26 @@ class ReportsView {
     const grossProfit = omzet - cogs;
     const margin = omzet > 0 ? ((grossProfit / omzet) * 100).toFixed(1) : 0;
 
-    // Calculate Petty Cash Operational Expenses in same period
+    // BUG-H fix: filter pettyOut sesuai periode yang aktif (sebelumnya selalu semua waktu untuk non-today)
     const now = new Date();
     let pettyOut = 0;
     const cashLogs = window.State.cashLog || [];
     if (this.activePeriod === 'today') {
       const todayStr = window.State.formatDateShort(now);
       pettyOut = cashLogs.filter(l => l.tipe === 'keluar' && window.State.formatDateShort(l.tgl) === todayStr).reduce((s, l) => s + l.jml, 0);
+    } else if (this.activePeriod === 'yesterday') {
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      const yesterdayStr = window.State.formatDateShort(yesterday);
+      pettyOut = cashLogs.filter(l => l.tipe === 'keluar' && window.State.formatDateShort(l.tgl) === yesterdayStr).reduce((s, l) => s + l.jml, 0);
+    } else if (this.activePeriod === 'week') {
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      pettyOut = cashLogs.filter(l => l.tipe === 'keluar' && new Date(l.tgl) >= sevenDaysAgo).reduce((s, l) => s + l.jml, 0);
+    } else if (this.activePeriod === 'month') {
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+      pettyOut = cashLogs.filter(l => l.tipe === 'keluar' && new Date(l.tgl) >= thirtyDaysAgo).reduce((s, l) => s + l.jml, 0);
     } else {
       pettyOut = cashLogs.filter(l => l.tipe === 'keluar').reduce((s, l) => s + l.jml, 0);
     }

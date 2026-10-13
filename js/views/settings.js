@@ -299,6 +299,8 @@ class SettingsView {
 
   // --- Backup & Restore Methods ---
   exportBackup() {
+    // BUG-M fix: sertakan stockAuditLog agar audit trail kasir ikut ter-backup
+    const stockAuditLog = window.State.getStockAuditLog ? window.State.getStockAuditLog() : [];
     const backupData = {
       app: 'KA POS v3.0',
       exportedAt: new Date().toISOString(),
@@ -314,7 +316,8 @@ class SettingsView {
         customers: window.State.customers,
         sambalList: window.State.sambalList,
         shiftHistory: window.State.shiftHistory,
-        auditLog: window.State.auditLog
+        auditLog: window.State.auditLog,
+        stockAuditLog: stockAuditLog
       }
     };
 
@@ -355,6 +358,11 @@ class SettingsView {
         if (d.sambalList) window.State.sambalList = d.sambalList;
         if (d.shiftHistory) window.State.shiftHistory = d.shiftHistory;
         if (d.auditLog) window.State.auditLog = d.auditLog;
+        // BUG-M fix: restore stockAuditLog dari backup
+        if (d.stockAuditLog) {
+          window.State.stockAuditLog = d.stockAuditLog;
+          localStorage.setItem(window.LS_KEYS.stock_audit, JSON.stringify(d.stockAuditLog));
+        }
 
         window.State.saveAll();
         window.State.logAudit('BACKUP_RESTORED', { exportedAt: json.exportedAt });

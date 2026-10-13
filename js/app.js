@@ -178,6 +178,9 @@ class AppRouter {
       window.OrdersView.render();
     } else if (viewName === 'shift' && window.ShiftView) {
       window.ShiftView.render();
+    } else if (viewName === 'customers' && window.CustomersView) {
+      // BUG-N fix: render CustomersView saat navigate agar list tidak kosong
+      window.CustomersView.render();
     } else if (viewName === 'inventory' && window.InventoryView) {
       window.InventoryView.render();
     } else if (viewName === 'menu' && window.MenuView) {
