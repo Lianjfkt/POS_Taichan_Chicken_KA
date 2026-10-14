@@ -37,7 +37,7 @@
   <!-- Stitch Design System & Split Responsive Architecture -->
   <link rel="stylesheet" href="css/design-system.css?v=3.5.0">
   <link rel="stylesheet" href="css/web.css?v=3.5.0">
-  <link rel="stylesheet" href="css/mobile.css?v=3.5.0">
+  <link rel="stylesheet" href="css/mobile.css?v=3.6.0">
 
   <!-- Mobile Viewport Height Fix -->
   <script>
@@ -407,9 +407,21 @@
 
             <!-- ZONE B: Product Catalog + Search -->
             <div class="zone-b">
-              <!-- POS Operational Top Bar -->
+              <!-- POS Operational Top Bar: 2-Row Mobile Layout -->
+              <!-- Row 1 (mobile): search full width | Row 2: order types + icons -->
               <div class="pos-top-bar">
-                <div class="pos-top-left" style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+
+                <!-- Row 1: Search bar -->
+                <div class="pos-search-wrapper pos-search-row">
+                  <span class="material-symbols-outlined pos-search-icon">search</span>
+                  <input type="text" id="pos-search-input" class="pos-search-input" placeholder="Cari menu...">
+                  <button type="button" class="pos-search-clear" id="pos-search-clear">
+                    <span class="material-symbols-outlined" style="font-size:17px;">close</span>
+                  </button>
+                </div>
+
+                <!-- Row 2: order-type left | action icons right -->
+                <div class="pos-action-row">
                   <!-- Order Type Switcher -->
                   <div class="order-type-group">
                     <button type="button" class="order-type-btn btn-order-type active" data-type="dine-in">
@@ -425,39 +437,24 @@
                       <span>Ojol</span>
                     </button>
                   </div>
-                </div>
 
-                <div class="pos-top-right" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;justify-content:flex-end;">
-                  <!-- Search -->
-                  <div class="pos-search-wrapper" style="flex:1;min-width:0;max-width:380px;">
-                    <span class="material-symbols-outlined pos-search-icon">search</span>
-                    <input type="text" id="pos-search-input" class="pos-search-input" placeholder="Cari menu (Ctrl+F)...">
-                    <button type="button" class="pos-search-clear" id="pos-search-clear">
-                      <span class="material-symbols-outlined" style="font-size:17px;">close</span>
-                    </button>
-                  </div>
-
-                  <!-- Quick Action Buttons -->
-                  <div class="pos-top-actions" style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-                    <!-- Update Stok Harian Button -->
-                    <button class="btn btn-secondary btn-pos-quick" onclick="if(window.Router){window.Router.navigate('inventory');if(window.InventoryView){window.InventoryView.switchTab('stock_harian');}}" title="Update Stok Harian (Taichan, Ayam & Bahan)" style="white-space:nowrap;flex-shrink:0;">
+                  <!-- Quick Action Icon Buttons -->
+                  <div class="pos-top-actions">
+                    <button class="btn btn-secondary btn-pos-quick" onclick="if(window.Router){window.Router.navigate('inventory');if(window.InventoryView){window.InventoryView.switchTab('stock_harian');}}" title="Update Stok Harian">
                       <span class="material-symbols-outlined" style="font-size:16px;color:var(--tertiary);">inventory_2</span>
                       <span class="hidden-sm">Update Stok</span>
                     </button>
-
-                    <!-- Fast Stock (Availability Toggle) -->
-                    <button class="btn btn-secondary btn-pos-quick" onclick="window.InventoryView && window.InventoryView.render();document.getElementById('fast-stock-modal').classList.add('open');" title="Update Cepat Ketersediaan Menu" style="white-space:nowrap;flex-shrink:0;">
+                    <button class="btn btn-secondary btn-pos-quick" onclick="window.InventoryView &amp;&amp; window.InventoryView.render();document.getElementById('fast-stock-modal').classList.add('open');" title="Fast Stock">
                       <span class="material-symbols-outlined" style="font-size:16px;color:var(--warning);">bolt</span>
                       <span class="hidden-sm">Fast Stock</span>
                     </button>
-
-                    <!-- Riwayat Transaksi Quick Button -->
-                    <button class="btn btn-secondary btn-pos-quick" onclick="window.Router && window.Router.navigate('orders')" title="Buka Riwayat Transaksi" style="white-space:nowrap;flex-shrink:0;">
+                    <button class="btn btn-secondary btn-pos-quick" onclick="window.Router &amp;&amp; window.Router.navigate('orders')" title="Riwayat Transaksi">
                       <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">receipt_long</span>
                       <span class="hidden-sm">Riwayat</span>
                     </button>
                   </div>
                 </div>
+
               </div>
 
               <!-- Product Grid -->
