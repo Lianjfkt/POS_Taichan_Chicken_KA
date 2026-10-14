@@ -644,6 +644,144 @@
   }
 
   /* ---------------------------------------------------------------------------
+     GENERIC DATA TABLE TO STACKED CARDS TRANSFORMATION
+     --------------------------------------------------------------------------- */
+  table.data-table,
+  table.data-table tbody {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  table.data-table thead {
+    display: none !important;
+  }
+
+  table.data-table tbody tr {
+    display: block !important;
+    width: 100% !important;
+    background: var(--surface-container) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: var(--radius-lg, 16px) !important;
+    padding: 14px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28) !important;
+    box-sizing: border-box !important;
+  }
+
+  table.data-table tbody tr:hover {
+    background: var(--surface-container) !important;
+  }
+
+  table.data-table td {
+    display: block !important;
+    width: 100% !important;
+    padding: 4px 0 !important;
+    border: none !important;
+    text-align: left !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ---------------------------------------------------------------------------
+     ORDERS VIEW (#view-orders) — Mobile Stacked Cards & Filter Bar
+     --------------------------------------------------------------------------- */
+  #view-orders .metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  #view-orders .metric-card {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+
+  #view-orders .orders-period-btn {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+
+  #view-orders .panel-card {
+    padding: 12px !important;
+  }
+
+  #orders-table-tbody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  #orders-table-tbody td:nth-child(1) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-bottom: 6px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  #orders-table-tbody td:nth-child(2) {
+    padding: 2px 0 !important;
+  }
+
+  #orders-table-tbody td:nth-child(3) {
+    background: var(--surface-container-low) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 8px 10px !important;
+    margin: 4px 0 !important;
+  }
+
+  #orders-table-tbody td:nth-child(4) {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  #orders-table-tbody td:nth-child(5) {
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  #orders-table-tbody td:nth-child(6) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8px 0 4px !important;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08) !important;
+  }
+
+  #orders-table-tbody td:nth-child(6)::before {
+    content: "Total Pembayaran:";
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  #orders-table-tbody td:last-child {
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  #orders-table-tbody td:last-child > div {
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  #orders-table-tbody td:last-child button {
+    flex: 1 !important;
+    height: 40px !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  #orders-table-tbody td:last-child .orders-action-text {
+    display: inline !important;
+  }
+
+  /* ---------------------------------------------------------------------------
      MOBILE MODALS & FORMS
      --------------------------------------------------------------------------- */
   .modal-dialog {
