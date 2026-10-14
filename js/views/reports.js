@@ -80,6 +80,30 @@ class ReportsView {
         this.renderRecentTransactions(this.getFilteredTransactions());
       };
     }
+
+    // Collapsible Section Cards (Accordion)
+    document.querySelectorAll('.section-card-header[data-toggle-target]').forEach(header => {
+      header.onclick = (e) => {
+        if (e.target.closest('input, select, button, a')) return;
+        const targetSelector = header.getAttribute('data-toggle-target');
+        const targetEl = document.querySelector(targetSelector);
+        const icon = header.querySelector('.accordion-icon');
+        if (!targetEl) return;
+
+        const isCurrentlyHidden = targetEl.style.display === 'none';
+        if (isCurrentlyHidden) {
+          const defaultDisplay = targetEl.getAttribute('data-default-display') || (targetSelector.includes('payment') ? 'grid' : 'block');
+          targetEl.style.display = defaultDisplay;
+          header.classList.remove('collapsed');
+          if (icon) icon.textContent = 'expand_more';
+        } else {
+          targetEl.setAttribute('data-default-display', targetEl.style.display || (targetSelector.includes('payment') ? 'grid' : 'block'));
+          targetEl.style.display = 'none';
+          header.classList.add('collapsed');
+          if (icon) icon.textContent = 'expand_more';
+        }
+      };
+    });
   }
 
   getFilteredTransactions() {
@@ -118,15 +142,56 @@ class ReportsView {
   }
 
   render() {
-    const trxs = this.getFilteredTransactions();
+    let trxs = [];
+    try {
+      trxs = this.getFilteredTransactions();
+    } catch (e) {
+      console.error('[ReportsView] getFilteredTransactions error:', e);
+      trxs = window.State.transactions || [];
+    }
     const validTrxs = trxs.filter(t => t.status !== 'void');
-    this.calculateKPIs(validTrxs);
-    this.renderChart();
-    this.renderTopProducts(validTrxs);
-    this.renderPaymentBreakdown(validTrxs);
-    this.renderPeakHours(validTrxs);
-    this.renderPNLBreakdown(validTrxs);
-    this.renderRecentTransactions(trxs);
+
+    try {
+      this.calculateKPIs(validTrxs);
+    } catch (e) {
+      console.error('[ReportsView] calculateKPIs error:', e);
+    }
+
+    try {
+      this.renderChart();
+    } catch (e) {
+      console.error('[ReportsView] renderChart error:', e);
+    }
+
+    try {
+      this.renderTopProducts(validTrxs);
+    } catch (e) {
+      console.error('[ReportsView] renderTopProducts error:', e);
+    }
+
+    try {
+      this.renderPaymentBreakdown(validTrxs);
+    } catch (e) {
+      console.error('[ReportsView] renderPaymentBreakdown error:', e);
+    }
+
+    try {
+      this.renderPeakHours(validTrxs);
+    } catch (e) {
+      console.error('[ReportsView] renderPeakHours error:', e);
+    }
+
+    try {
+      this.renderPNLBreakdown(validTrxs);
+    } catch (e) {
+      console.error('[ReportsView] renderPNLBreakdown error:', e);
+    }
+
+    try {
+      this.renderRecentTransactions(trxs);
+    } catch (e) {
+      console.error('[ReportsView] renderRecentTransactions error:', e);
+    }
   }
 
   calculateKPIs(trxs) {
@@ -328,14 +393,34 @@ class ReportsView {
       }
     }
 
+    // Safely cleanup existing Chart.js instances
+    try {
+      if (window.Chart && typeof window.Chart.getChart === 'function') {
+        const existing = window.Chart.getChart(canvas);
+        if (existing) existing.destroy();
+      }
+    } catch (e) {
+      console.warn('[ReportsView] Chart getChart cleanup warning:', e);
+    }
+
     if (this.chartInstance) {
-      this.chartInstance.destroy();
+      try {
+        this.chartInstance.destroy();
+      } catch (e) {}
+      this.chartInstance = null;
     }
 
     const ctx = canvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 240);
-    gradient.addColorStop(0, 'rgba(249, 115, 22, 0.45)');
-    gradient.addColorStop(1, 'rgba(249, 115, 22, 0.0)');
+    if (!ctx) return;
+
+    let gradient;
+    try {
+      gradient = ctx.createLinearGradient(0, 0, 0, 240);
+      gradient.addColorStop(0, 'rgba(249, 115, 22, 0.45)');
+      gradient.addColorStop(1, 'rgba(249, 115, 22, 0.0)');
+    } catch (e) {
+      gradient = 'rgba(249, 115, 22, 0.2)';
+    }
 
     this.chartInstance = new window.Chart(ctx, {
       type: 'line',

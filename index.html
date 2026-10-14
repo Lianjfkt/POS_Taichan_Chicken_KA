@@ -1131,7 +1131,7 @@
 
           <!-- P&L Financial Statement Card -->
           <div class="section-card">
-            <div class="section-card-header">
+            <div class="section-card-header" data-toggle-target="#pnl-breakdown-container">
               <div>
                 <div class="section-card-title">
                   <span class="material-symbols-outlined" style="font-size:18px;color:var(--tertiary);">account_balance</span>
@@ -1139,19 +1139,27 @@
                 </div>
                 <div style="font-size:12px;color:var(--secondary);">Rincian pendapatan kotor, beban HPP, operasional &amp; laba bersih</div>
               </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="badge tertiary" style="font-size:10px;font-weight:700;">Financial</span>
+                <span class="material-symbols-outlined accordion-icon" style="font-size:22px;color:var(--secondary);">expand_more</span>
+              </div>
             </div>
             <div id="pnl-breakdown-container" style="padding:16px 20px;"></div>
           </div>
 
           <!-- Peak Hours Analysis Card -->
           <div class="section-card">
-            <div class="section-card-header">
+            <div class="section-card-header" data-toggle-target="#peak-hours-container">
               <div>
                 <div class="section-card-title">
                   <span class="material-symbols-outlined" style="font-size:18px;color:var(--primary);">schedule</span>
                   Analisis Jam Beli &amp; Peak Hours
                 </div>
-                <div style="font-size:12px;color:var(--secondary);">Frekuensi pesanan berdasarkan jam operasional kedai</div>
+                <div style="font-size:12px;color:var(--secondary);">Frekuensi pesanan berdasarkan jam operasional kedai (10:00 - 23:00)</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="badge info" style="font-size:10px;font-weight:700;">Jam Sibuk</span>
+                <span class="material-symbols-outlined accordion-icon" style="font-size:22px;color:var(--secondary);">expand_more</span>
               </div>
             </div>
             <div id="peak-hours-container" style="padding:16px 20px;"></div>
@@ -1159,12 +1167,18 @@
 
           <!-- Payment Method Breakdown -->
           <div class="section-card">
-            <div class="section-card-header">
-              <div class="section-card-title">
-                <span class="material-symbols-outlined" style="font-size:18px;color:var(--primary);">pie_chart</span>
-                Pemisahan Metode Pembayaran
+            <div class="section-card-header" data-toggle-target="#payment-methods-breakdown">
+              <div>
+                <div class="section-card-title">
+                  <span class="material-symbols-outlined" style="font-size:18px;color:var(--primary);">pie_chart</span>
+                  Pemisahan Metode Pembayaran
+                </div>
+                <div style="font-size:12px;color:var(--secondary);" id="payment-breakdown-subtitle">Distribusi omzet per channel pembayaran</div>
               </div>
-              <div style="font-size:12px;color:var(--secondary);" id="payment-breakdown-subtitle">Distribusi omzet per channel pembayaran</div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="badge" style="font-size:10px;font-weight:700;color:var(--primary);background:rgba(249,115,22,0.12);">Channel</span>
+                <span class="material-symbols-outlined accordion-icon" style="font-size:22px;color:var(--secondary);">expand_more</span>
+              </div>
             </div>
             <div id="payment-methods-breakdown" style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;"></div>
           </div>
@@ -2812,22 +2826,22 @@
   <div id="toast-wrap"></div>
 
   <!-- Modular Application Scripts -->
-  <script src="js/state.js?v=3.3.0"></script>
-  <script src="js/supabase.js?v=3.3.0"></script>
-  <script src="js/food_icons.js?v=3.4.0"></script>
-  <script src="js/printer.js?v=3.3.0"></script>
-  <script src="js/views/auth.js?v=3.3.0"></script>
-  <script src="js/views/pos.js?v=3.3.0"></script>
-  <script src="js/views/payment.js?v=3.3.0"></script>
-  <script src="js/views/shift.js?v=3.3.0"></script>
-  <script src="js/views/inventory.js?v=3.3.0"></script>
-  <script src="js/views/stock_tracker.js?v=3.3.0"></script>
-  <script src="js/views/reports.js?v=3.3.0"></script>
-  <script src="js/views/settings.js?v=3.3.0"></script>
-  <script src="js/views/customers.js?v=3.3.0"></script>
-  <script src="js/views/menu.js?v=3.3.0"></script>
-  <script src="js/views/orders.js?v=3.3.0"></script>
-  <script src="js/app.js?v=3.3.0"></script>
+  <script src="js/state.js?v=3.5.0"></script>
+  <script src="js/supabase.js?v=3.5.0"></script>
+  <script src="js/food_icons.js?v=3.5.0"></script>
+  <script src="js/printer.js?v=3.5.0"></script>
+  <script src="js/views/auth.js?v=3.5.0"></script>
+  <script src="js/views/pos.js?v=3.5.0"></script>
+  <script src="js/views/payment.js?v=3.5.0"></script>
+  <script src="js/views/shift.js?v=3.5.0"></script>
+  <script src="js/views/inventory.js?v=3.5.0"></script>
+  <script src="js/views/stock_tracker.js?v=3.5.0"></script>
+  <script src="js/views/reports.js?v=3.5.0"></script>
+  <script src="js/views/settings.js?v=3.5.0"></script>
+  <script src="js/views/customers.js?v=3.5.0"></script>
+  <script src="js/views/menu.js?v=3.5.0"></script>
+  <script src="js/views/orders.js?v=3.5.0"></script>
+  <script src="js/app.js?v=3.5.0"></script>
 
   <!-- Vercel Speed Insights (auto-active only on Vercel, no-op locally) -->
   <script defer src="/_vercel/speed-insights/script.js"></script>

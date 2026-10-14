@@ -875,6 +875,23 @@ body { display: flex; flex-direction: column; }
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex; align-items: center; justify-content: space-between;
   background: var(--surface-container-low);
+  transition: background 0.2s ease;
+}
+.section-card-header[data-toggle-target] {
+  cursor: pointer;
+  user-select: none;
+}
+.section-card-header[data-toggle-target]:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.section-card-header.collapsed {
+  border-bottom: none;
+}
+.section-card-header .accordion-icon {
+  transition: transform 0.25s ease;
+}
+.section-card-header.collapsed .accordion-icon {
+  transform: rotate(-90deg);
 }
 .section-card-title {
   font-size: 14px; font-weight: 700; color: var(--on-surface);
