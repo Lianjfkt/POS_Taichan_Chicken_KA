@@ -378,6 +378,7 @@ class ReportsView {
             ticks: { color: '#bcc7de', font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 } }
           },
           y: {
+            min: 0,
             grid: { color: 'rgba(255,255,255,0.04)' },
             ticks: {
               color: '#bcc7de',
@@ -412,33 +413,32 @@ class ReportsView {
     const sorted = Object.values(map).sort((a, b) => b.qty - a.qty).slice(0, 5);
 
     if (sorted.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--secondary)">Belum ada penjualan menu</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--secondary)">Belum ada penjualan menu</td></tr>`;
       return;
     }
 
     tbody.innerHTML = sorted.map((p, idx) => {
       const prod = (window.State.products || []).find(pr => pr.id === p.id);
-      const icon = window.FoodIcons ? window.FoodIcons.get(prod?.emj || p.kat || p.nm, { size: 22 }) : '';
+      const icon = window.FoodIcons ? window.FoodIcons.get(prod?.emj || p.kat || p.nm, { size: 18 }) : '';
       return `
         <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
-          <td style="padding:10px 14px;font-weight:700">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.06);text-align:center;line-height:20px;font-size:11px;flex-shrink:0;">${idx + 1}</span>
+          <td style="padding:8px 12px;font-weight:700;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.08);font-size:10px;font-weight:800;flex-shrink:0;">${idx + 1}</span>
               ${icon}
-              <span>${p.nm}</span>
+              <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;" title="${p.nm}">${p.nm}</span>
             </div>
           </td>
-          <td style="padding:10px 14px;color:var(--secondary)">${p.kat || '-'}</td>
-          <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right">${p.qty} terjual</td>
-          <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right;color:var(--primary)">${window.State.formatRp(p.revenue)}</td>
-          <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right;color:var(--tertiary)">${window.State.formatRp(p.profit)}</td>
+          <td class="font-mono" style="padding:8px 12px;font-weight:700;text-align:right;white-space:nowrap;">${p.qty}x</td>
+          <td class="font-mono" style="padding:8px 12px;font-weight:700;text-align:right;color:var(--primary);white-space:nowrap;">${window.State.formatRp(p.revenue)}</td>
+          <td class="font-mono" style="padding:8px 12px;font-weight:700;text-align:right;color:var(--tertiary);white-space:nowrap;">${window.State.formatRp(p.profit)}</td>
         </tr>
       `;
     }).join('');
   }
 
   renderPaymentBreakdown(trxs) {
-    const container = document.getElementById('payment-breakdown-container');
+    const container = document.getElementById('payment-methods-breakdown');
     if (!container) return;
 
     const totalRevenue = trxs.reduce((s, t) => s + (t.total || 0), 0);
@@ -524,27 +524,39 @@ class ReportsView {
     window._reportTrxCache = window._reportTrxCache || {};
     paginated.forEach(t => { window._reportTrxCache[t.no] = t; });
 
-    tbody.innerHTML = paginated.map(t => `
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
-        <td class="font-mono" style="padding:10px 14px;font-weight:700;color:var(--primary)">${t.no}</td>
+    tbody.innerHTML = paginated.map(t => {
+      const isVoid = t.status === 'void';
+      const items = t.items || [];
+      let itemsSummary = '-';
+      if (items.length === 1) {
+        itemsSummary = `${items[0].nm} (${items[0].qty})`;
+      } else if (items.length > 1) {
+        itemsSummary = `${items[0].nm} (${items[0].qty}) <span style="color:var(--secondary);font-size:10px;">+${items.length - 1} lainnya</span>`;
+      }
+      return `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);${isVoid ? 'opacity:0.45;' : ''}">
+        <td class="font-mono" style="padding:10px 14px;font-weight:700;color:${isVoid ? 'var(--secondary)' : 'var(--primary)'}">${t.no}</td>
         <td style="padding:10px 14px;color:var(--secondary);font-size:12px">${window.State.formatDate(t.tgl)}</td>
-        <td style="padding:10px 14px">
+        <td style="padding:10px 14px;">
           <span class="badge info">${(t.tipe || 'dine-in').toUpperCase()}</span>
         </td>
         <td style="padding:10px 14px;font-size:12px;font-weight:600;">${t.pelanggan || 'Umum'}</td>
-        <td style="padding:10px 14px;font-size:12px">${(t.items || []).map(i => `${i.nm} (${i.qty})`).join(', ')}</td>
+        <td style="padding:10px 14px;font-size:12px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${itemsSummary}</td>
         <td style="padding:10px 14px;font-size:11px;text-transform:uppercase;color:var(--secondary)">${t.metode || 'cash'}</td>
-        <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right">${window.State.formatRp(t.total)}</td>
+        <td class="font-mono" style="padding:10px 14px;font-weight:700;text-align:right;${isVoid ? 'text-decoration:line-through;color:var(--secondary);' : ''}">${window.State.formatRp(t.total)}</td>
         <td style="padding:10px 14px;text-align:center;white-space:nowrap;">
-          <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;margin-right:4px;" onclick="window.PrinterService.openReceiptModal(window._reportTrxCache['${t.no}'])" title="Lihat Struk">
-            <span class="material-symbols-outlined" style="font-size:15px">receipt</span>
-          </button>
-          <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;color:var(--error);" onclick="window.ReportsView.voidTransaction('${t.no}')" title="Batalkan Transaksi (Void)">
-            <span class="material-symbols-outlined" style="font-size:15px">cancel</span>
-          </button>
+          ${isVoid
+            ? `<span style="font-size:10px;font-weight:700;color:var(--error);background:rgba(239,68,68,0.12);padding:3px 8px;border-radius:4px;letter-spacing:0.5px;">VOID</span>`
+            : `<button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;margin-right:4px;" onclick="window.PrinterService.openReceiptModal(window._reportTrxCache['${t.no}'])" title="Lihat Struk">
+                <span class="material-symbols-outlined" style="font-size:15px">receipt</span>
+              </button>
+              <button class="btn" style="padding:4px 8px;font-size:11px;background:rgba(239,68,68,0.15);color:var(--error);border:1px solid rgba(239,68,68,0.35);border-radius:var(--radius-sm);cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.28)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'" onclick="window.ReportsView.voidTransaction('${t.no}')" title="Batalkan Transaksi (Void)">
+                <span class="material-symbols-outlined" style="font-size:15px">cancel</span>
+              </button>`
+          }
         </td>
       </tr>
-    `).join('');
+    `}).join('');
   }
 
   voidTransaction(orderNo) {
