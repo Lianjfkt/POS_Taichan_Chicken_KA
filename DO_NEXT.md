@@ -150,7 +150,13 @@
 - [x] KPI cards desktop: 4-column grid dengan accent strip.
 - [x] Komponen panel-card terintegrasi ke design system.
 - [x] PWA offline support & caching untuk seluruh aset aplikasi.
+- [x] **MOBILE UI/UX OVERHAUL:** Perbaikan menyeluruh antarmuka mobile smartphone (360px–480px) & tablet:
+  - POS Top Bar restrukturisasi 2-baris (pencarian 100% full-width + order switcher & aksi cepat rapi bebas tabrakan).
+  - Transformasi otomatis seluruh data table (Riwayat Nota, Stock Tracker Taichan/Ayam, CRM Member, Shift) menjadi Stacked Card Layout modern ramah operasional satu tangan.
+  - Responsive reflow 1-kolom pada Laporan Finansial (grafik tren, menu terlaris, peak hours, payment channels), Pengaturan, dan Kelola Menu.
+  - Perbaikan selector modal (`.modal-card` & `.modal-box`) dan pembesaran touch target tombol kuantitas keranjang (`36px`) serta keypad pembayaran (`min 46px`).
+  - Safe-area bottom padding terintegrasi untuk mencegah overlap dengan bottom navigation dock.
 
 ---
 
-*Laporan analisa diperbarui: 2026-10-08 | Versi Sistem: KA POS v3.0*
+*Laporan analisa diperbarui: 2026-10-14 | Versi Sistem: KA POS v3.7.0*
