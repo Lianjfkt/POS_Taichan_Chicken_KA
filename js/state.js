@@ -26,7 +26,8 @@ const LS_KEYS = {
   theme:  'ka_theme',
   // BUG-E fix: tambah key active user & stock audit ke registry
   active_user: 'ka_active_user',
-  stock_audit: 'ka_stock_audit_log'
+  stock_audit: 'ka_stock_audit_log',
+  daily_stock: 'ka_daily_stock'
 };
 // BUG-D/BUG-A fix: expose LS_KEYS ke global agar bisa diakses dari orders.js, shift.js, supabase.js, dll
 window.LS_KEYS = LS_KEYS;
@@ -229,7 +230,7 @@ class StateManager {
   // BUG-07 fix: stable cart update menggunakan id+mod, bukan index posisi
   updateCartQtyById(productId, mod, delta) {
     const idx = this.cart.findIndex(item =>
-      item.id === productId && item.mod === mod
+      String(item.id) === String(productId) && (item.mod || '') === (mod || '')
     );
     if (idx === -1) return;
     this.cart[idx].qty += delta;
@@ -240,7 +241,7 @@ class StateManager {
   }
 
   removeCartItemById(productId, mod) {
-    this.cart = this.cart.filter(item => !(item.id === productId && item.mod === mod));
+    this.cart = this.cart.filter(item => !(String(item.id) === String(productId) && (item.mod || '') === (mod || '')));
     this.emit('cart:change', this.cart);
   }
 
@@ -432,6 +433,34 @@ class StateManager {
     return !!(this.currentUser && this.currentUser.role === 'owner');
   }
 
+  /**
+   * TASK 3: Verifies entered PIN against configured Owner PINs.
+   * Checks any active user with role === 'owner' or default PIN '1234'.
+   */
+  verifyOwnerPin(enteredPin) {
+    if (!enteredPin) return false;
+    const cleanPin = String(enteredPin).trim();
+    if (!cleanPin) return false;
+    const owners = (this.staff || []).filter(s => s.role === 'owner' && s.on !== false);
+    if (owners.length === 0) {
+      return cleanPin === '1234';
+    }
+    return owners.some(o => String(o.pin || '').trim() === cleanPin);
+  }
+
+  /**
+   * TASK 5: HTML escaping utility to prevent XSS across all views.
+   */
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   // --- Stock Audit Log (Kasir stock update trail for Owner audit) ---
   addStockAuditLog(entry) {
     if (!this.stockAuditLog) this.stockAuditLog = [];
@@ -526,6 +555,7 @@ class StateManager {
 
 // Global State Instance
 window.State = new StateManager();
+window.escapeHtml = (s) => (window.State ? window.State.escapeHtml(s) : String(s || ''));
 // Apply saved theme immediately
 if (window.State && window.State.currentTheme) {
   document.documentElement.setAttribute('data-theme', window.State.currentTheme);

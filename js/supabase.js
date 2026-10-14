@@ -162,6 +162,7 @@ class SupabaseService {
     if (this.status === 'online' && this.client) {
       try {
         const payload = {
+          id: trx.no || `ORD-${Date.now()}`,
           order_no: trx.no || `ORD-${Date.now()}`,
           order_type: trx.tipe || 'dine-in',
           table_no: '',
@@ -189,6 +190,61 @@ class SupabaseService {
     this.setStatus(this.status);
   }
 
+  // TASK 4: Sinkronisasi Status Void ke Supabase Cloud
+  async updateOrderStatus(orderNo, status, voidData = {}) {
+    // 1. Perbarui transaksi di offlineQueue jika masih antre
+    let foundInQueue = false;
+    if (window.State.offlineQueue && window.State.offlineQueue.length > 0) {
+      window.State.offlineQueue.forEach(item => {
+        if (item.no === orderNo || item.id === orderNo || item.order_no === orderNo) {
+          item.status = status;
+          item.voidReason = voidData.reason || '';
+          item.voidBy = voidData.by || '';
+          item.voidAt = voidData.at || Date.now();
+          foundInQueue = true;
+        }
+      });
+      window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
+    }
+
+    // 2. Jika online, langsung update status nota di Supabase orders table
+    if (this.status === 'online' && this.client) {
+      try {
+        const updatePayload = {
+          status: status,
+          void_reason: voidData.reason || '',
+          void_by: voidData.by || '',
+          void_at: voidData.at ? new Date(voidData.at).toISOString() : new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        let { error } = await this.client.from('orders').update(updatePayload).eq('id', orderNo);
+        if (error) {
+          const res2 = await this.client.from('orders').update(updatePayload).eq('order_no', orderNo);
+          if (res2.error) throw res2.error;
+        }
+        console.log(`[Supabase] Status nota ${orderNo} berhasil diupdate ke '${status}' di Cloud.`);
+        return { success: true };
+      } catch (err) {
+        console.warn('[Supabase] Gagal update status nota ke cloud, masuk ke antrean offline:', err);
+      }
+    }
+
+    // 3. Jika offline atau update gagal dan belum ada di queue, masukkan perintah update ke offlineQueue
+    if (!foundInQueue) {
+      window.State.offlineQueue.push({
+        _action: 'update_status',
+        no: orderNo,
+        status: status,
+        voidReason: voidData.reason || '',
+        voidBy: voidData.by || '',
+        voidAt: voidData.at || Date.now()
+      });
+      window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
+    }
+    return { success: false, queued: true };
+  }
+
   // Flush queued transactions to Supabase
   async syncOfflineQueue() {
     if (this.isFlushing || !this.client || window.State.offlineQueue.length === 0) return;
@@ -199,7 +255,29 @@ class SupabaseService {
     try {
       while (window.State.offlineQueue.length > 0) {
         const item = window.State.offlineQueue[0];
+
+        // Periksa jika antrean merupakan aksi update status (Void)
+        if (item._action === 'update_status') {
+          const updatePayload = {
+            status: item.status || 'void',
+            void_reason: item.voidReason || '',
+            void_by: item.voidBy || '',
+            void_at: item.voidAt ? new Date(item.voidAt).toISOString() : new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          let { error } = await this.client.from('orders').update(updatePayload).eq('id', item.no);
+          if (error) {
+            const res2 = await this.client.from('orders').update(updatePayload).eq('order_no', item.no);
+            if (res2.error) throw res2.error;
+          }
+          window.State.offlineQueue.shift();
+          window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
+          continue;
+        }
+
+        const isVoid = item.status === 'void';
         const payload = {
+          id: item.no || `ORD-${Date.now()}`,
           order_no: item.no || `ORD-${Date.now()}`,
           order_type: item.tipe || 'dine-in',
           table_no: '',
@@ -210,7 +288,10 @@ class SupabaseService {
           total_amount: item.total || 0,
           paid_amount: item.bayar || item.total,
           change_amount: item.kembali || 0,
-          status: 'completed',
+          status: isVoid ? 'void' : 'completed',
+          void_reason: isVoid ? (item.voidReason || '') : null,
+          void_by: isVoid ? (item.voidBy || '') : null,
+          void_at: isVoid ? (item.voidAt ? new Date(item.voidAt).toISOString() : new Date().toISOString()) : null,
           items: item.items || [],
           created_at: new Date(item.tgl || Date.now()).toISOString()
         };
@@ -220,7 +301,7 @@ class SupabaseService {
 
         // Shift successfully pushed item
         window.State.offlineQueue.shift();
-        window.State.save(LS_KEYS.ofq, window.State.offlineQueue);
+        window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
       }
 
       this.setStatus('online');

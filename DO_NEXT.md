@@ -9,57 +9,33 @@
 
 ---
 
-### [TASK 3] Keamanan: Otorisasi PIN / Approval Owner untuk Void Transaksi
-- **Lokasi:** `js/views/orders.js` (`submitVoid`), `js/state.js`
-- **Temuan Bug:** Kasir saat ini dapat membatalkan (void) transaksi kapan saja hanya dengan memilih alasan. Hal ini langsung memotong uang kas (`cashLog`) dan mengembalikan stok. Meskipun ada suara alarm lokal, seorang kasir nakal bisa mengambil uang tunai dari laci lalu mem-void transaksi tanpa otorisasi.
-- **Solusi Rekomendasi:**
-  1. Tambahkan modal verifikasi **PIN Owner / Supervisor** sebelum pembatalan dieksekusi.
-  2. Atau opsi alternatif: Status nota diubah menjadi `pending_void` (Permintaan Batal) dan uang kas tidak dipotong sampai Owner menekan tombol **Setujui / Approve**.
+### [TASK 3] [SELESAI ✅] Keamanan: Otorisasi PIN / Approval Owner untuk Void Transaksi
+- **Lokasi:** `js/views/orders.js` (`submitVoid`), `js/state.js` (`verifyOwnerPin`), `index.html` (`order-void-modal`)
+- **Status:** **Tuntas.** Modal verifikasi PIN Owner telah diterapkan dengan opsi toggle visibility, validasi role Owner/default PIN, error feedback, dan audit logging `AUTH_VOID_FAILED`.
 
 ---
 
-### [TASK 4] Sinkronisasi Status Void ke Supabase Cloud
+### [TASK 4] [SELESAI ✅] Sinkronisasi Status Void ke Supabase Cloud
 - **Lokasi:** `js/supabase.js`, `js/views/orders.js`
-- **Temuan Bug:** Saat transaksi dibatalkan (void) di aplikasi lokal, fungsi `submitVoid()` hanya mengubah `status = 'void'` di `localStorage`. Database Supabase tidak pernah di-update. Akibatnya:
-  - Transaksi yang sudah tersinkron ke cloud tetap berstatus `completed`.
-  - Laporan omzet di Supabase cloud menjadi tidak akurat (terlalu tinggi).
-  - Jika transaksi yang di-void masih ada di `offlineQueue`, antrean tetap mengunggahnya sebagai `completed`.
-- **Solusi Rekomendasi:**
-  - Tambahkan fungsi `SupabaseService.updateOrderStatus(orderNo, 'void', voidData)`.
-  - Jika offline, masukkan perintah update status ke antrean `offlineQueue`.
+- **Status:** **Tuntas.** Ditambahkan `SupabaseService.updateOrderStatus(orderNo, status, voidData)` yang mengupdate tabel `orders` secara online, memperbarui item di `offlineQueue`, dan mengantrekan aksi `update_status` saat offline.
 
 ---
 
-### [TASK 5] Sanitasi Input (Cegah XSS) & Perbaikan Script Injection pada Cart
-- **Lokasi:** `js/views/pos.js` (line 414, 420), `js/views/orders.js` (line 454-475), `js/views/customers.js`
-- **Temuan Bug:**
-  1. **Sintaks Error pada Cart Item:** Tombol hapus dan ubah qty di keranjang menggunakan `onclick="...decodeURIComponent('${safeMod}')..."` secara inline. Jika catatan pesanan mengandung tanda petik `'` atau karakter spesial, tombol menjadi error dan tidak bisa diklik.
-  2. **XSS Vulnerability:** Nama pelanggan (`t.pelanggan`), catatan pesanan (`mod`), dan alasan void (`voidReason`) dimasukkan langsung ke `innerHTML` tanpa HTML escape (`escapeHtml`).
-- **Solusi Rekomendasi:**
-  - Buat helper `escapeHtml(str)` di `State` untuk semua output teks dinamis.
-  - Gunakan `data-id` dan `data-mod` pada elemen tombol cart dengan event listener terdelegasi, bukan string escape inline di `onclick`.
+### [TASK 5] [SELESAI ✅] Sanitasi Input (Cegah XSS) & Perbaikan Script Injection pada Cart
+- **Lokasi:** `js/views/pos.js`, `js/views/orders.js`, `js/views/customers.js`, `js/state.js`
+- **Status:** **Tuntas.** Helper `escapeHtml()` dan `window.escapeHtml` aktif untuk seluruh data teks pelanggan, catatan, alasan void. Tombol cart menggunakan event delegation dengan data attributes aman dari quotes / special characters.
 
 ---
 
-### [TASK 6] Kelengkapan Backup & Restore Database
+### [TASK 6] [SELESAI ✅] Kelengkapan Backup & Restore Database
 - **Lokasi:** `js/views/settings.js` (`exportBackup`, `importBackup`), `js/state.js`
-- **Temuan Bug:** Fitur ekspor/impor backup saat ini **TIDAK** menyertakan data kritis berikut:
-  - Log Audit Stok Kasir (`ka_stock_audit_log`)
-  - Mutasi Stok Bahan Baku (`ka_mut`)
-  - Batch Stok Harian Taichan & Ayam (`ka_daily_stock`)
-  - Antrean Transaksi Offline (`ka_ofq`)
-- **Dampak:** Jika Owner melakukan backup lalu me-restore data, seluruh riwayat audit kasir dan batch stok harian akan hilang total!
-- **Solusi Rekomendasi:**
-  - Perbarui struktur JSON backup di `SettingsView.exportBackup` dan `importBackup` agar mencakup seluruh key data.
+- **Status:** **Tuntas.** Ekspor dan impor JSON backup kini mencakup `stockMutations`, `dailyStock` (`ka_daily_stock`), `offlineQueue`, `receivables`, `savedOrders`, dan `stockAuditLog`.
 
 ---
 
-### [TASK 7] Pembatasan Akses Kasir pada CRM Pelanggan & Poin
+### [TASK 7] [SELESAI ✅] Pembatasan Akses Kasir pada CRM Pelanggan & Poin
 - **Lokasi:** `js/views/customers.js`
-- **Temuan Bug:** Kasir saat ini memiliki akses penuh untuk menghapus data pelanggan (`deleteCustomerPrompt`) dan mengedit jumlah poin loyalty secara bebas di modal form pelanggan (`pointsInput`).
-- **Solusi Rekomendasi:**
-  - Field poin hanya bisa diedit oleh akun bertipe `owner`.
-  - Tombol hapus member pelanggan hanya dimunculkan jika `window.State.isOwner()`.
+- **Status:** **Tuntas.** Tombol hapus pelanggan disembunyikan untuk kasir & dilindungi di handler JS (`isOwner()`). Input edit poin loyalty dinonaktifkan untuk kasir dan dilindungi dari manipulasi saat form disubmit.
 
 ---
 
@@ -163,6 +139,11 @@
 
 - [x] **TASK 1:** Pembatasan akses riwayat transaksi & nominal penjualan untuk kasir (nominal disembunyikan `••••`, omzet `—`, tombol ekspor CSV disembunyikan).
 - [x] **TASK 2:** Update stock harian kasir blind audit (total proses tersembunyi) + pencatatan log audit stok & tab Log Audit untuk Owner.
+- [x] **TASK 3:** Keamanan Otorisasi PIN Owner untuk Void transaksi + alarm darurat.
+- [x] **TASK 4:** Sinkronisasi status Void ke Supabase Cloud (online & offline queue).
+- [x] **TASK 5:** Sanitasi input XSS (escapeHtml) & perbaikan script injection cart buttons.
+- [x] **TASK 6:** Kelengkapan backup & restore database (mutasi, stok harian, antrean offline, piutang, order tersimpan).
+- [x] **TASK 7:** Pembatasan akses kasir pada CRM Pelanggan & proteksi saldo poin loyalty.
 - [x] Semua icon makanan diganti dari emoji ke SVG vector (FoodIcons system).
 - [x] Pemisahan arsitektur stylesheet `web.css` dan `mobile.css`.
 - [x] Desktop sidebar diperlebar (220px) dengan label teks horizontal & identitas outlet.

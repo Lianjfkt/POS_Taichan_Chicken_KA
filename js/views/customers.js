@@ -88,6 +88,8 @@ class CustomersView {
       return;
     }
 
+    const isOwner = window.State.isOwner();
+
     container.innerHTML = custs.map(c => `
       <tr style="border-bottom:1px solid rgba(255,255,255,0.05);transition:background var(--transition-fast);">
         <td style="padding:12px 14px;font-weight:700;color:var(--on-surface);">
@@ -96,13 +98,13 @@ class CustomersView {
               ${(c.nm || 'U').charAt(0).toUpperCase()}
             </div>
             <div>
-              <div>${c.nm || 'Umum'}</div>
-              <div style="font-size:10px;color:var(--secondary);">${c.id || '-'}</div>
+              <div>${window.State.escapeHtml(c.nm || 'Umum')}</div>
+              <div style="font-size:10px;color:var(--secondary);">${window.State.escapeHtml(c.id || '-')}</div>
             </div>
           </div>
         </td>
         <td style="padding:12px 14px;font-family:var(--font-mono);font-size:13px;color:var(--secondary);">
-          ${c.hp || '-'}
+          ${window.State.escapeHtml(c.hp || '-')}
         </td>
         <td style="padding:12px 14px;">
           <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:var(--radius-full);background:rgba(245,158,11,0.15);color:var(--warning);font-weight:700;font-size:12px;font-family:var(--font-mono);">
@@ -123,9 +125,11 @@ class CustomersView {
             <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="window.CustomersView.openCustomerModal('${c.id}')" title="Edit Pelanggan">
               <span class="material-symbols-outlined" style="font-size:15px;">edit</span>
             </button>
+            ${isOwner ? `
             <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="window.CustomersView.deleteCustomerPrompt('${c.id}')" title="Hapus Pelanggan">
               <span class="material-symbols-outlined" style="font-size:15px;color:var(--error);">delete</span>
             </button>
+            ` : ''}
           </div>
         </td>
       </tr>
@@ -139,6 +143,14 @@ class CustomersView {
     const nameInput = document.getElementById('cust-name-input');
     const phoneInput = document.getElementById('cust-phone-input');
     const pointsInput = document.getElementById('cust-points-input');
+    const isOwner = window.State.isOwner();
+
+    // TASK 7: Kasir tidak boleh mengubah poin loyalty secara manual
+    if (pointsInput) {
+      pointsInput.disabled = !isOwner;
+      pointsInput.title = isOwner ? 'Ubah poin loyalty pelanggan' : 'Hanya Owner yang dapat mengubah saldo poin';
+      pointsInput.style.opacity = isOwner ? '1' : '0.65';
+    }
 
     if (customerId) {
       const c = (window.State.customers || []).find(item => item.id === customerId);
@@ -164,18 +176,23 @@ class CustomersView {
     const id = document.getElementById('cust-id-input')?.value;
     const nm = document.getElementById('cust-name-input')?.value.trim();
     const hp = document.getElementById('cust-phone-input')?.value.trim();
-    const poin = Number(document.getElementById('cust-points-input')?.value) || 0;
+    const inputPoin = Number(document.getElementById('cust-points-input')?.value) || 0;
 
     if (!nm) {
       window.State.toast('Nama pelanggan wajib diisi!', 'warning');
       return;
     }
 
+    // TASK 7: Lindungi manipulasi poin oleh non-owner
+    const isOwner = window.State.isOwner();
+    const existingCust = id ? (window.State.customers || []).find(c => c.id === id) : null;
+    const finalPoin = isOwner ? inputPoin : (existingCust ? (existingCust.poin || 0) : 0);
+
     const saved = window.State.saveCustomer({
       id: id || undefined,
       nm,
       hp: hp || '-',
-      poin
+      poin: finalPoin
     });
 
     window.State.logAudit(id ? 'CUSTOMER_UPDATED' : 'CUSTOMER_CREATED', { id: saved.id, nm });
@@ -187,6 +204,12 @@ class CustomersView {
   }
 
   deleteCustomerPrompt(id) {
+    // TASK 7: Verifikasi RBAC Owner untuk penghapusan data pelanggan
+    if (!window.State.isOwner()) {
+      window.State.toast('Akses Ditolak: Hanya Owner yang berhak menghapus data pelanggan!', 'error');
+      return;
+    }
+
     const c = (window.State.customers || []).find(item => item.id === id);
     if (!c) return;
     if (confirm(`Hapus pelanggan "${c.nm}"? Data poin dan riwayat akan dihapus.`)) {

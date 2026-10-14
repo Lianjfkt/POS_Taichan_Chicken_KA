@@ -396,28 +396,25 @@ class POSView {
       }
 
       container.innerHTML = cart.map((item) => {
-        // BUG-07 fix: encode id+mod sebagai data attributes, bukan index posisi array
-        const safeId = item.id;
-        const safeMod = encodeURIComponent(item.mod || '');
         return `
         <div class="cart-item">
           <div class="cart-item-header">
             <span class="cart-item-qty-badge">${item.qty}x</span>
             <div style="flex:1;min-width:0;">
-              <div class="cart-item-title">${item.nm}</div>
-              ${item.mod ? `<div class="cart-item-mod"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">local_fire_department</span> ${item.mod}</div>` : ''}
+              <div class="cart-item-title">${window.State.escapeHtml(item.nm)}</div>
+              ${item.mod ? `<div class="cart-item-mod"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">local_fire_department</span> ${window.State.escapeHtml(item.mod)}</div>` : ''}
             </div>
-            <button class="cart-item-delete" onclick="window.State.removeCartItemById(${safeId}, decodeURIComponent('${safeMod}'))" title="Hapus">
+            <button class="cart-item-delete" data-id="${window.State.escapeHtml(item.id)}" data-mod="${encodeURIComponent(item.mod || '')}" title="Hapus">
               <span class="material-symbols-outlined" style="font-size:18px;">close</span>
             </button>
           </div>
           <div class="cart-item-footer">
             <div class="cart-qty-ctrl">
-              <button class="qty-btn" onclick="window.State.updateCartQtyById(${safeId}, decodeURIComponent('${safeMod}'), -1)">
+              <button class="qty-btn" data-action="decrease" data-id="${window.State.escapeHtml(item.id)}" data-mod="${encodeURIComponent(item.mod || '')}">
                 <span class="material-symbols-outlined" style="font-size:14px;">remove</span>
               </button>
               <span class="qty-val">${item.qty}</span>
-              <button class="qty-btn" onclick="window.State.updateCartQtyById(${safeId}, decodeURIComponent('${safeMod}'), 1)">
+              <button class="qty-btn" data-action="increase" data-id="${window.State.escapeHtml(item.id)}" data-mod="${encodeURIComponent(item.mod || '')}">
                 <span class="material-symbols-outlined" style="font-size:14px;">add</span>
               </button>
             </div>
@@ -426,6 +423,28 @@ class POSView {
         </div>
       `;
       }).join('');
+
+      // TASK 5: Delegated event listener untuk cart buttons (aman dari quotes & injection)
+      if (!container._hasCartListener) {
+        container.addEventListener('click', (e) => {
+          const delBtn = e.target.closest('.cart-item-delete');
+          if (delBtn) {
+            const id = delBtn.dataset.id;
+            const mod = decodeURIComponent(delBtn.dataset.mod || '');
+            window.State.removeCartItemById(id, mod);
+            return;
+          }
+          const qtyBtn = e.target.closest('.qty-btn');
+          if (qtyBtn) {
+            const id = qtyBtn.dataset.id;
+            const mod = decodeURIComponent(qtyBtn.dataset.mod || '');
+            const delta = qtyBtn.dataset.action === 'increase' ? 1 : -1;
+            window.State.updateCartQtyById(id, mod, delta);
+            return;
+          }
+        });
+        container._hasCartListener = true;
+      }
     });
 
     // Update Totals
@@ -511,12 +530,12 @@ class POSView {
         <div style="background:var(--surface-container-low);border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <div>
-              <div style="font-weight:800;font-size:14px;">a.n. ${o.pelanggan}</div>
-              <div style="font-size:11px;color:var(--secondary);">${new Date(o.tgl).toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})} · ${o.tipe || 'dine-in'} · ${o.staf}</div>
+              <div style="font-weight:800;font-size:14px;">a.n. ${window.State.escapeHtml(o.pelanggan || 'Umum')}</div>
+              <div style="font-size:11px;color:var(--secondary);">${new Date(o.tgl).toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})} · ${window.State.escapeHtml(o.tipe || 'dine-in')} · ${window.State.escapeHtml(o.staf || '-')}</div>
             </div>
             <div class="font-mono" style="font-size:15px;font-weight:800;color:var(--primary);">${window.State.formatRp(o.subtotal)}</div>
           </div>
-          <div style="font-size:11px;color:var(--secondary);margin-bottom:10px;">${(o.items||[]).map(i=>`${i.nm} x${i.qty}`).join(', ')}</div>
+          <div style="font-size:11px;color:var(--secondary);margin-bottom:10px;">${(o.items||[]).map(i=>`${window.State.escapeHtml(i.nm)} x${i.qty}`).join(', ')}</div>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-primary" style="flex:1;height:36px;font-size:12px;" onclick="window.POSView.recallSavedOrder('${o.id}')">
               <span class="material-symbols-outlined" style="font-size:16px;">shopping_cart</span>

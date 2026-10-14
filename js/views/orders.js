@@ -259,6 +259,18 @@ class OrdersView {
       });
     }
 
+    // 4b. Toggle PIN Visibility
+    const btnTogglePin = document.getElementById('btn-toggle-void-pin-visibility');
+    const pinInput = document.getElementById('order-void-owner-pin');
+    const pinVisIcon = document.getElementById('void-pin-vis-icon');
+    if (btnTogglePin && pinInput && pinVisIcon) {
+      btnTogglePin.addEventListener('click', () => {
+        const isPassword = pinInput.type === 'password';
+        pinInput.type = isPassword ? 'text' : 'password';
+        pinVisIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
+      });
+    }
+
     // 5. Alarm Dismiss Button
     const btnDismissAlarm = document.getElementById('btn-dismiss-owner-alarm');
     if (btnDismissAlarm) {
@@ -430,19 +442,19 @@ class OrdersView {
     tbody.innerHTML = paginated.map(t => {
       const isVoid = t.status === 'void';
       const statusBadge = isVoid 
-        ? `<span class="badge error" style="display:inline-flex;align-items:center;gap:3px;" title="${t.voidReason || 'Batal'}"><span class="material-symbols-outlined" style="font-size:12px;">cancel</span> BATAL / VOID</span>`
+        ? `<span class="badge error" style="display:inline-flex;align-items:center;gap:3px;" title="${window.State.escapeHtml(t.voidReason || 'Batal')}"><span class="material-symbols-outlined" style="font-size:12px;">cancel</span> BATAL / VOID</span>`
         : `<span class="badge success" style="display:inline-flex;align-items:center;gap:3px;"><span class="material-symbols-outlined" style="font-size:12px;">check_circle</span> SELESAI</span>`;
 
       const orderTypeBadge = (t.tipe === 'takeaway' || t.tipe === 'take-away')
         ? `<span class="badge warning" style="font-size:10px;">BUNGKUS</span>`
         : `<span class="badge info" style="font-size:10px;">DINE-IN</span>`;
 
-      const paymentMethodBadge = `<span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--secondary);">${t.metode || 'cash'}</span>`;
+      const paymentMethodBadge = `<span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--secondary);">${window.State.escapeHtml(t.metode || 'cash')}</span>`;
 
       const itemsSummary = (t.items || []).map(i => {
-        const mod = i.mod ? ` <span style="color:var(--secondary);font-size:10px;">(${i.mod})</span>` : '';
+        const mod = i.mod ? ` <span style="color:var(--secondary);font-size:10px;">(${window.State.escapeHtml(i.mod)})</span>` : '';
         const icon = window.FoodIcons ? window.FoodIcons.get(i.emj || i.nm, { size: 18 }) : '';
-        return `<div style="display:flex;align-items:center;gap:5px;margin:2px 0;">${icon}<span style="font-weight:600;">${i.nm}</span> <span style="color:var(--primary);font-weight:700;">x${i.qty}</span>${mod}</div>`;
+        return `<div style="display:flex;align-items:center;gap:5px;margin:2px 0;">${icon}<span style="font-weight:600;">${window.State.escapeHtml(i.nm)}</span> <span style="color:var(--primary);font-weight:700;">x${i.qty}</span>${mod}</div>`;
       }).join('');
 
       // Nominal total: owner bisa lihat, kasir hanya lihat tanda '••••'
@@ -453,14 +465,14 @@ class OrdersView {
       return `
         <tr style="border-bottom:1px solid rgba(255,255,255,0.05);${isVoid ? 'opacity:0.65;background:rgba(239,68,68,0.03);' : ''}">
           <td style="padding:12px 14px;vertical-align:top;">
-            <div class="font-mono" style="font-weight:700;color:var(--primary);font-size:13px;">${t.no}</div>
+            <div class="font-mono" style="font-weight:700;color:var(--primary);font-size:13px;">${window.State.escapeHtml(t.no)}</div>
             <div style="font-size:11px;color:var(--secondary);margin-top:2px;">${window.State.formatDate(t.tgl)}</div>
           </td>
           <td style="padding:12px 14px;vertical-align:top;">
-            <div style="font-weight:600;font-size:13px;color:var(--on-surface);">${t.pelanggan || 'Pelanggan Umum'}</div>
+            <div style="font-weight:600;font-size:13px;color:var(--on-surface);">${window.State.escapeHtml(t.pelanggan || 'Pelanggan Umum')}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
               ${orderTypeBadge}
-              <span style="font-size:11px;color:var(--secondary);">Kasir: <b>${t.kasir || '-'}</b></span>
+              <span style="font-size:11px;color:var(--secondary);">Kasir: <b>${window.State.escapeHtml(t.kasir || '-')}</b></span>
             </div>
           </td>
           <td style="padding:12px 14px;font-size:12px;vertical-align:top;max-width:240px;">
@@ -471,7 +483,7 @@ class OrdersView {
           </td>
           <td style="padding:12px 14px;vertical-align:top;">
             ${statusBadge}
-            ${isVoid && t.voidReason ? `<div style="font-size:10px;color:var(--error);margin-top:4px;font-style:italic;line-height:1.2;">Alasan: ${t.voidReason}</div>` : ''}
+            ${isVoid && t.voidReason ? `<div style="font-size:10px;color:var(--error);margin-top:4px;font-style:italic;line-height:1.2;">Alasan: ${window.State.escapeHtml(t.voidReason)}</div>` : ''}
           </td>
           <td class="font-mono" style="padding:12px 14px;text-align:right;vertical-align:top;">
             ${totalDisplay}
@@ -545,18 +557,18 @@ class OrdersView {
         ${isVoid ? `
           <div style="margin-top:10px;padding:8px 12px;background:rgba(239,68,68,0.1);border-left:3px solid var(--error);border-radius:4px;font-size:12px;color:var(--error);">
             <div style="font-weight:700;">Informasi Pembatalan / Void:</div>
-            <div>Dibatalkan oleh: <b>${trx.voidBy || 'Kasir'}</b></div>
+            <div>Dibatalkan oleh: <b>${window.State.escapeHtml(trx.voidBy || 'Kasir')}</b></div>
             <div>Waktu: ${window.State.formatDate(trx.voidAt || trx.tgl)}</div>
-            <div>Alasan: <b>${trx.voidReason || '-'}</b></div>
-            ${trx.voidNotes ? `<div>Catatan: "${trx.voidNotes}"</div>` : ''}
+            <div>Alasan: <b>${window.State.escapeHtml(trx.voidReason || '-')}</b></div>
+            ${trx.voidNotes ? `<div>Catatan: "${window.State.escapeHtml(trx.voidNotes)}"</div>` : ''}
           </div>
         ` : ''}
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;margin-bottom:14px;">
-        <div><span style="color:var(--secondary);">Kasir:</span> <b>${trx.kasir || '-'}</b></div>
-        <div><span style="color:var(--secondary);">Pelanggan:</span> <b>${trx.pelanggan || 'Umum'}</b></div>
-        <div><span style="color:var(--secondary);">Metode Bayar:</span> <b style="text-transform:uppercase;">${trx.metode || 'cash'}</b></div>
+        <div><span style="color:var(--secondary);">Kasir:</span> <b>${window.State.escapeHtml(trx.kasir || '-')}</b></div>
+        <div><span style="color:var(--secondary);">Pelanggan:</span> <b>${window.State.escapeHtml(trx.pelanggan || 'Umum')}</b></div>
+        <div><span style="color:var(--secondary);">Metode Bayar:</span> <b style="text-transform:uppercase;">${window.State.escapeHtml(trx.metode || 'cash')}</b></div>
         <div><span style="color:var(--secondary);">Total Item:</span> <b>${(trx.items || []).reduce((s, i) => s + (i.qty || 1), 0)} porsi</b></div>
       </div>
 
@@ -567,8 +579,8 @@ class OrdersView {
             <div style="display:flex;align-items:center;gap:8px;">
               ${window.FoodIcons ? window.FoodIcons.get(i.emj || i.nm, { size: 24 }) : ''}
               <div>
-                <div style="font-weight:600;">${i.nm} x${i.qty}</div>
-                ${i.mod ? `<div style="font-size:11px;color:var(--secondary);">${i.mod}</div>` : ''}
+                <div style="font-weight:600;">${window.State.escapeHtml(i.nm)} x${i.qty}</div>
+                ${i.mod ? `<div style="font-size:11px;color:var(--secondary);">${window.State.escapeHtml(i.mod)}</div>` : ''}
               </div>
             </div>
             <div class="font-mono" style="font-weight:700;">${isOwner ? window.State.formatRp(i.hr * i.qty) : '—'}</div>
@@ -620,40 +632,90 @@ class OrdersView {
       infoEl.innerHTML = `
         <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:12px;margin-bottom:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div class="font-mono" style="font-weight:800;color:var(--primary);font-size:14px;">${trx.no}</div>
+            <div class="font-mono" style="font-weight:800;color:var(--primary);font-size:14px;">${window.State.escapeHtml(trx.no)}</div>
             <div class="font-mono" style="font-weight:800;color:var(--error);font-size:15px;">${isOwner ? window.State.formatRp(trx.total) : '••••'}</div>
           </div>
           <div style="font-size:12px;color:var(--secondary);margin-top:4px;">
-            Kasir: <b>${trx.kasir || '-'}</b> • Pelanggan: <b>${trx.pelanggan || 'Umum'}</b> • Waktu: ${window.State.formatDate(trx.tgl)}
+            Kasir: <b>${window.State.escapeHtml(trx.kasir || '-')}</b> • Pelanggan: <b>${window.State.escapeHtml(trx.pelanggan || 'Umum')}</b> • Waktu: ${window.State.formatDate(trx.tgl)}
           </div>
           <div style="font-size:11px;color:var(--secondary);margin-top:4px;">
-            Item: ${(trx.items || []).map(i => `${i.nm} (${i.qty})`).join(', ')}
+            Item: ${(trx.items || []).map(i => `${window.State.escapeHtml(i.nm)} (${i.qty})`).join(', ')}
           </div>
         </div>
       `;
     }
 
-    // Reset form inputs
+    // Reset form inputs & PIN
     const reasonSelect = document.getElementById('order-void-reason-select');
     const notesInput = document.getElementById('order-void-notes');
+    const pinInput = document.getElementById('order-void-owner-pin');
+    const pinErr = document.getElementById('void-pin-error');
+    const pinHint = document.getElementById('void-pin-role-hint');
+
     if (reasonSelect) reasonSelect.selectedIndex = 0;
     if (notesInput) notesInput.value = '';
+    if (pinInput) {
+      pinInput.value = '';
+      pinInput.type = 'password';
+      const pinVisIcon = document.getElementById('void-pin-vis-icon');
+      if (pinVisIcon) pinVisIcon.textContent = 'visibility';
+    }
+    if (pinErr) {
+      pinErr.style.display = 'none';
+      pinErr.textContent = '';
+    }
+    if (pinHint) {
+      pinHint.textContent = isOwner ? 'Akun Owner Aktif (Verifikasi PIN Anda)' : 'Wajib PIN Owner / Supervisor';
+    }
 
     modal.classList.add('open');
   }
 
-  // Execute void and sound alarm to Owner
+  // Execute void with PIN authorization and sound alarm to Owner
   submitVoid() {
     if (!this.selectedVoidOrderNo) return;
     const orderNo = this.selectedVoidOrderNo;
     const trx = (window.State.transactions || []).find(t => t.no === orderNo);
     if (!trx) return;
 
+    // TASK 3: Verifikasi Otorisasi PIN Owner
+    const pinInput = document.getElementById('order-void-owner-pin');
+    const pinErr = document.getElementById('void-pin-error');
+    const enteredPin = pinInput ? pinInput.value.trim() : '';
+    const currentUser = window.State.currentUser ? window.State.currentUser.nm : 'Kasir';
+
+    if (!enteredPin) {
+      if (pinErr) {
+        pinErr.textContent = 'Silakan masukkan PIN Owner untuk otorisasi void!';
+        pinErr.style.display = 'block';
+      }
+      if (pinInput) pinInput.focus();
+      return;
+    }
+
+    const isPinValid = window.State.verifyOwnerPin(enteredPin);
+    if (!isPinValid) {
+      if (pinErr) {
+        pinErr.textContent = 'PIN Owner salah! Pembatalan transaksi ditolak.';
+        pinErr.style.display = 'block';
+      }
+      if (pinInput) {
+        pinInput.value = '';
+        pinInput.focus();
+      }
+      window.State.logAudit('AUTH_VOID_FAILED', {
+        orderNo: trx.no,
+        total: trx.total,
+        attemptedBy: currentUser
+      });
+      window.State.toast('Otorisasi gagal: PIN Owner tidak cocok!', 'error');
+      return;
+    }
+
     const reasonSelect = document.getElementById('order-void-reason-select');
     const notesInput = document.getElementById('order-void-notes');
     const reason = reasonSelect ? reasonSelect.value : 'Salah input pesanan';
     const notes = notesInput ? notesInput.value.trim() : '';
-    const currentUser = window.State.currentUser ? window.State.currentUser.nm : 'Kasir';
 
     // 1. Mark transaction as void in state
     trx.status = 'void';
@@ -690,7 +752,7 @@ class OrdersView {
     window.State.save(LS_KEYS.inv, window.State.inventory);
     window.State.save(LS_KEYS.mut, window.State.stockMutations);
 
-    // 3. Adjust cash log for ALL payment methods (BUG-C fix: sebelumnya hanya cash)
+    // 3. Adjust cash log for ALL payment methods (BUG-C fix)
     window.State.cashLog.unshift({
       id: Date.now(),
       tgl: Date.now(),
@@ -703,7 +765,7 @@ class OrdersView {
     window.State.save(LS_KEYS.kas, window.State.cashLog);
 
     // 4. Log audit trail
-    window.State.logAudit('TRANSACTION_VOID_ALARM', {
+    window.State.logAudit('TRANSACTION_VOID_AUTHORIZED', {
       orderNo: trx.no,
       total: trx.total,
       reason,
@@ -711,7 +773,7 @@ class OrdersView {
       kasir: currentUser
     });
 
-    // 5. TRIGGER REAL-TIME ALARM KE OWNER!
+    // 5. TRIGGER REAL-TIME ALARM KE OWNER
     const alarmData = {
       orderNo: trx.no,
       total: trx.total,
@@ -726,11 +788,21 @@ class OrdersView {
       window.AlarmService.triggerAlarm(alarmData);
     }
 
+    // TASK 4: Sinkronisasi Status Void ke Supabase Cloud
+    if (window.SupabaseService && window.SupabaseService.updateOrderStatus) {
+      window.SupabaseService.updateOrderStatus(trx.no, 'void', {
+        reason,
+        notes,
+        by: currentUser,
+        at: trx.voidAt
+      });
+    }
+
     // 6. Close void modal & feedback
     const modal = document.getElementById('order-void-modal');
     if (modal) modal.classList.remove('open');
 
-    window.State.toast(`Nota ${trx.no} berhasil dibatalkan. Alarm darurat telah dikirim ke Owner!`, 'warning');
+    window.State.toast(`Nota ${trx.no} berhasil dibatalkan (VOID) dengan otorisasi Owner.`, 'warning');
 
     // 7. Re-render views
     this.render();

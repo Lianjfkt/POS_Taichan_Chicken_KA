@@ -299,8 +299,9 @@ class SettingsView {
 
   // --- Backup & Restore Methods ---
   exportBackup() {
-    // BUG-M fix: sertakan stockAuditLog agar audit trail kasir ikut ter-backup
+    // TASK 6: Kelengkapan Backup Database mencakup seluruh data audit, mutasi, harian, dan antrean
     const stockAuditLog = window.State.getStockAuditLog ? window.State.getStockAuditLog() : [];
+    const dailyStock = window.State.load(window.LS_KEYS.daily_stock, []);
     const backupData = {
       app: 'KA POS v3.0',
       exportedAt: new Date().toISOString(),
@@ -309,12 +310,17 @@ class SettingsView {
         categories: window.State.categories,
         products: window.State.products,
         inventory: window.State.inventory,
+        stockMutations: window.State.stockMutations || [],
+        dailyStock: dailyStock,
         transactions: window.State.transactions,
         cashLog: window.State.cashLog,
         staff: window.State.staff,
         settings: window.State.settings,
         customers: window.State.customers,
         sambalList: window.State.sambalList,
+        savedOrders: window.State.savedOrders || [],
+        receivables: window.State.receivables || [],
+        offlineQueue: window.State.offlineQueue || [],
         shiftHistory: window.State.shiftHistory,
         auditLog: window.State.auditLog,
         stockAuditLog: stockAuditLog
@@ -329,7 +335,7 @@ class SettingsView {
     link.click();
 
     window.State.logAudit('BACKUP_EXPORTED', { size: str.length });
-    window.State.toast('File backup database berhasil diunduh!', 'success');
+    window.State.toast('File backup database lengkap berhasil diunduh!', 'success');
   }
 
   importBackup(file) {
@@ -350,15 +356,33 @@ class SettingsView {
         if (d.categories) window.State.categories = d.categories;
         if (d.products) window.State.products = d.products;
         if (d.inventory) window.State.inventory = d.inventory;
+        if (d.stockMutations) {
+          window.State.stockMutations = d.stockMutations;
+          window.State.save(window.LS_KEYS.mut, d.stockMutations);
+        }
+        if (d.dailyStock) {
+          window.State.save(window.LS_KEYS.daily_stock, d.dailyStock);
+        }
         if (d.transactions) window.State.transactions = d.transactions;
         if (d.cashLog) window.State.cashLog = d.cashLog;
         if (d.staff) window.State.staff = d.staff;
         if (d.settings) window.State.settings = d.settings;
         if (d.customers) window.State.customers = d.customers;
         if (d.sambalList) window.State.sambalList = d.sambalList;
+        if (d.savedOrders) {
+          window.State.savedOrders = d.savedOrders;
+          window.State.save(window.LS_KEYS.saved_orders, d.savedOrders);
+        }
+        if (d.receivables) {
+          window.State.receivables = d.receivables;
+          window.State.save(window.LS_KEYS.pt, d.receivables);
+        }
+        if (d.offlineQueue) {
+          window.State.offlineQueue = d.offlineQueue;
+          window.State.save(window.LS_KEYS.ofq, d.offlineQueue);
+        }
         if (d.shiftHistory) window.State.shiftHistory = d.shiftHistory;
         if (d.auditLog) window.State.auditLog = d.auditLog;
-        // BUG-M fix: restore stockAuditLog dari backup
         if (d.stockAuditLog) {
           window.State.stockAuditLog = d.stockAuditLog;
           localStorage.setItem(window.LS_KEYS.stock_audit, JSON.stringify(d.stockAuditLog));
@@ -366,7 +390,7 @@ class SettingsView {
 
         window.State.saveAll();
         window.State.logAudit('BACKUP_RESTORED', { exportedAt: json.exportedAt });
-        window.State.toast('Database berhasil dipulihkan! Memuat ulang...', 'success');
+        window.State.toast('Database berhasil dipulihkan lengkap! Memuat ulang...', 'success');
         setTimeout(() => location.reload(), 1200);
       } catch (err) {
         console.error('[Settings] Import error:', err);
