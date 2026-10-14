@@ -641,7 +641,8 @@ class POSView {
     const pill = document.getElementById('mobile-floating-cart-pill');
     if (!pill) return;
 
-    if (window.innerWidth >= 769) {
+    const activeView = window.State.activeView || 'pos';
+    if (window.innerWidth >= 769 || activeView !== 'pos') {
       pill.classList.remove('has-items');
       pill.style.display = 'none';
       return;

@@ -190,6 +190,11 @@ class AppRouter {
     } else if (viewName === 'settings' && window.SettingsView) {
       window.SettingsView.render();
     }
+
+    // 5. Update mobile floating cart pill visibility based on active view
+    if (window.POSView && window.POSView.updateMobileFloatingCart) {
+      window.POSView.updateMobileFloatingCart();
+    }
   }
 }
 

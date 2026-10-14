@@ -156,9 +156,9 @@
   - Responsive reflow 1-kolom pada Laporan Finansial (grafik tren, menu terlaris, peak hours, payment channels), Pengaturan, dan Kelola Menu.
   - Perbaikan selector modal (`.modal-card` & `.modal-box`) dan pembesaran touch target tombol kuantitas keranjang (`36px`) serta keypad pembayaran (`min 46px`).
   - Safe-area bottom padding terintegrasi untuk mencegah overlap dengan bottom navigation dock.
-  - **Android App Layout Architecture:** Hirarki layout mobile konsisten ala aplikasi Android (Top Toolbar order/search -> Category Tabs -> Scrollable 2-col Product Catalog Grid dengan `touch-action: pan-y`, isolasi scroll, dan eliminasi blocking flexbox).
-  - **Tap-to-Add Menu Cards:** Penghapusan tombol plus ("+") pada kartu menu; seluruh kartu menu responsif sentuhan (Material press animation, penambahan pesanan instan saat nama/kartu diklik, serta badge indikator kuantitas di keranjang secara real-time).
+  - **Android Jetpack Compose NavHost Architecture:** Penerapan prinsip single-active destination (`NavHost` / `Scaffold`); memastikan hanya ada tepat 1 view yang aktif dan tampil di layar setiap saat (`.view-pane:not(.active) { display: none !important; }`), memperbaiki bug dua tampilan fitur (POS dan Riwayat) yang sempat muncul bertumpuk dalam satu layar.
+  - **Context-Aware Floating Cart:** Floating cart pill otomatis tersembunyi saat berada di luar layar kasir (Riwayat, Laporan, Shift, dll.) agar tidak menutupi informasi halaman lain.
 
 ---
 
-*Laporan analisa diperbarui: 2026-10-14 | Versi Sistem: KA POS v3.7.0*
+*Laporan analisa diperbarui: 2026-10-14 | Versi Sistem: KA POS v3.8.0*
