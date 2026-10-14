@@ -250,9 +250,9 @@ class ReportsView {
     });
 
     const grossProfit = omzet - cogs;
-    const margin = omzet > 0 ? ((grossProfit / omzet) * 100).toFixed(1) : 0;
+    const grossMargin = omzet > 0 ? ((grossProfit / omzet) * 100).toFixed(1) : 0;
+    const cogsPct = omzet > 0 ? ((cogs / omzet) * 100).toFixed(1) : 0;
 
-    // BUG-H fix: filter pettyOut sesuai periode yang aktif (sebelumnya selalu semua waktu untuk non-today)
     const now = new Date();
     let pettyOut = 0;
     const cashLogs = window.State.cashLog || [];
@@ -277,28 +277,96 @@ class ReportsView {
     }
 
     const netProfit = grossProfit - pettyOut;
+    const netMargin = omzet > 0 ? ((netProfit / omzet) * 100).toFixed(1) : 0;
+    const pettyPct = omzet > 0 ? ((pettyOut / omzet) * 100).toFixed(1) : 0;
+
+    // Update status pill in header
+    const statusPill = document.getElementById('pnl-status-pill');
+    if (statusPill) {
+      if (omzet === 0) {
+        statusPill.textContent = 'Menunggu Transaksi';
+        statusPill.className = 'badge secondary';
+      } else if (netMargin >= 30) {
+        statusPill.textContent = `🌟 Sangat Sehat (Net ${netMargin}%)`;
+        statusPill.className = 'badge tertiary';
+      } else if (netProfit >= 0) {
+        statusPill.textContent = `✅ Profitabel (Net ${netMargin}%)`;
+        statusPill.className = 'badge info';
+      } else {
+        statusPill.textContent = `⚠️ Defisit (${netMargin}%)`;
+        statusPill.className = 'badge error';
+      }
+    }
+
+    // Visual Waterfall bar widths
+    const cogsBarWidth = Math.min(100, Math.max(0, cogsPct));
+    const pettyBarWidth = Math.min(100 - cogsBarWidth, Math.max(0, pettyPct));
+    const netBarWidth = Math.min(100 - cogsBarWidth - pettyBarWidth, Math.max(0, netMargin));
 
     pnlContainer.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-top:12px;">
-        <div style="background:var(--surface-container-low);padding:14px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.05);">
-          <div style="font-size:11px;color:var(--secondary);font-weight:700;">TOTAL PENDAPATAN (REVENUE)</div>
-          <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--primary);margin-top:4px;">${window.State.formatRp(omzet)}</div>
+      <!-- Flow Diagram Bar -->
+      <div style="background:var(--surface-container-low);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;">
+          <span style="font-weight:700;color:var(--on-surface);">Arus Pendapatan ke Laba Bersih</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--secondary);">HPP: ${cogsPct}% | Beban: ${pettyPct}% | Net: ${netMargin}%</span>
         </div>
-        <div style="background:var(--surface-container-low);padding:14px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.05);">
-          <div style="font-size:11px;color:var(--secondary);font-weight:700;">TOTAL HPP (COGS BAHAN)</div>
-          <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--error);margin-top:4px;">-${window.State.formatRp(cogs)}</div>
+        <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,0.05);gap:2px;">
+          <div style="width:${cogsBarWidth}%;background:var(--error);border-radius:4px 0 0 4px;transition:width 0.4s;" title="HPP Bahan: ${cogsPct}%"></div>
+          <div style="width:${pettyBarWidth}%;background:var(--warning);transition:width 0.4s;" title="Beban Kas: ${pettyPct}%"></div>
+          <div style="width:${netBarWidth}%;background:var(--tertiary);border-radius:0 4px 4px 0;transition:width 0.4s;" title="Laba Bersih: ${netMargin}%"></div>
         </div>
-        <div style="background:var(--surface-container-low);padding:14px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.05);">
-          <div style="font-size:11px;color:var(--secondary);font-weight:700;">LABA KOTOR (GROSS PROFIT)</div>
-          <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--tertiary);margin-top:4px;">${window.State.formatRp(grossProfit)} <span style="font-size:12px;">(${margin}%)</span></div>
+        <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--secondary);flex-wrap:wrap;">
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--error);"></span> HPP Bahan Pokok (${cogsPct}%)</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--warning);"></span> Beban Operasional Kas (${pettyPct}%)</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--tertiary);"></span> Estimasi Laba Bersih (${netMargin}%)</span>
         </div>
-        <div style="background:var(--surface-container-low);padding:14px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.05);">
-          <div style="font-size:11px;color:var(--secondary);font-weight:700;">BEBAN OPERASIONAL (KAS KELUAR)</div>
-          <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--warning);margin-top:4px;">-${window.State.formatRp(pettyOut)}</div>
+      </div>
+
+      <!-- 5 Metric Cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;">
+        <div class="report-pnl-card primary">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:11px;color:var(--secondary);font-weight:700;">TOTAL PENDAPATAN</span>
+            <span class="material-symbols-outlined" style="font-size:18px;color:var(--primary);">trending_up</span>
+          </div>
+          <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--primary);">${window.State.formatRp(omzet)}</div>
+          <div style="font-size:11px;color:var(--secondary);">100% Arus Masuk Bruto</div>
         </div>
-        <div style="background:var(--surface-container-low);padding:14px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.05);">
-          <div style="font-size:11px;color:var(--secondary);font-weight:700;">ESTIMASI LABA BERSIH (NET)</div>
-          <div class="font-mono" style="font-size:20px;font-weight:800;color:${netProfit >= 0 ? 'var(--tertiary)' : 'var(--error)'};margin-top:4px;">${window.State.formatRp(netProfit)}</div>
+
+        <div class="report-pnl-card error">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:11px;color:var(--secondary);font-weight:700;">TOTAL HPP (COGS)</span>
+            <span class="material-symbols-outlined" style="font-size:18px;color:var(--error);">inventory_2</span>
+          </div>
+          <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--error);">-${window.State.formatRp(cogs)}</div>
+          <div style="font-size:11px;color:var(--secondary);">${cogsPct}% dari Pendapatan</div>
+        </div>
+
+        <div class="report-pnl-card tertiary">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:11px;color:var(--secondary);font-weight:700;">LABA KOTOR (GROSS)</span>
+            <span class="material-symbols-outlined" style="font-size:18px;color:var(--tertiary);">account_balance_wallet</span>
+          </div>
+          <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--tertiary);">${window.State.formatRp(grossProfit)}</div>
+          <div style="font-size:11px;color:var(--secondary);">Gross Margin: <strong style="color:var(--tertiary);">${grossMargin}%</strong></div>
+        </div>
+
+        <div class="report-pnl-card warning">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:11px;color:var(--secondary);font-weight:700;">BEBAN KAS KELUAR</span>
+            <span class="material-symbols-outlined" style="font-size:18px;color:var(--warning);">receipt_long</span>
+          </div>
+          <div class="font-mono" style="font-size:20px;font-weight:800;color:var(--warning);">-${window.State.formatRp(pettyOut)}</div>
+          <div style="font-size:11px;color:var(--secondary);">${pettyPct}% Operasional Kas</div>
+        </div>
+
+        <div class="report-pnl-card ${netProfit >= 0 ? 'tertiary' : 'error'}">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:11px;color:var(--secondary);font-weight:700;">ESTIMASI LABA BERSIH</span>
+            <span class="material-symbols-outlined" style="font-size:18px;color:${netProfit >= 0 ? 'var(--tertiary)' : 'var(--error)'};">verified</span>
+          </div>
+          <div class="font-mono" style="font-size:20px;font-weight:800;color:${netProfit >= 0 ? 'var(--tertiary)' : 'var(--error)'};">${window.State.formatRp(netProfit)}</div>
+          <div style="font-size:11px;color:var(--secondary);">Net Margin: <strong style="color:${netProfit >= 0 ? 'var(--tertiary)' : 'var(--error)'};">${netMargin}%</strong></div>
         </div>
       </div>
     `;
@@ -317,25 +385,64 @@ class ReportsView {
       hourRevenue[h] += (t.total || 0);
     });
 
-    const maxCount = Math.max(1, ...hourCounts);
     const relevantHours = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+    let maxCount = 0;
+    let peakHour = 19;
+    relevantHours.forEach(h => {
+      if (hourCounts[h] > maxCount) {
+        maxCount = hourCounts[h];
+        peakHour = h;
+      }
+    });
+
+    const peakBadge = document.getElementById('peak-hour-badge');
+    if (peakBadge) {
+      if (maxCount > 0) {
+        peakBadge.textContent = `🔥 Jam ${peakHour}:00 (${maxCount} Order)`;
+        peakBadge.className = 'badge warning';
+      } else {
+        peakBadge.textContent = 'Menunggu Pesanan';
+        peakBadge.className = 'badge secondary';
+      }
+    }
+
+    const maxScale = Math.max(1, maxCount);
 
     container.innerHTML = `
-      <div style="display:flex;gap:8px;align-items:flex-end;height:110px;padding:8px 0;">
+      ${maxCount > 0 ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:12px;font-size:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="material-symbols-outlined" style="color:var(--primary);font-size:18px;">local_fire_department</span>
+            <span>Jam Emas: <strong>${peakHour}:00 - ${peakHour+1}:00</strong> (${maxCount} pesanan • ${window.State.formatRp(hourRevenue[peakHour])})</span>
+          </div>
+          <span style="font-weight:700;color:var(--primary);font-size:11px;">Peak Traffic</span>
+        </div>
+      ` : `
+        <div style="background:var(--surface-container-low);border:1px solid rgba(255,255,255,0.05);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--secondary);text-align:center;">
+          Belum ada transaksi di rentang jam ini. Grafik akan terisi otomatis seiring order masuk.
+        </div>
+      `}
+
+      <!-- Bar Chart -->
+      <div style="display:flex;gap:6px;align-items:flex-end;height:120px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08);">
         ${relevantHours.map(h => {
           const cnt = hourCounts[h];
-          const pct = Math.round((cnt / maxCount) * 100);
-          const isBusy = pct >= 60;
+          const pct = Math.round((cnt / maxScale) * 100);
+          const isPeak = cnt === maxCount && maxCount > 0;
           return `
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;" title="Jam ${h}:00 - ${cnt} order (${window.State.formatRp(hourRevenue[h])})">
-              <span style="font-size:9px;color:var(--secondary);font-family:var(--font-mono);">${cnt > 0 ? cnt : ''}</span>
-              <div style="width:100%;min-height:3px;height:${Math.max(3, pct)}%;background:${isBusy ? 'var(--primary-container)' : 'rgba(255,255,255,0.1)'};border-radius:3px 3px 0 0;transition:all 0.3s;"></div>
-              <span style="font-size:10px;font-weight:600;color:var(--secondary);">${h}</span>
+            <div class="peak-hour-col" title="Jam ${h}:00 - ${cnt} order (${window.State.formatRp(hourRevenue[h])})">
+              <span style="font-size:9px;color:${isPeak ? 'var(--primary)' : 'var(--secondary)'};font-family:var(--font-mono);font-weight:${isPeak ? '800' : '500'};">${cnt > 0 ? cnt : ''}</span>
+              <div class="peak-bar ${isPeak ? 'busy' : (cnt > 0 ? 'normal' : 'empty')}" style="height:${Math.max(4, pct)}%;"></div>
+              <span style="font-size:10px;font-weight:${isPeak ? '800' : '600'};color:${isPeak ? 'var(--primary)' : 'var(--secondary)'};margin-top:2px;">${h}</span>
             </div>
           `;
         }).join('')}
       </div>
-      <div style="font-size:11px;color:var(--secondary);text-align:center;margin-top:6px;">Distribusi Jam Sibuk (Jam 10:00 s.d 23:00)</div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--secondary);margin-top:10px;">
+        <span>Operasional: 10:00 s.d 23:00 WIB</span>
+        <span>Arahkan kursor pada batang untuk omzet</span>
+      </div>
     `;
   }
 
@@ -528,8 +635,8 @@ class ReportsView {
 
     const totalRevenue = trxs.reduce((s, t) => s + (t.total || 0), 0);
     const methods = {
-      cash:     { name: 'Tunai', count: 0, total: 0, color: '#4edea3', icon: 'payments' },
-      qris:     { name: 'QRIS', count: 0, total: 0, color: '#f97316', icon: 'qr_code_2' },
+      cash:     { name: 'Tunai (Cash)', count: 0, total: 0, color: '#4edea3', icon: 'payments' },
+      qris:     { name: 'QRIS Instant', count: 0, total: 0, color: '#f97316', icon: 'qr_code_2' },
       transfer: { name: 'Transfer BCA', count: 0, total: 0, color: '#38bdf8', icon: 'account_balance' }
     };
 
@@ -544,31 +651,71 @@ class ReportsView {
       }
     });
 
-    container.innerHTML = Object.keys(methods).map(key => {
-      const item = methods[key];
-      const pct = totalRevenue > 0 ? ((item.total / totalRevenue) * 100).toFixed(1) : 0;
-      return `
-        <div style="background:var(--surface-container-low);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-lg);padding:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span class="material-symbols-outlined" style="color:${item.color};font-size:20px;">${item.icon}</span>
-              <span style="font-weight:700;font-size:13px;">${item.name}</span>
-            </div>
-            <span class="badge" style="font-size:11px;font-weight:700;color:${item.color};">${pct}%</span>
-          </div>
-          <div class="font-mono" style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;">
-            ${window.State.formatRp(item.total)}
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--secondary);margin-bottom:8px;">
-            <span>${item.count} Transaksi</span>
-            <span>Kontribusi Omzet</span>
-          </div>
-          <div style="width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
-            <div style="width:${pct}%;height:100%;background:${item.color};border-radius:3px;transition:width 0.4s ease;"></div>
-          </div>
+    const cashPct = totalRevenue > 0 ? ((methods.cash.total / totalRevenue) * 100).toFixed(1) : 0;
+    const qrisPct = totalRevenue > 0 ? ((methods.qris.total / totalRevenue) * 100).toFixed(1) : 0;
+    const transferPct = totalRevenue > 0 ? ((methods.transfer.total / totalRevenue) * 100).toFixed(1) : 0;
+    const cashlessTotal = methods.qris.total + methods.transfer.total;
+    const cashlessPct = totalRevenue > 0 ? ((cashlessTotal / totalRevenue) * 100).toFixed(1) : 0;
+
+    const cashlessBadge = document.getElementById('payment-cashless-badge');
+    if (cashlessBadge) {
+      cashlessBadge.textContent = `${cashlessPct}% Non-Tunai`;
+    }
+
+    container.innerHTML = `
+      <!-- Segmented Share Bar -->
+      <div style="background:var(--surface-container-low);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);padding:10px 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;">
+          <span style="font-weight:700;">Share of Wallet (Pangsa Metode)</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--secondary);">${trxs.length} Total Transaksi</span>
         </div>
-      `;
-    }).join('');
+        <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,0.06);gap:2px;">
+          <div style="width:${cashPct}%;background:#4edea3;transition:width 0.4s;" title="Tunai: ${cashPct}%"></div>
+          <div style="width:${qrisPct}%;background:#f97316;transition:width 0.4s;" title="QRIS: ${qrisPct}%"></div>
+          <div style="width:${transferPct}%;background:#38bdf8;transition:width 0.4s;" title="Transfer: ${transferPct}%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--secondary);flex-wrap:wrap;gap:8px;">
+          <span style="color:#4edea3;font-weight:600;">● Tunai: ${cashPct}%</span>
+          <span style="color:#f97316;font-weight:600;">● QRIS: ${qrisPct}%</span>
+          <span style="color:#38bdf8;font-weight:600;">● Transfer: ${transferPct}%</span>
+        </div>
+      </div>
+
+      <!-- 3 Channel Cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;">
+        ${Object.keys(methods).map(key => {
+          const item = methods[key];
+          const pct = totalRevenue > 0 ? ((item.total / totalRevenue) * 100).toFixed(1) : 0;
+          return `
+            <div style="background:var(--surface-container-low);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);padding:12px;position:relative;overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div style="width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;">
+                  <span class="material-symbols-outlined" style="color:${item.color};font-size:18px;">${item.icon}</span>
+                </div>
+                <span class="badge" style="font-size:10px;font-weight:800;color:${item.color};background:rgba(255,255,255,0.05);">${pct}%</span>
+              </div>
+              <div style="font-weight:700;font-size:12px;color:var(--on-surface);margin-bottom:2px;">${item.name}</div>
+              <div class="font-mono" style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px;">
+                ${window.State.formatRp(item.total)}
+              </div>
+              <div style="font-size:11px;color:var(--secondary);display:flex;justify-content:space-between;">
+                <span>${item.count} order</span>
+                <span>${pct}% omzet</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Cashless Ratio Insight -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface-container-low);border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.05);font-size:12px;">
+        <span style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">contactless</span>
+          <span><strong>Rasio Cashless:</strong> ${cashlessPct}% Non-Tunai</span>
+        </span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--primary);font-weight:700;">${window.State.formatRp(cashlessTotal)}</span>
+      </div>
+    `;
   }
 
   renderRecentTransactions(trxs) {

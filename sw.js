@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kapos-v3-cache-v13'; // bumped: reports accordion & stability fix 2026-10-14
+const CACHE_NAME = 'kapos-v3-cache-v14'; // bumped: executive reports & analytics hub 2026-10-14
 const ASSETS = [
   '/',
   'index.html',
