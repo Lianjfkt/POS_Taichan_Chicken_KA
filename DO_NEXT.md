@@ -156,6 +156,8 @@
   - Responsive reflow 1-kolom pada Laporan Finansial (grafik tren, menu terlaris, peak hours, payment channels), Pengaturan, dan Kelola Menu.
   - Perbaikan selector modal (`.modal-card` & `.modal-box`) dan pembesaran touch target tombol kuantitas keranjang (`36px`) serta keypad pembayaran (`min 46px`).
   - Safe-area bottom padding terintegrasi untuk mencegah overlap dengan bottom navigation dock.
+  - **Android App Layout Architecture:** Hirarki layout mobile konsisten ala aplikasi Android (Top Toolbar order/search -> Category Tabs -> Scrollable 2-col Product Catalog Grid dengan `touch-action: pan-y`, isolasi scroll, dan eliminasi blocking flexbox).
+  - **Tap-to-Add Menu Cards:** Penghapusan tombol plus ("+") pada kartu menu; seluruh kartu menu responsif sentuhan (Material press animation, penambahan pesanan instan saat nama/kartu diklik, serta badge indikator kuantitas di keranjang secara real-time).
 
 ---
 

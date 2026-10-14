@@ -253,8 +253,20 @@ class POSView {
       // BUG-J fix: gunakan p.on === false konsisten dengan handleProductClick & State
       const isUnavailable = p.on === false || p.habis === true;
       const katLabel = p.kat ? `<span class="product-cat-label">${p.kat}</span>` : '';
+
+      // Hitung kuantitas produk ini yang ada di keranjang untuk badge ala Android app
+      const inCartItems = (window.State.cart || []).filter(c => c.id === p.id);
+      const totalQtyInCart = inCartItems.reduce((sum, item) => sum + (item.qty || 1), 0);
+      const cartBadge = totalQtyInCart > 0 
+        ? `<span class="product-card-qty-badge">${totalQtyInCart}</span>` 
+        : '';
+
       return `
-        <div class="product-card ${isUnavailable ? 'unavailable' : ''}" onclick="window.POSView.handleProductClick(${p.id})" style="${isUnavailable ? 'opacity:0.5;cursor:not-allowed;' : ''}">
+        <div class="product-card ${isUnavailable ? 'unavailable' : ''} ${totalQtyInCart > 0 ? 'in-cart' : ''}" 
+             data-product-id="${p.id}"
+             onclick="window.POSView.handleProductClick(${p.id})" 
+             style="${isUnavailable ? 'opacity:0.45;cursor:not-allowed;' : ''}">
+          ${cartBadge}
           <div class="product-card-top">
             <div style="flex:1;min-width:0;">
               <div class="product-title">${p.nm}</div>
@@ -267,13 +279,41 @@ class POSView {
           </div>
           <div class="product-foot">
             <span class="product-price">${window.State.formatRp(p.hr)}</span>
-            <button class="add-btn" ${isUnavailable ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''} onclick="event.stopPropagation();window.POSView.handleProductClick(${p.id})">
-              <span class="material-symbols-outlined" style="font-size:18px;">add</span>
-            </button>
           </div>
         </div>
       `;
     }).join('');
+  }
+
+  updateProductCardsInCart() {
+    const cards = document.querySelectorAll('#pos-product-grid .product-card');
+    if (!cards || !cards.length) return;
+
+    const cart = window.State.cart || [];
+    const qtyMap = {};
+    cart.forEach(item => {
+      qtyMap[item.id] = (qtyMap[item.id] || 0) + (item.qty || 1);
+    });
+
+    cards.forEach(card => {
+      const pid = Number(card.getAttribute('data-product-id'));
+      if (!pid) return;
+      const qty = qtyMap[pid] || 0;
+
+      let badge = card.querySelector('.product-card-qty-badge');
+      if (qty > 0) {
+        card.classList.add('in-cart');
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'product-card-qty-badge';
+          card.prepend(badge);
+        }
+        badge.textContent = `${qty}`;
+      } else {
+        card.classList.remove('in-cart');
+        if (badge) badge.remove();
+      }
+    });
   }
 
   handleProductClick(productId) {
@@ -476,6 +516,9 @@ class POSView {
 
     // Update saved orders badge
     this.updateSavedOrdersBadge();
+
+    // Sync in-cart badges on product cards
+    this.updateProductCardsInCart();
   }
 
   syncCustomerName() {
