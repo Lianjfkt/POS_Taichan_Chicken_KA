@@ -241,11 +241,11 @@ class StockTrackerView {
   }
 
   _summaryCard(emoji, label, value, color) {
-    const iconHtml = window.FoodIcons ? window.FoodIcons.get(emoji, { size: 30 }) : `<div style="font-size:22px;">${emoji}</div>`;
-    return `<div style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);padding:14px 12px;display:flex;flex-direction:column;justify-content:space-between;">
+    const iconHtml = window.FoodIcons ? window.FoodIcons.get(emoji, { size: 28 }) : `<div style="font-size:20px;">${emoji}</div>`;
+    return `<div class="st-summary-card" style="background:var(--surface-container);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);padding:14px 12px;display:flex;flex-direction:column;justify-content:space-between;">
       <div style="margin-bottom:6px;">${iconHtml}</div>
-      <div style="font-size:10px;color:var(--secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">${label}</div>
-      <div class="font-mono" style="font-size:20px;font-weight:800;color:${color};margin-top:4px;">${value}</div>
+      <div class="st-summary-label" style="font-size:10px;color:var(--secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;line-height:1.3;">${label}</div>
+      <div class="font-mono st-summary-value" style="font-size:20px;font-weight:800;color:${color};margin-top:4px;line-height:1.2;">${value}</div>
     </div>`;
   }
 
@@ -312,7 +312,7 @@ class StockTrackerView {
     const summarySection = isOwner
       ? `
         ${tusukWarning}
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;">
+        <div class="st-summary-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:18px;">
           ${this._summaryCard('🍢','Stok Mentah',sum.totalRaw+' tusuk','var(--on-surface)')}
           ${this._summaryCard('💸','Terjual Hari Ini',sum.totalTusukSold+' tusuk','var(--primary)')}
           ${this._summaryCard('📦','Sisa Tusuk',sum.sisa+' tusuk',sum.sisa>0?'var(--tertiary)':'var(--secondary)')}
