@@ -99,6 +99,18 @@ class MenuView {
         }
       };
     }
+
+    // Show/hide field tusuk per porsi berdasarkan kategori
+    const catSelect = document.getElementById('mprod-category');
+    const tusukGroup = document.getElementById('mprod-tusuk-group');
+    if (catSelect && tusukGroup) {
+      catSelect.onchange = () => {
+        const isTaichan = catSelect.value === 'Taichan';
+        tusukGroup.style.display = isTaichan ? 'block' : 'none';
+        const tusukInput = document.getElementById('mprod-tusuk');
+        if (tusukInput && !isTaichan) tusukInput.value = '';
+      };
+    }
   }
 
   switchTab(tab) {
@@ -273,6 +285,13 @@ class MenuView {
     catSelect.innerHTML = '<option value="">-- Pilih Kategori --</option>' +
       categories.map(c => '<option value="' + c.nm + '" ' + (p && p.kat === c.nm ? 'selected' : '') + '>' + (c.emj || '') + ' ' + c.nm + '</option>').join('');
 
+    // Show/hide tusuk field
+    const tusukGroup = document.getElementById('mprod-tusuk-group');
+    const tusukInput = document.getElementById('mprod-tusuk');
+    const isTaichan = p ? p.kat === 'Taichan' : false;
+    if (tusukGroup) tusukGroup.style.display = isTaichan ? 'block' : 'none';
+    if (tusukInput) tusukInput.value = p ? (p.tusuk || '') : '';
+
     modal.classList.add('open');
     document.getElementById('mprod-name').focus();
   }
@@ -286,10 +305,13 @@ class MenuView {
     const spice = document.getElementById('mprod-spice').value.trim();
     const desc = document.getElementById('mprod-desc').value.trim();
     const isActive = document.getElementById('mprod-active').checked;
+    const tusukRaw = parseInt(document.getElementById('mprod-tusuk')?.value) || 0;
+    const tusuk = category === 'Taichan' ? tusukRaw : 0;
 
     if (!name) { window.State.toast('Nama produk wajib diisi!', 'error'); return; }
     if (!category) { window.State.toast('Pilih kategori produk!', 'error'); return; }
     if (price <= 0) { window.State.toast('Harga jual harus lebih dari 0!', 'error'); return; }
+    if (category === 'Taichan' && tusuk <= 0) { window.State.toast('Isi jumlah tusuk per porsi untuk produk Taichan!', 'error'); return; }
 
     if (this.editingProduct) {
       const idx = window.State.products.findIndex(p => String(p.id) === String(this.editingProduct));
@@ -297,7 +319,7 @@ class MenuView {
         window.State.products[idx] = {
           ...window.State.products[idx],
           nm: name, hr: price, md: cost, emj: emoji,
-          kat: category, lv: spice, desc: desc, on: isActive
+          kat: category, lv: spice, desc: desc, on: isActive, tusuk: tusuk || undefined
         };
         window.State.toast('Produk "' + name + '" berhasil diperbarui!', 'success');
       }
@@ -305,7 +327,8 @@ class MenuView {
       const newId = Date.now();
       window.State.products.push({
         id: newId, nm: name, hr: price, md: cost, emj: emoji,
-        kat: category, lv: spice, desc: desc, on: isActive, bom: []
+        kat: category, lv: spice, desc: desc, on: isActive, bom: [],
+        ...(category === 'Taichan' && tusuk > 0 ? { tusuk } : {})
       });
       window.State.toast('Produk "' + name + '" berhasil ditambahkan!', 'success');
     }

@@ -62,7 +62,8 @@ class StockTrackerView {
 
   _taichanSoldToday() {
     const today = this._today();
-    const result = {};
+    let totalTusukSold = 0;
+    const soldByProduct = {};
     (window.State.transactions || []).forEach(tx => {
       if (tx.status === 'void') return;
       const d = tx.tgl ? new Date(tx.tgl) : null;
@@ -71,10 +72,17 @@ class StockTrackerView {
       if (txDay !== today) return;
       (tx.items || []).forEach(item => {
         const prod = (window.State.products || []).find(p => p.id === item.id);
-        if (prod && prod.kat === 'Taichan') result[item.id] = (result[item.id] || 0) + item.qty;
+        if (prod && prod.kat === 'Taichan') {
+          const tusukPerPorsi = prod.tusuk || 1; // default 1 jika belum di-set
+          const tusukQty = item.qty * tusukPerPorsi;
+          soldByProduct[item.id] = (soldByProduct[item.id] || { nm: prod.nm, tusuk: tusukPerPorsi, qty: 0, tusukTotal: 0 });
+          soldByProduct[item.id].qty += item.qty;
+          soldByProduct[item.id].tusukTotal += tusukQty;
+          totalTusukSold += tusukQty;
+        }
       });
     });
-    return result;
+    return { totalTusukSold, soldByProduct };
   }
 
   // ── Taichan CRUD ──────────────────────────────────────────────────────
@@ -205,11 +213,10 @@ class StockTrackerView {
   // ── Summaries ─────────────────────────────────────────────────────────
 
   _taichanSummary(data) {
-    const soldMap = this._taichanSoldToday();
-    const totalSold = Object.values(soldMap).reduce((a,b) => a+b, 0);
-    const totalRaw   = data.taichan.reduce((s,b) => s+b.raw, 0);
-    const totalFried = data.taichan.reduce((s,b) => s+b.fried, 0);
-    return { totalRaw, totalFried, totalSold, sisa: Math.max(0, totalFried - totalSold) };
+    const { totalTusukSold } = this._taichanSoldToday();
+    const totalRaw = data.taichan.reduce((s, b) => s + b.raw, 0);
+    const sisa = Math.max(0, totalRaw - totalTusukSold);
+    return { totalRaw, totalTusukSold, sisa };
   }
 
   // ── Render ────────────────────────────────────────────────────────────
@@ -247,17 +254,28 @@ class StockTrackerView {
     if (!el) return;
     const data = this._loadData();
     const sum  = this._taichanSummary(data);
-    const soldMap = this._taichanSoldToday();
+    const { soldByProduct } = this._taichanSoldToday();
     const taichanProds = (window.State.products || []).filter(p => p.kat === 'Taichan');
     const isOwner = window.State && window.State.isOwner();
 
+    // Cek apakah ada produk yang belum di-set tusuknya
+    const missingTusuk = taichanProds.filter(p => !p.tusuk || p.tusuk <= 0);
+
     const soldRows = taichanProds.length
       ? taichanProds.map(p => {
-          const qty = soldMap[p.id] || 0;
+          const info = soldByProduct[p.id];
+          const porsi = info ? info.qty : 0;
+          const tusukTerjual = info ? info.tusukTotal : 0;
+          const tusukPerPorsi = p.tusuk || '?';
           const icon = window.FoodIcons ? window.FoodIcons.get(p.emj || '🍢', { size: 20 }) : (p.emj || '🍢');
           return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-            <span style="font-size:13px;display:inline-flex;align-items:center;gap:6px;">${icon} ${p.nm}</span>
-            <span class="font-mono" style="font-weight:700;color:${qty>0?'var(--primary)':'var(--secondary)'};">${qty} tusuk</span>
+            <span style="font-size:13px;display:inline-flex;align-items:center;gap:6px;">${icon} ${p.nm}
+              <span style="font-size:10px;color:var(--secondary);background:rgba(255,255,255,0.06);border-radius:4px;padding:1px 5px;">${tusukPerPorsi} tusuk/porsi</span>
+            </span>
+            <span class="font-mono" style="text-align:right;">
+              <span style="color:${porsi>0?'var(--primary)':'var(--secondary)'}; font-weight:700;">${porsi} porsi</span>
+              ${porsi > 0 ? `<span style="color:var(--warning);font-size:11px;margin-left:6px;">= ${tusukTerjual} tusuk</span>` : ''}
+            </span>
           </div>`;
         }).join('')
       : `<div style="text-align:center;padding:12px;color:var(--secondary);font-size:12px;">Belum ada menu Taichan terdaftar</div>`;
@@ -269,16 +287,6 @@ class StockTrackerView {
             <td style="padding:10px 12px;font-size:12px;color:var(--secondary);">${b.date}</td>
             <td style="padding:10px 12px;">${this._freshnessBadge(b.date)}</td>
             <td class="font-mono" style="padding:10px 12px;font-weight:700;">${b.raw} tusuk</td>
-            <td style="padding:10px 12px;">
-              <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" min="0" max="${b.raw}" value="${b.fried}"
-                  class="form-input font-mono" style="width:72px;padding:4px 6px;font-size:12px;text-align:center;"
-                  onchange="window.StockTracker._updateTaichanFried('${b.id}',this.value);window.StockTracker.render();"
-                  ${!fresh?'disabled':''}>
-                <span style="font-size:11px;color:var(--secondary);">/ ${b.raw}</span>
-              </div>
-            </td>
-            <td class="font-mono" style="padding:10px 12px;color:${b.fried>0?'var(--tertiary)':'var(--secondary)'};">${isOwner ? b.fried + ' tusuk' : '••'}</td>
             <td style="padding:10px 12px;font-size:12px;color:var(--secondary);">${b.notes||'-'}</td>
             <td style="padding:10px 12px;text-align:right;">
               <button class="btn btn-secondary" style="padding:4px 8px;color:var(--error);"
@@ -288,15 +296,26 @@ class StockTrackerView {
             </td>
           </tr>`;
         }).join('')
-      : `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--secondary);font-size:13px;">Belum ada batch. Klik "Tambah Batch" untuk mulai.</td></tr>`;
+      : `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--secondary);font-size:13px;">Belum ada batch. Klik "Tambah Batch" untuk mulai.</td></tr>`;
+
+    // Warning jika ada produk Taichan yang belum di-set tusuknya
+    const tusukWarning = missingTusuk.length > 0
+      ? `<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+          <span class="material-symbols-outlined" style="color:var(--error);font-size:20px;">warning</span>
+          <div style="font-size:12px;">
+            <div style="font-weight:700;color:var(--error);">Perhatian: ${missingTusuk.length} produk Taichan belum diset tusuk per porsi!</div>
+            <div style="color:var(--secondary);margin-top:2px;">Buka <b>Menu Manager → Edit</b> produk berikut dan isi field "Tusuk per Porsi": <b>${missingTusuk.map(p=>p.nm).join(', ')}</b></div>
+          </div>
+        </div>`
+      : '';
 
     const summarySection = isOwner
       ? `
+        ${tusukWarning}
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;">
           ${this._summaryCard('🍢','Stok Mentah',sum.totalRaw+' tusuk','var(--on-surface)')}
-          ${this._summaryCard('🔥','Sudah Digoreng',sum.totalFried+' tusuk','var(--warning)')}
-          ${this._summaryCard('💸','Terjual Hari Ini',sum.totalSold+' tusuk','var(--primary)')}
-          ${this._summaryCard('📦','Sisa Matang',sum.sisa+' tusuk',sum.sisa>0?'var(--tertiary)':'var(--secondary)')}
+          ${this._summaryCard('💸','Terjual Hari Ini',sum.totalTusukSold+' tusuk','var(--primary)')}
+          ${this._summaryCard('📦','Sisa Tusuk',sum.sisa+' tusuk',sum.sisa>0?'var(--tertiary)':'var(--secondary)')}
         </div>
         <div class="section-card" style="margin-bottom:14px;">
           <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
@@ -306,11 +325,12 @@ class StockTrackerView {
           ${soldRows}
         </div>`
       : `
+        ${tusukWarning}
         <div style="background:var(--surface-container);border:1px dashed rgba(255,255,255,0.12);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
           <span class="material-symbols-outlined" style="font-size:26px;color:var(--primary);">verified_user</span>
           <div>
             <div style="font-weight:700;font-size:13px;color:var(--on-surface);">Mode Input Stok Kasir (Blind Audit)</div>
-            <div style="font-size:12px;color:var(--secondary);margin-top:2px;">Rekonsiliasi total proses &amp; sisa dihitung otomatis untuk audit Owner. Masukkan jumlah mentah &amp; goreng riil di bawah.</div>
+            <div style="font-size:12px;color:var(--secondary);margin-top:2px;">Rekonsiliasi total proses &amp; sisa dihitung otomatis untuk audit Owner. Masukkan jumlah mentah riil di bawah.</div>
           </div>
         </div>`;
 
@@ -320,17 +340,17 @@ class StockTrackerView {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
           <div>
             <div style="font-size:13px;font-weight:700;">📋 Batch Stok Taichan</div>
-            <div style="font-size:11px;color:var(--secondary);margin-top:2px;">Catat stok mentah &amp; update jumlah yang digoreng</div>
+            <div style="font-size:11px;color:var(--secondary);margin-top:2px;">Catat stok mentah (tusuk) per batch — penjualan otomatis ter-tracking dari POS</div>
           </div>
           <button class="btn btn-primary" style="font-size:12px;" onclick="window.StockTracker.openAddTaichanModal()">
             <span class="material-symbols-outlined" style="font-size:16px;">add</span> Tambah Batch
           </button>
         </div>
         <div style="overflow-x:auto;">
-          <table class="data-table" style="min-width:640px;">
+          <table class="data-table" style="min-width:480px;">
             <thead><tr>
               <th>Tanggal</th><th>Kelayakan</th><th>Stok Mentah</th>
-              <th>Digoreng</th><th>Total Goreng</th><th>Keterangan</th>
+              <th>Keterangan</th>
               <th style="text-align:right;">Aksi</th>
             </tr></thead>
             <tbody>${batchRows}</tbody>

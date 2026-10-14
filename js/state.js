@@ -45,9 +45,9 @@ const DEFAULT_CATEGORIES = [
 ];
 
 const DEFAULT_PRODUCTS = [
-  { id: 1, nm: 'Taichan Pedas Lv.3', kat: 'Taichan', hr: 18000, md: 5600, emj: '🍢', lv: 'Lv.3', on: true, bom: [{ invId: 1, qty: 0.15 }, { invId: 2, qty: 0.10 }] },
-  { id: 2, nm: 'Taichan Original', kat: 'Taichan', hr: 15000, md: 5440, emj: '🍢', lv: '', on: true, bom: [{ invId: 1, qty: 0.15 }, { invId: 2, qty: 0.08 }] },
-  { id: 3, nm: 'Taichan Jumbo Lv.2', kat: 'Taichan', hr: 22000, md: 8000, emj: '🍢', lv: 'Lv.2', on: true, bom: [{ invId: 1, qty: 0.22 }, { invId: 2, qty: 0.12 }] },
+  { id: 1, nm: 'Taichan Pedas Lv.3', kat: 'Taichan', hr: 18000, md: 5600, emj: '🍢', lv: 'Lv.3', on: true, tusuk: 5, bom: [{ invId: 1, qty: 0.15 }, { invId: 2, qty: 0.10 }] },
+  { id: 2, nm: 'Taichan Original', kat: 'Taichan', hr: 15000, md: 5440, emj: '🍢', lv: '', on: true, tusuk: 5, bom: [{ invId: 1, qty: 0.15 }, { invId: 2, qty: 0.08 }] },
+  { id: 3, nm: 'Taichan Jumbo Lv.2', kat: 'Taichan', hr: 22000, md: 8000, emj: '🍢', lv: 'Lv.2', on: true, tusuk: 10, bom: [{ invId: 1, qty: 0.22 }, { invId: 2, qty: 0.12 }] },
   { id: 4, nm: 'Chicken Crispy', kat: 'Chicken', hr: 20000, md: 7300, emj: '🍗', lv: '', on: true, bom: [{ invId: 1, qty: 0.20 }, { invId: 3, qty: 0.05 }] },
   { id: 5, nm: 'Chicken Pedas Lv.1', kat: 'Chicken', hr: 20000, md: 7700, emj: '🍗', lv: 'Lv.1', on: true, bom: [{ invId: 1, qty: 0.20 }, { invId: 3, qty: 0.05 }, { invId: 2, qty: 0.05 }] },
   { id: 6, nm: 'Es Teh Manis', kat: 'Minuman', hr: 5000, md: 950, emj: '🧊', lv: '', on: true, bom: [{ invId: 4, qty: 1 }, { invId: 5, qty: 0.15 }] },
