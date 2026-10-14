@@ -409,7 +409,7 @@
             <div class="zone-b">
               <!-- POS Operational Top Bar -->
               <div class="pos-top-bar">
-                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <div class="pos-top-left" style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
                   <!-- Order Type Switcher -->
                   <div class="order-type-group">
                     <button type="button" class="order-type-btn btn-order-type active" data-type="dine-in">
@@ -427,7 +427,7 @@
                   </div>
                 </div>
 
-                <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;justify-content:flex-end;">
+                <div class="pos-top-right" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;justify-content:flex-end;">
                   <!-- Search -->
                   <div class="pos-search-wrapper" style="flex:1;min-width:0;max-width:380px;">
                     <span class="material-symbols-outlined pos-search-icon">search</span>
@@ -437,23 +437,26 @@
                     </button>
                   </div>
 
-                  <!-- Update Stok Harian Button -->
-                  <button class="btn btn-secondary" onclick="if(window.Router){window.Router.navigate('inventory');if(window.InventoryView){window.InventoryView.switchTab('stock_harian');}}" title="Update Stok Harian (Taichan, Ayam & Bahan)" style="white-space:nowrap;flex-shrink:0;">
-                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--tertiary);">inventory_2</span>
-                    <span class="hidden-sm">Update Stok</span>
-                  </button>
+                  <!-- Quick Action Buttons -->
+                  <div class="pos-top-actions" style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                    <!-- Update Stok Harian Button -->
+                    <button class="btn btn-secondary btn-pos-quick" onclick="if(window.Router){window.Router.navigate('inventory');if(window.InventoryView){window.InventoryView.switchTab('stock_harian');}}" title="Update Stok Harian (Taichan, Ayam & Bahan)" style="white-space:nowrap;flex-shrink:0;">
+                      <span class="material-symbols-outlined" style="font-size:16px;color:var(--tertiary);">inventory_2</span>
+                      <span class="hidden-sm">Update Stok</span>
+                    </button>
 
-                  <!-- Fast Stock (Availability Toggle) -->
-                  <button class="btn btn-secondary" onclick="window.InventoryView && window.InventoryView.render();document.getElementById('fast-stock-modal').classList.add('open');" title="Update Cepat Ketersediaan Menu" style="white-space:nowrap;flex-shrink:0;">
-                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--warning);">bolt</span>
-                    <span class="hidden-sm">Fast Stock</span>
-                  </button>
+                    <!-- Fast Stock (Availability Toggle) -->
+                    <button class="btn btn-secondary btn-pos-quick" onclick="window.InventoryView && window.InventoryView.render();document.getElementById('fast-stock-modal').classList.add('open');" title="Update Cepat Ketersediaan Menu" style="white-space:nowrap;flex-shrink:0;">
+                      <span class="material-symbols-outlined" style="font-size:16px;color:var(--warning);">bolt</span>
+                      <span class="hidden-sm">Fast Stock</span>
+                    </button>
 
-                  <!-- Riwayat Transaksi Quick Button -->
-                  <button class="btn btn-secondary" onclick="window.Router && window.Router.navigate('orders')" title="Buka Riwayat Transaksi" style="white-space:nowrap;flex-shrink:0;">
-                    <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">receipt_long</span>
-                    <span class="hidden-sm">Riwayat</span>
-                  </button>
+                    <!-- Riwayat Transaksi Quick Button -->
+                    <button class="btn btn-secondary btn-pos-quick" onclick="window.Router && window.Router.navigate('orders')" title="Buka Riwayat Transaksi" style="white-space:nowrap;flex-shrink:0;">
+                      <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary);">receipt_long</span>
+                      <span class="hidden-sm">Riwayat</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
