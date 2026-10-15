@@ -54,6 +54,7 @@ fun KaPosApp(
             settingsRepository = app.settingsRepository,
             supabaseClient = app.supabaseClient,
             posRepository = app.posRepository,
+            bluetoothPrinterService = app.bluetoothPrinterService,
             database = app.database
         )
     }

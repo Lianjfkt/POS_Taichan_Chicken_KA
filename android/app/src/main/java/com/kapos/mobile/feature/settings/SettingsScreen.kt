@@ -18,18 +18,23 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -69,8 +74,14 @@ fun SettingsRoute(
         onAnonKeyChange = viewModel::onAnonKeyChange,
         onStoreNameChange = viewModel::onStoreNameChange,
         onStoreAddressChange = viewModel::onStoreAddressChange,
+        onStorePhoneChange = viewModel::onStorePhoneChange,
         onCashierNameChange = viewModel::onCashierNameChange,
         onReceiptFooterChange = viewModel::onReceiptFooterChange,
+        onRefreshPrinters = viewModel::loadPairedPrinters,
+        onSelectPrinter = viewModel::onSelectPrinter,
+        onPaperWidthChange = viewModel::onPaperWidthChange,
+        onAutoPrintChange = viewModel::onAutoPrintChange,
+        onTestPrint = viewModel::testPrintReceipt,
         onSave = viewModel::saveSettings,
         onTestConnection = viewModel::testConnection,
         onSyncNow = viewModel::syncNow,
@@ -86,8 +97,14 @@ fun SettingsScreen(
     onAnonKeyChange: (String) -> Unit,
     onStoreNameChange: (String) -> Unit,
     onStoreAddressChange: (String) -> Unit,
+    onStorePhoneChange: (String) -> Unit,
     onCashierNameChange: (String) -> Unit,
     onReceiptFooterChange: (String) -> Unit,
+    onRefreshPrinters: () -> Unit,
+    onSelectPrinter: (name: String, address: String) -> Unit,
+    onPaperWidthChange: (Int) -> Unit,
+    onAutoPrintChange: (Boolean) -> Unit,
+    onTestPrint: () -> Unit,
     onSave: () -> Unit,
     onTestConnection: () -> Unit,
     onSyncNow: () -> Unit,
@@ -305,6 +322,21 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         OutlinedTextField(
+                            value = uiState.storePhone,
+                            onValueChange = onStorePhoneChange,
+                            label = { Text("Nomor Telepon Toko") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedTextField(
                             value = uiState.receiptFooter,
                             onValueChange = onReceiptFooterChange,
                             label = { Text("Pesan Kaki Struk (Footer)") },
@@ -316,6 +348,202 @@ fun SettingsScreen(
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
+                    }
+                }
+
+                // Section 2B: Pengaturan Printer Thermal (Bluetooth)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Md)
+                        .background(SurfaceWhite)
+                        .border(1.dp, OutlineSoft, AppShapes.Md)
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(PrimarySoft),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Print,
+                                        contentDescription = null,
+                                        tint = Primary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Printer Thermal (Bluetooth)",
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                    Text(
+                                        text = "ESC/POS Struk Kasir 58mm / 80mm",
+                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                    )
+                                }
+                            }
+
+                            IconButton(onClick = onRefreshPrinters) {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = "Refresh",
+                                    tint = Primary
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = "Pilih Printer yang Terpasang (Paired):",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        if (uiState.pairedDevices.isEmpty()) {
+                            Text(
+                                text = "Tidak ada printer Bluetooth ter-pairing. Buka pengaturan Bluetooth ponsel/tablet dan hubungkan printer Anda terlebih dahulu.",
+                                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+                            )
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                uiState.pairedDevices.forEach { device ->
+                                    val isSelected = uiState.printerMacAddress == device.address
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(AppShapes.Sm)
+                                            .background(if (isSelected) PrimarySoft else SurfaceTint)
+                                            .border(1.dp, if (isSelected) Primary else OutlineSoft, AppShapes.Sm)
+                                            .clickable {
+                                                onSelectPrinter(device.name, device.address)
+                                            }
+                                            .padding(10.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column {
+                                            Text(
+                                                text = device.name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    color = if (isSelected) Primary else TextPrimary
+                                                )
+                                            )
+                                            Text(
+                                                text = device.address,
+                                                style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                            )
+                                        }
+
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "Selected",
+                                                tint = Primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Lebar Kertas
+                        Text(
+                            text = "Ukuran Kertas Thermal:",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            listOf(58 to "58mm (Standar)", 80 to "80mm (Lebar)").forEach { (width, label) ->
+                                val isSelected = uiState.paperWidth == width
+                                Box(
+                                    modifier = Modifier
+                                        .clip(AppShapes.Sm)
+                                        .background(if (isSelected) Primary else SurfaceTint)
+                                        .border(1.dp, if (isSelected) Primary else OutlineSoft, AppShapes.Sm)
+                                        .clickable { onPaperWidthChange(width) }
+                                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = if (isSelected) SurfaceWhite else TextPrimary,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Auto-print Toggle
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Cetak Otomatis saat Checkout",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                                Text(
+                                    text = "Langsung kirim nota ke printer begitu kasir menyelesaikan transaksi",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                )
+                            }
+                            Switch(
+                                checked = uiState.autoPrintCheckout,
+                                onCheckedChange = onAutoPrintChange
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Test Print Button
+                        SecondaryButton(
+                            text = if (uiState.isTestingPrint) "Mengirim Tes Struk..." else "Tes Cetak Struk Fisik",
+                            icon = Icons.Default.Print,
+                            onClick = onTestPrint,
+                            enabled = !uiState.isTestingPrint && uiState.printerMacAddress.isNotBlank()
+                        )
+
+                        if (uiState.printTestStatusMessage != null) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            val isSuccess = uiState.isPrintTestSuccess == true
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(if (isSuccess) Color(0xFFE8F7EE) else Color(0xFFFFEEEE))
+                                    .padding(8.dp)
+                            ) {
+                                Text(
+                                    text = uiState.printTestStatusMessage,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = if (isSuccess) Success else Danger,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
 

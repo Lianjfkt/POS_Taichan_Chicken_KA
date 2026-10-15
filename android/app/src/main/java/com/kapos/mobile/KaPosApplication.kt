@@ -20,6 +20,9 @@ class KaPosApplication : Application() {
     lateinit var posRepository: PosRepository
         private set
 
+    lateinit var bluetoothPrinterService: com.kapos.mobile.core.printer.BluetoothPrinterService
+        private set
+
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -32,6 +35,8 @@ class KaPosApplication : Application() {
             baseUrl = settings.supabaseUrl,
             apiKey = settings.supabaseAnonKey
         )
+
+        bluetoothPrinterService = com.kapos.mobile.core.printer.BluetoothPrinterService(this)
 
         posRepository = PosRepository(
             database = database,
