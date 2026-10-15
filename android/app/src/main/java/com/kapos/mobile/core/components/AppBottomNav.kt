@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.WorkHistory
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,6 +45,7 @@ sealed class NavDestination(
 ) {
     object Pos : NavDestination("pos", "Kasir", Icons.Default.PointOfSale)
     object Transactions : NavDestination("transactions", "Transaksi", Icons.Default.ReceiptLong)
+    object Shift : NavDestination("shift", "Shift", Icons.Default.WorkHistory)
     object Report : NavDestination("report", "Laporan", Icons.Default.BarChart)
     object Settings : NavDestination("settings", "Pengaturan", Icons.Default.Settings)
 }
@@ -51,6 +53,7 @@ sealed class NavDestination(
 val bottomNavDestinations = listOf(
     NavDestination.Pos,
     NavDestination.Transactions,
+    NavDestination.Shift,
     NavDestination.Report,
     NavDestination.Settings
 )

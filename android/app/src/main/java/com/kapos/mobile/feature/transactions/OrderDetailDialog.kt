@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Share
@@ -38,6 +39,7 @@ import com.kapos.mobile.core.components.PrimaryButton
 import com.kapos.mobile.core.components.SecondaryButton
 import com.kapos.mobile.core.components.StatusBadge
 import com.kapos.mobile.core.theme.AppShapes
+import com.kapos.mobile.core.theme.Danger
 import com.kapos.mobile.core.theme.OutlineSoft
 import com.kapos.mobile.core.theme.Primary
 import com.kapos.mobile.core.theme.SurfaceTint
@@ -57,6 +59,8 @@ fun OrderDetailDialog(
     order: Order,
     items: List<OrderItem>,
     isLoading: Boolean,
+    onPrint: () -> Unit = {},
+    onVoid: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID"))
@@ -223,9 +227,17 @@ fun OrderDetailDialog(
                     SecondaryButton(
                         text = "Cetak",
                         icon = Icons.Default.Print,
-                        onClick = onDismiss,
+                        onClick = onPrint,
                         modifier = Modifier.weight(1f)
                     )
+                    if (onVoid != null && order.paymentStatus == PaymentStatus.PAID) {
+                        SecondaryButton(
+                            text = "VOID",
+                            icon = Icons.Default.Cancel,
+                            onClick = onVoid,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                     PrimaryButton(
                         text = "Tutup",
                         onClick = onDismiss,

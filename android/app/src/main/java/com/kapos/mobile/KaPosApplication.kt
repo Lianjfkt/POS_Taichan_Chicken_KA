@@ -5,6 +5,7 @@ import com.kapos.mobile.core.data.local.AppDatabase
 import com.kapos.mobile.core.data.remote.SupabaseClient
 import com.kapos.mobile.core.data.repository.PosRepository
 import com.kapos.mobile.core.data.repository.SettingsRepository
+import com.kapos.mobile.core.data.repository.ShiftRepository
 
 class KaPosApplication : Application() {
 
@@ -20,6 +21,12 @@ class KaPosApplication : Application() {
     lateinit var posRepository: PosRepository
         private set
 
+    lateinit var shiftRepository: ShiftRepository
+        private set
+
+    lateinit var savedOrderRepository: com.kapos.mobile.core.data.repository.SavedOrderRepository
+        private set
+
     lateinit var bluetoothPrinterService: com.kapos.mobile.core.printer.BluetoothPrinterService
         private set
 
@@ -29,6 +36,7 @@ class KaPosApplication : Application() {
 
         database = AppDatabase.getInstance(this)
         settingsRepository = SettingsRepository(this)
+        savedOrderRepository = com.kapos.mobile.core.data.repository.SavedOrderRepository(this)
 
         val settings = settingsRepository.settingsFlow.value
         supabaseClient = SupabaseClient(
@@ -42,6 +50,8 @@ class KaPosApplication : Application() {
             database = database,
             supabaseClient = supabaseClient
         )
+
+        shiftRepository = ShiftRepository(database = database)
     }
 
     companion object {
@@ -49,3 +59,4 @@ class KaPosApplication : Application() {
             private set
     }
 }
+

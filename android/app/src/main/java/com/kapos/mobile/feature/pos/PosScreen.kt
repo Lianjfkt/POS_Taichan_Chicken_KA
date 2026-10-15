@@ -70,6 +70,15 @@ fun PosRoute(
         onQuantityChange = viewModel::updateCartItemQuantity,
         onRemoveCartItem = viewModel::removeCartItem,
         onClearCart = viewModel::clearCart,
+        onHoldOrderClick = viewModel::onOpenHoldDialog,
+        onDismissHoldDialog = viewModel::onDismissHoldDialog,
+        onCustomerNameChange = viewModel::onCustomerNameInputChange,
+        onTableNoChange = viewModel::onTableNoInputChange,
+        onConfirmHoldOrder = viewModel::confirmHoldOrder,
+        onOpenSavedOrders = viewModel::onOpenSavedOrdersDialog,
+        onDismissSavedOrders = viewModel::onDismissSavedOrdersDialog,
+        onRecallSavedOrder = viewModel::recallSavedOrder,
+        onDeleteSavedOrder = viewModel::deleteSavedOrder,
         onSyncClick = viewModel::refreshData,
         onCheckoutClick = {
             viewModel.setCartSheetOpen(false)
@@ -92,6 +101,15 @@ fun PosScreen(
     onQuantityChange: (Int, Int) -> Unit,
     onRemoveCartItem: (Int) -> Unit,
     onClearCart: () -> Unit,
+    onHoldOrderClick: () -> Unit,
+    onDismissHoldDialog: () -> Unit,
+    onCustomerNameChange: (String) -> Unit,
+    onTableNoChange: (String) -> Unit,
+    onConfirmHoldOrder: () -> Unit,
+    onOpenSavedOrders: () -> Unit,
+    onDismissSavedOrders: () -> Unit,
+    onRecallSavedOrder: (com.kapos.mobile.domain.model.SavedOrder) -> Unit,
+    onDeleteSavedOrder: (String) -> Unit,
     onSyncClick: () -> Unit,
     onCheckoutClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -107,6 +125,8 @@ fun PosScreen(
                 subtitle = "Taichan & Chicken KA",
                 isOnline = uiState.isOnline,
                 isSyncing = uiState.isSyncing,
+                savedOrdersCount = uiState.savedOrders.size,
+                onSavedOrdersClick = onOpenSavedOrders,
                 onSyncClick = onSyncClick
             )
 
@@ -175,6 +195,7 @@ fun PosScreen(
                 onQuantityChange = onQuantityChange,
                 onRemoveItem = onRemoveCartItem,
                 onClearCart = onClearCart,
+                onHoldOrderClick = onHoldOrderClick,
                 onCheckoutClick = onCheckoutClick,
                 onDismiss = onCloseCartSheet
             )
@@ -186,6 +207,30 @@ fun PosScreen(
                 product = uiState.selectedProductForModifier,
                 onDismiss = onDismissModifier,
                 onConfirmAddToCart = onConfirmModifierAddToCart
+            )
+        }
+
+        // Hold Order Dialog
+        if (uiState.showHoldDialog) {
+            HoldOrderDialog(
+                customerName = uiState.customerNameInput,
+                tableNo = uiState.tableNoInput,
+                subtotal = uiState.cartSubtotal,
+                itemCount = uiState.cartTotalCount,
+                onCustomerNameChange = onCustomerNameChange,
+                onTableNoChange = onTableNoChange,
+                onConfirmHold = onConfirmHoldOrder,
+                onDismiss = onDismissHoldDialog
+            )
+        }
+
+        // Saved Orders Dialog
+        if (uiState.showSavedOrdersDialog) {
+            SavedOrdersDialog(
+                savedOrders = uiState.savedOrders,
+                onRecallOrder = onRecallSavedOrder,
+                onDeleteOrder = onDeleteSavedOrder,
+                onDismiss = onDismissSavedOrders
             )
         }
     }

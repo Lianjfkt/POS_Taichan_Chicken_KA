@@ -13,7 +13,13 @@ data class PosUiState(
     val isCartSheetOpen: Boolean = false,
     val selectedProductForModifier: Product? = null,
     val isOnline: Boolean = true,
-    val isSyncing: Boolean = false
+    val isSyncing: Boolean = false,
+    // Saved Orders (Hold)
+    val savedOrders: List<com.kapos.mobile.domain.model.SavedOrder> = emptyList(),
+    val showHoldDialog: Boolean = false,
+    val showSavedOrdersDialog: Boolean = false,
+    val customerNameInput: String = "",
+    val tableNoInput: String = ""
 ) {
     val filteredProducts: List<Product>
         get() {

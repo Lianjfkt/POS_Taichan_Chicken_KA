@@ -55,6 +55,18 @@ import com.kapos.mobile.core.utils.CurrencyFormatter
 import com.kapos.mobile.domain.model.Order
 import com.kapos.mobile.domain.model.PaymentStatus
 import com.kapos.mobile.domain.model.SyncStatus
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.Dialog
+import com.kapos.mobile.core.components.PrimaryButton
+import com.kapos.mobile.core.components.SecondaryButton
+import com.kapos.mobile.core.theme.Danger
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -72,7 +84,12 @@ fun TransactionsRoute(
         onFilterChange = viewModel::onFilterChange,
         onSelectOrder = viewModel::onSelectOrder,
         onDismissDetail = viewModel::onDismissDetail,
+        onPrintOrder = viewModel::printOrder,
         onSyncClick = viewModel::syncPending,
+        onVoidClick = viewModel::onShowVoidPinDialog,
+        onDismissVoidPin = viewModel::onDismissVoidPinDialog,
+        onVoidPinChange = viewModel::onVoidPinInputChange,
+        onConfirmVoid = viewModel::confirmVoid,
         modifier = modifier
     )
 }
@@ -84,7 +101,12 @@ fun TransactionsScreen(
     onFilterChange: (TransactionFilter) -> Unit,
     onSelectOrder: (Order) -> Unit,
     onDismissDetail: () -> Unit,
+    onPrintOrder: (Order, List<com.kapos.mobile.domain.model.OrderItem>) -> Unit,
     onSyncClick: () -> Unit,
+    onVoidClick: (Order) -> Unit,
+    onDismissVoidPin: () -> Unit,
+    onVoidPinChange: (String) -> Unit,
+    onConfirmVoid: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -192,7 +214,22 @@ fun TransactionsScreen(
                 order = uiState.selectedOrder,
                 items = uiState.selectedOrderItems,
                 isLoading = uiState.isLoadingDetail,
+                onPrint = { onPrintOrder(uiState.selectedOrder, uiState.selectedOrderItems) },
+                onVoid = { onVoidClick(uiState.selectedOrder) },
                 onDismiss = onDismissDetail
+            )
+        }
+
+        // VOID PIN Dialog
+        if (uiState.showVoidPinDialog && uiState.orderToVoid != null) {
+            VoidPinDialog(
+                orderNo = uiState.orderToVoid.orderNo,
+                pin = uiState.voidPinInput,
+                errorMessage = uiState.voidPinError,
+                isLoading = uiState.isVoiding,
+                onPinChange = onVoidPinChange,
+                onConfirm = onConfirmVoid,
+                onDismiss = onDismissVoidPin
             )
         }
     }
@@ -302,3 +339,111 @@ fun FilterChipItem(
         )
     }
 }
+
+@Composable
+fun VoidPinDialog(
+    orderNo: String,
+    pin: String,
+    errorMessage: String?,
+    isLoading: Boolean,
+    onPinChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(AppShapes.Lg)
+                .background(SurfaceWhite)
+                .border(1.dp, OutlineSoft, AppShapes.Lg)
+                .padding(24.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Danger.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Security",
+                        tint = Danger,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Otorisasi VOID Transaksi",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Masukkan 6-digit PIN Owner untuk membatalkan nota $orderNo.",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = TextSecondary,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+
+                OutlinedTextField(
+                    value = pin,
+                    onValueChange = onPinChange,
+                    singleLine = true,
+                    placeholder = { Text("••••••", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    textStyle = MaterialTheme.typography.titleLarge.copy(
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 8.sp
+                    ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = if (errorMessage != null) Danger else Primary,
+                        unfocusedBorderColor = if (errorMessage != null) Danger else OutlineSoft
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = Danger,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    SecondaryButton(
+                        text = "Batal",
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f)
+                    )
+                    PrimaryButton(
+                        text = "VOID Nota",
+                        onClick = onConfirm,
+                        isLoading = isLoading,
+                        enabled = pin.length == 6 && !isLoading,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+

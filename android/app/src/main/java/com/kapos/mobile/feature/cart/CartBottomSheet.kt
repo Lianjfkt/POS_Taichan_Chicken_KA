@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Divider
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kapos.mobile.core.components.PrimaryButton
+import com.kapos.mobile.core.components.SecondaryButton
 import com.kapos.mobile.core.theme.AppShapes
 import com.kapos.mobile.core.theme.Danger
 import com.kapos.mobile.core.theme.OutlineSoft
@@ -58,6 +60,7 @@ fun CartBottomSheet(
     onQuantityChange: (index: Int, delta: Int) -> Unit,
     onRemoveItem: (index: Int) -> Unit,
     onClearCart: () -> Unit,
+    onHoldOrderClick: () -> Unit = {},
     onCheckoutClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -143,12 +146,25 @@ fun CartBottomSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Checkout CTA
-            PrimaryButton(
-                text = "Lanjut ke Pembayaran",
-                onClick = onCheckoutClick,
-                enabled = cartItems.isNotEmpty()
-            )
+            // CTA Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SecondaryButton(
+                    text = "Tahan Order",
+                    icon = Icons.Default.Bookmark,
+                    onClick = onHoldOrderClick,
+                    enabled = cartItems.isNotEmpty(),
+                    modifier = Modifier.weight(1f)
+                )
+                PrimaryButton(
+                    text = "Lanjut Pembayaran",
+                    onClick = onCheckoutClick,
+                    enabled = cartItems.isNotEmpty(),
+                    modifier = Modifier.weight(1.3f)
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
@@ -195,10 +211,13 @@ fun CartItemRow(
                 text = "${item.quantity}x @ ${CurrencyFormatter.formatRupiah(item.product.price)}",
                 style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
             )
-            if (item.spiceLevel.isNotBlank()) {
+            val metaParts = mutableListOf<String>()
+            if (item.spiceLevel.isNotBlank()) metaParts.add("Pedas: ${item.spiceLevel}")
+            if (item.notes.isNotBlank()) metaParts.add(item.notes)
+            if (metaParts.isNotEmpty()) {
                 Text(
-                    text = "Level: ${item.spiceLevel}",
-                    style = MaterialTheme.typography.labelSmall.copy(color = Primary)
+                    text = metaParts.joinToString(" • "),
+                    style = MaterialTheme.typography.labelSmall.copy(color = Primary, fontSize = 11.sp)
                 )
             }
         }

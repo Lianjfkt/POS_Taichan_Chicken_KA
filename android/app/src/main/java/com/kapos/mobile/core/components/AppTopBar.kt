@@ -1,6 +1,7 @@
 package com.kapos.mobile.core.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Sync
@@ -42,6 +44,8 @@ fun AppTopBar(
     subtitle: String? = null,
     isOnline: Boolean = true,
     isSyncing: Boolean = false,
+    savedOrdersCount: Int = 0,
+    onSavedOrdersClick: () -> Unit = {},
     onSyncClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -110,7 +114,34 @@ fun AppTopBar(
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            // Saved Orders (Hold) Button
+            if (savedOrdersCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(Color(0xFFFFF3CD))
+                        .clickable(onClick = onSavedOrdersClick)
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Bookmark,
+                            contentDescription = "Saved Orders",
+                            tint = Color(0xFF856404),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "$savedOrdersCount Hold",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color(0xFF856404),
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+            }
 
             IconButton(
                 onClick = onSyncClick,

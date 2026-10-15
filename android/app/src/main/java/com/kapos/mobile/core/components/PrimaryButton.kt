@@ -88,6 +88,7 @@ fun SecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    isLoading: Boolean = false,
     icon: ImageVector? = null
 ) {
     Box(
@@ -97,27 +98,36 @@ fun SecondaryButton(
             .clip(AppShapes.Lg)
             .background(SurfaceWhite)
             .border(1.dp, OutlineSoft, AppShapes.Lg)
-            .clickable(enabled = enabled, onClick = onClick)
+            .clickable(enabled = enabled && !isLoading, onClick = onClick)
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = TextPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge.copy(
-                    color = TextPrimary,
-                    fontWeight = FontWeight.SemiBold
-                )
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = TextPrimary,
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(22.dp)
             )
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = TextPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+            }
         }
     }
 }
+

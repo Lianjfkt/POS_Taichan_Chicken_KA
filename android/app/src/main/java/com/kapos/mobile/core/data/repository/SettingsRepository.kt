@@ -17,7 +17,8 @@ data class AppSettings(
     val printerMacAddress: String = "",
     val printerName: String = "",
     val paperWidth: Int = 58,
-    val autoPrintCheckout: Boolean = true
+    val autoPrintCheckout: Boolean = true,
+    val ownerPin: String = "1234" // PIN Owner untuk otorisasi VOID & aksi sensitif
 )
 
 class SettingsRepository(context: Context) {
@@ -38,7 +39,8 @@ class SettingsRepository(context: Context) {
             printerMacAddress = prefs.getString("printer_mac_address", "") ?: "",
             printerName = prefs.getString("printer_name", "") ?: "",
             paperWidth = prefs.getInt("paper_width", 58),
-            autoPrintCheckout = prefs.getBoolean("auto_print_checkout", true)
+            autoPrintCheckout = prefs.getBoolean("auto_print_checkout", true),
+            ownerPin = prefs.getString("owner_pin", "1234") ?: "1234"
         )
     }
 
@@ -55,6 +57,7 @@ class SettingsRepository(context: Context) {
             .putString("printer_name", settings.printerName)
             .putInt("paper_width", settings.paperWidth)
             .putBoolean("auto_print_checkout", settings.autoPrintCheckout)
+            .putString("owner_pin", settings.ownerPin)
             .apply()
         _settingsFlow.value = settings
     }

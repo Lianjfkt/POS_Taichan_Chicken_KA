@@ -17,7 +17,13 @@ data class TransactionsUiState(
     val selectedOrder: Order? = null,
     val selectedOrderItems: List<OrderItem> = emptyList(),
     val isLoadingDetail: Boolean = false,
-    val isSyncing: Boolean = false
+    val isSyncing: Boolean = false,
+    // VOID with PIN
+    val showVoidPinDialog: Boolean = false,
+    val orderToVoid: Order? = null,
+    val voidPinInput: String = "",
+    val voidPinError: String? = null,
+    val isVoiding: Boolean = false
 ) {
     val filteredOrders: List<Order>
         get() {

@@ -277,7 +277,7 @@ class PosRepository(
                     discount = order.discount,
                     total = order.total,
                     paymentMethod = order.paymentMethod.lowercase(),
-                    status = "completed",
+                    status = if (order.paymentStatus == "VOID") "void" else "completed",
                     cashierId = order.cashierName,
                     notes = order.notes
                 )
@@ -309,4 +309,10 @@ class PosRepository(
             _isSyncing.value = false
         }
     }
+
+    suspend fun voidOrder(orderId: String) = withContext(Dispatchers.IO) {
+        orderDao.voidOrder(orderId)
+        scope.launch { syncPendingOrders() }
+    }
 }
+

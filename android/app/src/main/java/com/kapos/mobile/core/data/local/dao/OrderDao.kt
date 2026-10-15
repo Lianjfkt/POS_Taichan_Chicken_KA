@@ -48,4 +48,10 @@ interface OrderDao {
 
     @Query("SELECT SUM(total) FROM orders WHERE paymentStatus = 'PAID' AND createdAt >= :startTime")
     fun observeTotalSalesSince(startTime: Long): Flow<Double?>
+
+    @Query("SELECT * FROM orders WHERE paymentStatus = 'PAID' AND createdAt >= :startTime")
+    suspend fun getAllOrdersAfter(startTime: Long): List<OrderEntity>
+
+    @Query("UPDATE orders SET paymentStatus = 'VOID', syncStatus = 'PENDING_SYNC' WHERE id = :orderId")
+    suspend fun voidOrder(orderId: String)
 }

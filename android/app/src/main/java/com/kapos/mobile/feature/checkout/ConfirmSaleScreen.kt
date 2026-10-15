@@ -78,6 +78,8 @@ fun ConfirmSaleRoute(
         onOrderTypeChange = viewModel::onOrderTypeChange,
         onTableNoChange = viewModel::onTableNoChange,
         onCustomerNameChange = viewModel::onCustomerNameChange,
+        onDiscountTypeChange = viewModel::onDiscountTypeChange,
+        onDiscountInputChange = viewModel::onDiscountInputChange,
         onPaymentMethodChange = viewModel::onPaymentMethodChange,
         onCashGivenChange = viewModel::onCashGivenChange,
         onNotesChange = viewModel::onNotesChange,
@@ -98,6 +100,8 @@ fun ConfirmSaleScreen(
     onOrderTypeChange: (OrderType) -> Unit,
     onTableNoChange: (String) -> Unit,
     onCustomerNameChange: (String) -> Unit,
+    onDiscountTypeChange: (com.kapos.mobile.domain.model.DiscountType) -> Unit,
+    onDiscountInputChange: (Double) -> Unit,
     onPaymentMethodChange: (PaymentMethod) -> Unit,
     onCashGivenChange: (Double) -> Unit,
     onNotesChange: (String) -> Unit,
@@ -256,6 +260,82 @@ fun ConfirmSaleScreen(
                                         fontWeight = FontWeight.SemiBold,
                                         color = TextPrimary
                                     )
+                                )
+                            }
+                        }
+
+                        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+
+                        // Subtotal
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(text = "Subtotal", style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary))
+                            Text(
+                                text = CurrencyFormatter.formatRupiah(uiState.subtotal),
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Discount Section
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Diskon Pesanan",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                com.kapos.mobile.domain.model.DiscountType.values().forEach { dType ->
+                                    val isSel = uiState.discountType == dType
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(AppShapes.Sm)
+                                            .background(if (isSel) Primary else SurfaceTint)
+                                            .clickable { onDiscountTypeChange(dType) }
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = dType.displayName,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                color = if (isSel) SurfaceWhite else TextPrimary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = if (uiState.discountInput == 0.0) "" else if (uiState.discountType == com.kapos.mobile.domain.model.DiscountType.PERCENT) uiState.discountInput.toInt().toString() else uiState.discountInput.toLong().toString(),
+                            onValueChange = { str ->
+                                val cleaned = str.filter { it.isDigit() }
+                                val amount = cleaned.toDoubleOrNull() ?: 0.0
+                                onDiscountInputChange(amount)
+                            },
+                            placeholder = { Text(if (uiState.discountType == com.kapos.mobile.domain.model.DiscountType.PERCENT) "Contoh: 10 (%)" else "Contoh: 5000 (Rp)") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        if (uiState.discount > 0) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(text = "Potongan Diskon", style = MaterialTheme.typography.bodySmall.copy(color = Danger))
+                                Text(
+                                    text = "- ${CurrencyFormatter.formatRupiah(uiState.discount)}",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = Danger, fontWeight = FontWeight.Bold)
                                 )
                             }
                         }
@@ -487,7 +567,7 @@ fun PaymentMethodTile(
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterVertically) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,

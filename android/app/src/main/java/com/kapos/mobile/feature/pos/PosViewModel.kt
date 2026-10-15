@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PosViewModel(
-    private val repository: PosRepository
+    private val repository: PosRepository,
+    private val savedOrderRepository: com.kapos.mobile.core.data.repository.SavedOrderRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PosUiState())
@@ -37,6 +38,11 @@ class PosViewModel(
         viewModelScope.launch {
             repository.isSyncing.collect { syncing ->
                 _uiState.update { it.copy(isSyncing = syncing) }
+            }
+        }
+        viewModelScope.launch {
+            savedOrderRepository.savedOrdersFlow.collect { savedList ->
+                _uiState.update { it.copy(savedOrders = savedList) }
             }
         }
     }
@@ -119,9 +125,84 @@ class PosViewModel(
         _uiState.update { it.copy(isCartSheetOpen = isOpen) }
     }
 
+    // --- Hold / Saved Orders ---
+    fun onOpenHoldDialog() {
+        if (_uiState.value.cartItems.isEmpty()) return
+        _uiState.update {
+            it.copy(
+                showHoldDialog = true,
+                customerNameInput = "",
+                tableNoInput = ""
+            )
+        }
+    }
+
+    fun onDismissHoldDialog() {
+        _uiState.update { it.copy(showHoldDialog = false) }
+    }
+
+    fun onCustomerNameInputChange(name: String) {
+        _uiState.update { it.copy(customerNameInput = name) }
+    }
+
+    fun onTableNoInputChange(table: String) {
+        _uiState.update { it.copy(tableNoInput = table) }
+    }
+
+    fun confirmHoldOrder() {
+        val state = _uiState.value
+        if (state.cartItems.isEmpty()) return
+
+        val customer = if (state.customerNameInput.isNotBlank()) state.customerNameInput.trim() else "Umum"
+        val table = state.tableNoInput.trim()
+        val order = com.kapos.mobile.domain.model.SavedOrder(
+            id = "HOLD-" + System.currentTimeMillis(),
+            customerName = customer,
+            tableNo = table,
+            items = state.cartItems,
+            subtotal = state.cartSubtotal,
+            createdAt = System.currentTimeMillis()
+        )
+
+        savedOrderRepository.saveOrder(order)
+        _uiState.update {
+            it.copy(
+                cartItems = emptyList(),
+                isCartSheetOpen = false,
+                showHoldDialog = false,
+                customerNameInput = "",
+                tableNoInput = ""
+            )
+        }
+    }
+
+    fun onOpenSavedOrdersDialog() {
+        _uiState.update { it.copy(showSavedOrdersDialog = true) }
+    }
+
+    fun onDismissSavedOrdersDialog() {
+        _uiState.update { it.copy(showSavedOrdersDialog = false) }
+    }
+
+    fun recallSavedOrder(order: com.kapos.mobile.domain.model.SavedOrder) {
+        savedOrderRepository.removeSavedOrder(order.id)
+        _uiState.update {
+            it.copy(
+                cartItems = order.items,
+                showSavedOrdersDialog = false,
+                isCartSheetOpen = true
+            )
+        }
+    }
+
+    fun deleteSavedOrder(orderId: String) {
+        savedOrderRepository.removeSavedOrder(orderId)
+    }
+
     fun refreshData() {
         viewModelScope.launch {
             repository.refreshFromSupabase()
         }
     }
 }
+

@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TransactionsViewModel(
-    private val repository: PosRepository
+    private val repository: PosRepository,
+    private val settingsRepository: com.kapos.mobile.core.data.repository.SettingsRepository,
+    private val bluetoothPrinterService: com.kapos.mobile.core.printer.BluetoothPrinterService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TransactionsUiState())
@@ -50,9 +52,101 @@ class TransactionsViewModel(
         _uiState.update { it.copy(selectedOrder = null, selectedOrderItems = emptyList()) }
     }
 
+    // --- VOID with PIN ---
+    fun onShowVoidPinDialog(order: Order) {
+        _uiState.update {
+            it.copy(
+                orderToVoid = order,
+                showVoidPinDialog = true,
+                voidPinInput = "",
+                voidPinError = null
+            )
+        }
+    }
+
+    fun onDismissVoidPinDialog() {
+        _uiState.update { it.copy(showVoidPinDialog = false, orderToVoid = null, voidPinInput = "", voidPinError = null) }
+    }
+
+    fun onVoidPinInputChange(pin: String) {
+        if (pin.length <= 6 && pin.all { it.isDigit() }) {
+            _uiState.update { it.copy(voidPinInput = pin, voidPinError = null) }
+        }
+    }
+
+    fun confirmVoid() {
+        val state = _uiState.value
+        val order = state.orderToVoid ?: return
+        val correctPin = settingsRepository.settingsFlow.value.ownerPin
+
+        if (state.voidPinInput != correctPin) {
+            _uiState.update { it.copy(voidPinError = "PIN Owner salah. Coba lagi.") }
+            return
+        }
+
+        _uiState.update { it.copy(isVoiding = true) }
+        viewModelScope.launch {
+            repository.voidOrder(order.id)
+            _uiState.update {
+                it.copy(
+                    isVoiding = false,
+                    showVoidPinDialog = false,
+                    orderToVoid = null,
+                    voidPinInput = "",
+                    voidPinError = null,
+                    selectedOrder = null,
+                    selectedOrderItems = emptyList()
+                )
+            }
+        }
+    }
+
+    fun printOrder(order: Order, items: List<com.kapos.mobile.domain.model.OrderItem>) {
+        viewModelScope.launch {
+            val settings = settingsRepository.settingsFlow.value
+            if (settings.printerMacAddress.isBlank()) return@launch
+
+            try {
+                val builder = com.kapos.mobile.core.printer.EscPosBuilder(settings.paperWidth)
+                val escPosItems = items.map {
+                    com.kapos.mobile.core.printer.EscPosItem(
+                        name = it.productName,
+                        price = it.price,
+                        quantity = it.quantity,
+                        spiceLevel = it.spiceLevel,
+                        notes = it.notes,
+                        subtotal = it.subtotal
+                    )
+                }
+                val dateStr = java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", java.util.Locale("id", "ID")).format(java.util.Date(order.createdAt))
+                val receiptBytes = builder.buildReceipt(
+                    storeName = settings.storeName,
+                    address = settings.storeAddress,
+                    phone = settings.storePhone,
+                    receiptFooter = settings.receiptFooter,
+                    orderNo = order.orderNo,
+                    dateStr = dateStr,
+                    orderType = order.orderType.displayName,
+                    tableNo = order.tableNo,
+                    cashierName = order.cashierName,
+                    customerName = order.customerName,
+                    items = escPosItems,
+                    subtotal = order.subtotal,
+                    discount = order.discount,
+                    total = order.total,
+                    paymentMethod = order.paymentMethod.displayName,
+                    cashGiven = order.total,
+                    change = 0.0
+                )
+                bluetoothPrinterService.printBytes(settings.printerMacAddress, receiptBytes)
+            } catch (_: Exception) {}
+        }
+    }
+
     fun syncPending() {
         viewModelScope.launch {
             repository.syncPendingOrders()
         }
     }
 }
+

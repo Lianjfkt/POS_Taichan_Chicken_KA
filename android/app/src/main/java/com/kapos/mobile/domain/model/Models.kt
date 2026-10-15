@@ -25,6 +25,11 @@ enum class SyncStatus {
     PENDING_SYNC
 }
 
+enum class DiscountType(val displayName: String) {
+    NOMINAL("Rp"),
+    PERCENT("%")
+}
+
 data class Category(
     val id: String,
     val name: String,
@@ -98,4 +103,13 @@ data class Shift(
     val openedAt: Long = System.currentTimeMillis(),
     val closedAt: Long? = null,
     val syncStatus: SyncStatus = SyncStatus.PENDING_SYNC
+) : Serializable
+
+data class SavedOrder(
+    val id: String = "HOLD-" + System.currentTimeMillis(),
+    val customerName: String = "Umum",
+    val tableNo: String = "",
+    val items: List<CartItem> = emptyList(),
+    val subtotal: Double = 0.0,
+    val createdAt: Long = System.currentTimeMillis()
 ) : Serializable

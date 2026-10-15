@@ -22,7 +22,8 @@ import java.util.UUID
 
 class CheckoutViewModel(
     private val repository: PosRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val bluetoothPrinterService: com.kapos.mobile.core.printer.BluetoothPrinterService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckoutUiState())
@@ -38,6 +39,7 @@ class CheckoutViewModel(
                 orderNo = generatedOrderNo,
                 cartItems = items,
                 cashGiven = total, // Default to exact cash
+                discountInput = 0.0,
                 isCompleted = false,
                 isSubmitting = false
             )
@@ -54,6 +56,14 @@ class CheckoutViewModel(
 
     fun onCustomerNameChange(name: String) {
         _uiState.update { it.copy(customerName = name) }
+    }
+
+    fun onDiscountTypeChange(type: com.kapos.mobile.domain.model.DiscountType) {
+        _uiState.update { it.copy(discountType = type) }
+    }
+
+    fun onDiscountInputChange(amount: Double) {
+        _uiState.update { it.copy(discountInput = amount) }
     }
 
     fun onPaymentMethodChange(method: PaymentMethod) {
@@ -75,7 +85,8 @@ class CheckoutViewModel(
         _uiState.update { it.copy(isSubmitting = true) }
 
         viewModelScope.launch {
-            val cashier = settingsRepository.settingsFlow.value.cashierName
+            val settings = settingsRepository.settingsFlow.value
+            val cashier = settings.cashierName
             val order = Order(
                 id = UUID.randomUUID().toString(),
                 orderNo = state.orderNo,
@@ -95,6 +106,45 @@ class CheckoutViewModel(
             )
 
             val created = repository.submitOrder(order, state.cartItems)
+
+            // Auto-print receipt if enabled and printer is paired
+            if (settings.autoPrintCheckout && settings.printerMacAddress.isNotBlank()) {
+                try {
+                    val builder = com.kapos.mobile.core.printer.EscPosBuilder(settings.paperWidth)
+                    val escPosItems = state.cartItems.map {
+                        com.kapos.mobile.core.printer.EscPosItem(
+                            name = it.product.name,
+                            price = it.product.price,
+                            quantity = it.quantity,
+                            spiceLevel = it.spiceLevel,
+                            notes = it.notes,
+                            subtotal = it.subtotal
+                        )
+                    }
+                    val dateStr = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID")).format(Date(order.createdAt))
+                    val receiptBytes = builder.buildReceipt(
+                        storeName = settings.storeName,
+                        address = settings.storeAddress,
+                        phone = settings.storePhone,
+                        receiptFooter = settings.receiptFooter,
+                        orderNo = order.orderNo,
+                        dateStr = dateStr,
+                        orderType = order.orderType.displayName,
+                        tableNo = order.tableNo,
+                        cashierName = order.cashierName,
+                        customerName = order.customerName,
+                        items = escPosItems,
+                        subtotal = order.subtotal,
+                        discount = order.discount,
+                        total = order.total,
+                        paymentMethod = order.paymentMethod.displayName,
+                        cashGiven = state.cashGiven,
+                        change = state.changeDue
+                    )
+                    bluetoothPrinterService.printBytes(settings.printerMacAddress, receiptBytes)
+                } catch (_: Exception) {}
+            }
+
             _uiState.update { it.copy(isSubmitting = false, isCompleted = true) }
             onSuccess(created)
         }

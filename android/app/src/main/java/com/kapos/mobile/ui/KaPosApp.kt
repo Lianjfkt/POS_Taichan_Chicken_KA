@@ -26,6 +26,8 @@ import com.kapos.mobile.feature.report.ReportRoute
 import com.kapos.mobile.feature.report.ReportViewModel
 import com.kapos.mobile.feature.settings.SettingsRoute
 import com.kapos.mobile.feature.settings.SettingsViewModel
+import com.kapos.mobile.feature.shift.ShiftRoute
+import com.kapos.mobile.feature.shift.ShiftViewModel
 
 @Composable
 fun KaPosApp(
@@ -38,13 +40,20 @@ fun KaPosApp(
 
     // Shared ViewModels
     val posViewModel: PosViewModel = viewModel {
-        PosViewModel(app.posRepository)
+        PosViewModel(app.posRepository, app.savedOrderRepository)
     }
     val checkoutViewModel: CheckoutViewModel = viewModel {
-        CheckoutViewModel(app.posRepository, app.settingsRepository)
+        CheckoutViewModel(app.posRepository, app.settingsRepository, app.bluetoothPrinterService)
     }
     val transactionsViewModel: com.kapos.mobile.feature.transactions.TransactionsViewModel = viewModel {
-        com.kapos.mobile.feature.transactions.TransactionsViewModel(app.posRepository)
+        com.kapos.mobile.feature.transactions.TransactionsViewModel(
+            app.posRepository,
+            app.settingsRepository,
+            app.bluetoothPrinterService
+        )
+    }
+    val shiftViewModel: ShiftViewModel = viewModel {
+        ShiftViewModel(app.shiftRepository, app.settingsRepository)
     }
     val reportViewModel: ReportViewModel = viewModel {
         ReportViewModel(app.posRepository, app.settingsRepository)
@@ -97,6 +106,10 @@ fun KaPosApp(
                 )
             }
 
+            composable("shift") {
+                ShiftRoute(viewModel = shiftViewModel)
+            }
+
             composable("report") {
                 ReportRoute(
                     viewModel = reportViewModel
@@ -130,3 +143,5 @@ fun KaPosApp(
         }
     }
 }
+
+
