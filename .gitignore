@@ -35,3 +35,13 @@ build/
 *.zip
 stitch_ka_pos_design_system_shell/
 stitch_ka_pos_design_system_shell.zip
+
+# Android
+.gradle/
+**/build/
+local.properties
+*.apk
+*.aab
+.cxx/
+captures/
+
