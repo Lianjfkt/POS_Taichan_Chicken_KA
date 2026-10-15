@@ -63,6 +63,8 @@ fun PosRoute(
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onSelectCategory = viewModel::onSelectCategory,
         onProductClick = viewModel::onProductClick,
+        onDismissModifier = viewModel::dismissModifier,
+        onConfirmModifierAddToCart = viewModel::confirmModifierAddToCart,
         onOpenCartSheet = { viewModel.setCartSheetOpen(true) },
         onCloseCartSheet = { viewModel.setCartSheetOpen(false) },
         onQuantityChange = viewModel::updateCartItemQuantity,
@@ -83,6 +85,8 @@ fun PosScreen(
     onSearchQueryChange: (String) -> Unit,
     onSelectCategory: (String?) -> Unit,
     onProductClick: (com.kapos.mobile.domain.model.Product) -> Unit,
+    onDismissModifier: () -> Unit,
+    onConfirmModifierAddToCart: (com.kapos.mobile.domain.model.Product, Int, String, String) -> Unit,
     onOpenCartSheet: () -> Unit,
     onCloseCartSheet: () -> Unit,
     onQuantityChange: (Int, Int) -> Unit,
@@ -173,6 +177,15 @@ fun PosScreen(
                 onClearCart = onClearCart,
                 onCheckoutClick = onCheckoutClick,
                 onDismiss = onCloseCartSheet
+            )
+        }
+
+        // Product Modifier / Spice Customization Dialog
+        if (uiState.selectedProductForModifier != null) {
+            ModifierDialog(
+                product = uiState.selectedProductForModifier,
+                onDismiss = onDismissModifier,
+                onConfirmAddToCart = onConfirmModifierAddToCart
             )
         }
     }

@@ -50,11 +50,28 @@ class PosViewModel(
     }
 
     fun onProductClick(product: Product) {
-        // Direct tap adds 1 to cart
-        addToCart(product, spiceLevel = "Sedang", notes = "")
+        val requiresModifier = product.spiceLevel.isNotBlank() ||
+                product.name.contains("Taichan", ignoreCase = true) ||
+                product.name.contains("Chicken", ignoreCase = true) ||
+                product.name.contains("Pedas", ignoreCase = true)
+
+        if (requiresModifier) {
+            _uiState.update { it.copy(selectedProductForModifier = product) }
+        } else {
+            addToCart(product, quantity = 1, spiceLevel = "", notes = "")
+        }
     }
 
-    fun addToCart(product: Product, spiceLevel: String = "Sedang", notes: String = "") {
+    fun dismissModifier() {
+        _uiState.update { it.copy(selectedProductForModifier = null) }
+    }
+
+    fun confirmModifierAddToCart(product: Product, quantity: Int, spiceLevel: String, notes: String) {
+        addToCart(product, quantity = quantity, spiceLevel = spiceLevel, notes = notes)
+        dismissModifier()
+    }
+
+    fun addToCart(product: Product, quantity: Int = 1, spiceLevel: String = "", notes: String = "") {
         _uiState.update { state ->
             val existingIndex = state.cartItems.indexOfFirst {
                 it.product.id == product.id && it.spiceLevel == spiceLevel && it.notes == notes
@@ -62,9 +79,9 @@ class PosViewModel(
             val updated = state.cartItems.toMutableList()
             if (existingIndex >= 0) {
                 val existing = updated[existingIndex]
-                updated[existingIndex] = existing.copy(quantity = existing.quantity + 1)
+                updated[existingIndex] = existing.copy(quantity = existing.quantity + quantity)
             } else {
-                updated.add(CartItem(product = product, quantity = 1, spiceLevel = spiceLevel, notes = notes))
+                updated.add(CartItem(product = product, quantity = quantity, spiceLevel = spiceLevel, notes = notes))
             }
             state.copy(cartItems = updated)
         }
