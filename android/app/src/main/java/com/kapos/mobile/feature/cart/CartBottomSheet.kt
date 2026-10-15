@@ -185,18 +185,25 @@ fun CartItemRow(
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Thumbnail Box
+        // Quantity Badge Box
         Box(
             modifier = Modifier
-                .size(46.dp)
-                .clip(AppShapes.Sm)
+                .size(40.dp)
+                .clip(CircleShape)
                 .background(PrimarySoft),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = item.product.emoji, fontSize = 22.sp)
+            Text(
+                text = "${item.quantity}",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Primary,
+                    fontSize = 15.sp
+                )
+            )
         }
 
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
         // Info
         Column(modifier = Modifier.weight(1f)) {

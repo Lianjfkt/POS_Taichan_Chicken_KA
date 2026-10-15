@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -27,13 +28,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kapos.mobile.core.theme.AppShapes
 import com.kapos.mobile.core.theme.OutlineSoft
-import com.kapos.mobile.core.theme.PastelBlue
-import com.kapos.mobile.core.theme.PastelGreen
-import com.kapos.mobile.core.theme.PastelPeach
-import com.kapos.mobile.core.theme.PastelYellow
 import com.kapos.mobile.core.theme.Primary
+import com.kapos.mobile.core.theme.PrimarySoft
+import com.kapos.mobile.core.theme.SurfaceTint
 import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
@@ -46,36 +44,58 @@ fun ProductCard(
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pastelBg = when (product.categoryId) {
-        "cat_taichan" -> PastelPeach
-        "cat_chicken" -> PastelYellow
-        "cat_drinks" -> PastelBlue
-        else -> PastelGreen
+    val categoryLabel = when (product.categoryId) {
+        "cat_taichan" -> "SATE TAICHAN"
+        "cat_chicken" -> "AYAM GORENG"
+        "cat_drinks" -> "MINUMAN"
+        "cat_sides" -> "EKSTRA"
+        else -> "MENU"
     }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(AppShapes.Md)
+            .clip(RoundedCornerShape(14.dp))
             .background(SurfaceWhite)
-            .border(1.dp, OutlineSoft, AppShapes.Md)
+            .border(1.dp, OutlineSoft, RoundedCornerShape(14.dp))
             .clickable(onClick = onAddClick)
-            .padding(12.dp)
+            .padding(14.dp)
     ) {
-        Column {
-            // Food Emoji Banner
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(88.dp)
-                    .clip(AppShapes.Sm)
-                    .background(pastelBg),
-                contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Category Tag & Spice Indicator
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = product.emoji,
-                    fontSize = 42.sp
-                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(SurfaceTint)
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = categoryLabel,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Primary
+                        )
+                    )
+                }
+
+                if (product.spiceLevel.isNotBlank()) {
+                    Text(
+                        text = "Level 0–5",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextSecondary
+                        )
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -84,27 +104,35 @@ fun ProductCard(
             Text(
                 text = product.name,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
                 ),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
 
-            if (product.description.isNotBlank()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = product.description,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 11.sp,
-                        color = TextSecondary
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Spacer(modifier = Modifier.height(4.dp))
 
-            Spacer(modifier = Modifier.height(10.dp))
+            // Description / Subtitle
+            val desc = if (product.description.isNotBlank()) {
+                product.description
+            } else if (product.spiceLevel.isNotBlank()) {
+                "Pilihan rasa pedas gurih"
+            } else {
+                "Porsi segar siap saji"
+            }
+            Text(
+                text = desc,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 11.sp,
+                    color = TextSecondary
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Price & Add Button Row
             Row(
@@ -117,7 +145,7 @@ fun ProductCard(
                     style = MaterialTheme.typography.titleMedium.copy(
                         color = Primary,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 15.sp
                     )
                 )
 
@@ -131,7 +159,7 @@ fun ProductCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Add ${product.name}",
+                        contentDescription = "Tambah ${product.name}",
                         tint = SurfaceWhite,
                         modifier = Modifier.size(18.dp)
                     )

@@ -77,25 +77,23 @@ fun ModifierDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = product.emoji, fontSize = 28.sp)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = product.name,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = product.name,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
                             )
-                            Text(
-                                text = CurrencyFormatter.formatRupiah(product.price),
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = Primary,
-                                    fontWeight = FontWeight.Bold
-                                )
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = CurrencyFormatter.formatRupiah(product.price),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = Primary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
                             )
-                        }
+                        )
                     }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
                         Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = TextSecondary)
