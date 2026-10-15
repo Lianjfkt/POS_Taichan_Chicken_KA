@@ -1,0 +1,386 @@
+package com.kapos.mobile.feature.settings
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.kapos.mobile.core.components.PrimaryButton
+import com.kapos.mobile.core.components.SecondaryButton
+import com.kapos.mobile.core.theme.AppShapes
+import com.kapos.mobile.core.theme.Danger
+import com.kapos.mobile.core.theme.OutlineSoft
+import com.kapos.mobile.core.theme.Primary
+import com.kapos.mobile.core.theme.PrimarySoft
+import com.kapos.mobile.core.theme.ScreenBackground
+import com.kapos.mobile.core.theme.Success
+import com.kapos.mobile.core.theme.SurfaceTint
+import com.kapos.mobile.core.theme.SurfaceWhite
+import com.kapos.mobile.core.theme.TextPrimary
+import com.kapos.mobile.core.theme.TextSecondary
+import com.kapos.mobile.core.theme.Warning
+
+@Composable
+fun SettingsRoute(
+    viewModel: SettingsViewModel,
+    modifier: Modifier = Modifier
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    SettingsScreen(
+        uiState = uiState,
+        onUrlChange = viewModel::onUrlChange,
+        onAnonKeyChange = viewModel::onAnonKeyChange,
+        onStoreNameChange = viewModel::onStoreNameChange,
+        onStoreAddressChange = viewModel::onStoreAddressChange,
+        onCashierNameChange = viewModel::onCashierNameChange,
+        onReceiptFooterChange = viewModel::onReceiptFooterChange,
+        onSave = viewModel::saveSettings,
+        onTestConnection = viewModel::testConnection,
+        onSyncNow = viewModel::syncNow,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    uiState: SettingsUiState,
+    onUrlChange: (String) -> Unit,
+    onAnonKeyChange: (String) -> Unit,
+    onStoreNameChange: (String) -> Unit,
+    onStoreAddressChange: (String) -> Unit,
+    onCashierNameChange: (String) -> Unit,
+    onReceiptFooterChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onTestConnection: () -> Unit,
+    onSyncNow: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scrollState = rememberScrollState()
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(ScreenBackground)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .imePadding()
+                .verticalScroll(scrollState)
+                .padding(bottom = 100.dp)
+        ) {
+            // Header
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = "Pengaturan",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                )
+                Text(
+                    text = "Koneksi Supabase, Profil Gerai & Struk",
+                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                // Section 1: Supabase Configuration
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Md)
+                        .background(SurfaceWhite)
+                        .border(1.dp, OutlineSoft, AppShapes.Md)
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimarySoft),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Cloud,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Koneksi Cloud Supabase",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = uiState.supabaseUrl,
+                            onValueChange = onUrlChange,
+                            label = { Text("Supabase URL (https://xxx.supabase.co)") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = uiState.supabaseAnonKey,
+                            onValueChange = onAnonKeyChange,
+                            label = { Text("Supabase Anon Public Key") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        if (uiState.connectionStatusMessage != null) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            val isSuccess = uiState.isConnectionSuccess == true
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(if (isSuccess) Color(0xFFE8F7EE) else Color(0xFFFDE4E5))
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = uiState.connectionStatusMessage,
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        color = if (isSuccess) Success else Danger,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        SecondaryButton(
+                            text = if (uiState.isTestingConnection) "Menguji Koneksi..." else "Tes Koneksi Cloud",
+                            onClick = onTestConnection,
+                            enabled = !uiState.isTestingConnection
+                        )
+                    }
+                }
+
+                // Section 2: Store Information
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Md)
+                        .background(SurfaceWhite)
+                        .border(1.dp, OutlineSoft, AppShapes.Md)
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimarySoft),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Store,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Profil Gerai & Kasir",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = uiState.storeName,
+                            onValueChange = onStoreNameChange,
+                            label = { Text("Nama Toko / Gerai") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = uiState.storeAddress,
+                            onValueChange = onStoreAddressChange,
+                            label = { Text("Alamat Toko") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = uiState.cashierName,
+                            onValueChange = onCashierNameChange,
+                            label = { Text("Nama Kasir Aktif") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = uiState.receiptFooter,
+                            onValueChange = onReceiptFooterChange,
+                            label = { Text("Pesan Kaki Struk (Footer)") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                // Section 3: Offline Queue & Sync
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Md)
+                        .background(SurfaceWhite)
+                        .border(1.dp, OutlineSoft, AppShapes.Md)
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Status Sinkronisasi Offline",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(
+                                    text = "${uiState.pendingSyncCount} transaksi menunggu sinkronisasi",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(AppShapes.Xs)
+                                    .background(if (uiState.pendingSyncCount > 0) Color(0xFFFFF4E5) else Color(0xFFE8F7EE))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = if (uiState.pendingSyncCount > 0) "Pending" else "Tersinkron",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = if (uiState.pendingSyncCount > 0) Warning else Success,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        SecondaryButton(
+                            text = if (uiState.isSyncing) "Menyinkronkan..." else "Sinkronkan Sekarang",
+                            icon = Icons.Default.Sync,
+                            onClick = onSyncNow,
+                            enabled = !uiState.isSyncing
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Save CTA
+                PrimaryButton(
+                    text = "Simpan Pengaturan",
+                    icon = Icons.Default.Save,
+                    onClick = onSave
+                )
+            }
+        }
+    }
+}
