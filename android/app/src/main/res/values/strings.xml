@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">KA POS</string>
+    <string name="tagline">Taichan &amp; Chicken KA</string>
+    <string name="nav_pos">Kasir</string>
+    <string name="nav_transactions">Transaksi</string>
+    <string name="nav_report">Laporan</string>
+    <string name="nav_settings">Pengaturan</string>
+    <string name="search_hint">Cari menu taichan, minuman...</string>
+    <string name="cart_title">Keranjang Pesanan</string>
+    <string name="checkout_title">Konfirmasi Penjualan</string>
+    <string name="clear_cart">Kosongkan</string>
+    <string name="continue_billing">Lanjut ke Pembayaran</string>
+    <string name="finish_transaction">Selesaikan Transaksi</string>
+    <string name="cancel">Batal</string>
+</resources>
