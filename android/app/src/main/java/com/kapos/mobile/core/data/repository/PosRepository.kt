@@ -312,8 +312,9 @@ class PosRepository(
         }
     }
 
-    suspend fun voidOrder(orderId: String) = withContext(Dispatchers.IO) {
-        orderDao.voidOrder(orderId)
+    suspend fun voidOrder(orderId: String, reason: String = "Dibatalkan Kasir") = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
+        orderDao.voidOrderWithReason(orderId, reason, now)
         scope.launch { syncPendingOrders() }
     }
 }
