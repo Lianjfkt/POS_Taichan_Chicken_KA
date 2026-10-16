@@ -35,7 +35,7 @@ import com.kapos.mobile.core.theme.TextSecondary
 fun StatCard(
     title: String,
     value: String,
-    icon: ImageVector,
+    icon: ImageVector? = null,
     subtitle: String? = null,
     modifier: Modifier = Modifier
 ) {
@@ -52,21 +52,23 @@ fun StatCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(PrimarySoft),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = title,
-                        tint = Primary,
-                        modifier = Modifier.size(18.dp)
-                    )
+                if (icon != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(PrimarySoft),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = title,
+                            tint = Primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium.copy(color = TextSecondary)
