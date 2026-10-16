@@ -30,6 +30,21 @@ enum class DiscountType(val displayName: String) {
     PERCENT("%")
 }
 
+enum class CashMovementType(val displayName: String) {
+    CASH_IN("Kas Masuk"),
+    CASH_OUT("Kas Keluar")
+}
+
+data class CashMovement(
+    val id: String,
+    val shiftId: String,
+    val type: CashMovementType,
+    val category: String,
+    val amount: Double,
+    val notes: String = "",
+    val createdAt: Long = System.currentTimeMillis()
+) : Serializable
+
 data class Category(
     val id: String,
     val name: String,
@@ -78,6 +93,8 @@ data class Order(
     val createdAt: Long = System.currentTimeMillis(),
     val paidAt: Long? = System.currentTimeMillis(),
     val syncStatus: SyncStatus = SyncStatus.PENDING_SYNC,
+    val voidReason: String? = null,
+    val voidedAt: Long? = null,
     val items: List<OrderItem> = emptyList()
 ) : Serializable
 

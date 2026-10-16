@@ -139,7 +139,9 @@ class PosRepository(
                     notes = entity.notes,
                     createdAt = entity.createdAt,
                     paidAt = entity.paidAt,
-                    syncStatus = try { SyncStatus.valueOf(entity.syncStatus) } catch (e: Exception) { SyncStatus.PENDING_SYNC }
+                    syncStatus = try { SyncStatus.valueOf(entity.syncStatus) } catch (e: Exception) { SyncStatus.PENDING_SYNC },
+                    voidReason = entity.voidReason,
+                    voidedAt = entity.voidedAt
                 )
             }
         }

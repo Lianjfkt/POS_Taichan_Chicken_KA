@@ -54,4 +54,7 @@ interface OrderDao {
 
     @Query("UPDATE orders SET paymentStatus = 'VOID', syncStatus = 'PENDING_SYNC' WHERE id = :orderId")
     suspend fun voidOrder(orderId: String)
+
+    @Query("UPDATE orders SET paymentStatus = 'VOID', voidReason = :reason, voidedAt = :timestamp, syncStatus = 'PENDING_SYNC' WHERE id = :orderId")
+    suspend fun voidOrderWithReason(orderId: String, reason: String, timestamp: Long)
 }

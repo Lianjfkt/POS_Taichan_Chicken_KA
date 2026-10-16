@@ -56,7 +56,9 @@ data class OrderEntity(
     val notes: String?,
     val createdAt: Long,
     val paidAt: Long?,
-    val syncStatus: String // SYNCED, PENDING_SYNC
+    val syncStatus: String, // SYNCED, PENDING_SYNC
+    val voidReason: String? = null,
+    val voidedAt: Long? = null
 )
 
 @Entity(
@@ -95,3 +97,26 @@ data class ShiftEntity(
     val closedAt: Long?,
     val syncStatus: String
 )
+
+@Entity(
+    tableName = "cash_movements",
+    foreignKeys = [
+        ForeignKey(
+            entity = ShiftEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["shiftId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("shiftId")]
+)
+data class CashMovementEntity(
+    @PrimaryKey val id: String,
+    val shiftId: String,
+    val type: String, // CASH_IN, CASH_OUT
+    val category: String,
+    val amount: Double,
+    val notes: String,
+    val createdAt: Long
+)
+
