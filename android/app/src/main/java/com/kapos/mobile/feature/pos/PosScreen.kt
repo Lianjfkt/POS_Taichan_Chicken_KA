@@ -48,18 +48,25 @@ import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
 import com.kapos.mobile.core.utils.CurrencyFormatter
+import com.kapos.mobile.domain.model.UserRole
 import com.kapos.mobile.feature.cart.CartBottomSheet
 
 @Composable
 fun PosRoute(
     viewModel: PosViewModel,
     onNavigateToCheckout: () -> Unit,
+    userRole: UserRole? = null,
+    onLockClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     PosScreen(
         uiState = uiState,
+        userRole = userRole,
+        onLockClick = onLockClick,
+        onLogoutClick = onLogoutClick,
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onSelectCategory = viewModel::onSelectCategory,
         onProductClick = viewModel::onProductClick,
@@ -91,6 +98,9 @@ fun PosRoute(
 @Composable
 fun PosScreen(
     uiState: PosUiState,
+    userRole: UserRole? = null,
+    onLockClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     onSearchQueryChange: (String) -> Unit,
     onSelectCategory: (String?) -> Unit,
     onProductClick: (com.kapos.mobile.domain.model.Product) -> Unit,
@@ -126,8 +136,11 @@ fun PosScreen(
                 isOnline = uiState.isOnline,
                 isSyncing = uiState.isSyncing,
                 savedOrdersCount = uiState.savedOrders.size,
+                userRole = userRole,
                 onSavedOrdersClick = onOpenSavedOrders,
-                onSyncClick = onSyncClick
+                onSyncClick = onSyncClick,
+                onLockClick = onLockClick,
+                onLogoutClick = onLogoutClick
             )
 
             // Search Field

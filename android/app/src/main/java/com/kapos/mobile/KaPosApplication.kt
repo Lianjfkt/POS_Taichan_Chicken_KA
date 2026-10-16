@@ -24,6 +24,9 @@ class KaPosApplication : Application() {
     lateinit var shiftRepository: ShiftRepository
         private set
 
+    lateinit var stockRepository: com.kapos.mobile.core.data.repository.StockRepository
+        private set
+
     lateinit var savedOrderRepository: com.kapos.mobile.core.data.repository.SavedOrderRepository
         private set
 
@@ -36,6 +39,7 @@ class KaPosApplication : Application() {
 
         database = AppDatabase.getInstance(this)
         settingsRepository = SettingsRepository(this)
+        stockRepository = com.kapos.mobile.core.data.repository.StockRepository(this)
         savedOrderRepository = com.kapos.mobile.core.data.repository.SavedOrderRepository(this)
 
         val settings = settingsRepository.settingsFlow.value

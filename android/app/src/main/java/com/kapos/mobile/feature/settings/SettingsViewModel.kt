@@ -39,7 +39,11 @@ class SettingsViewModel(
                         printerMacAddress = settings.printerMacAddress,
                         printerName = settings.printerName,
                         paperWidth = settings.paperWidth,
-                        autoPrintCheckout = settings.autoPrintCheckout
+                        autoPrintCheckout = settings.autoPrintCheckout,
+                        cashierPin = settings.cashierPin,
+                        ownerPin = settings.ownerPin,
+                        dailyFixedCost = settings.dailyFixedCost,
+                        dailyRevenueTarget = settings.dailyRevenueTarget
                     )
                 }
             }
@@ -105,33 +109,53 @@ class SettingsViewModel(
         _uiState.update { it.copy(receiptFooter = footer) }
     }
 
+    fun onCashierPinChange(pin: String) {
+        _uiState.update { it.copy(cashierPin = pin) }
+    }
+
+    fun onOwnerPinChange(pin: String) {
+        _uiState.update { it.copy(ownerPin = pin) }
+    }
+
+    fun onDailyFixedCostChange(cost: Double) {
+        _uiState.update { it.copy(dailyFixedCost = cost) }
+    }
+
+    fun onDailyRevenueTargetChange(target: Double) {
+        _uiState.update { it.copy(dailyRevenueTarget = target) }
+    }
+
     fun saveSettings() {
         val state = _uiState.value
-        val settings = AppSettings(
-            supabaseUrl = state.supabaseUrl,
-            supabaseAnonKey = state.supabaseAnonKey,
-            storeName = state.storeName,
-            storeAddress = state.storeAddress,
-            storePhone = state.storePhone,
-            cashierName = state.cashierName,
-            receiptFooter = state.receiptFooter,
-            printerMacAddress = state.printerMacAddress,
-            printerName = state.printerName,
-            paperWidth = state.paperWidth,
-            autoPrintCheckout = state.autoPrintCheckout
+        settingsRepository.saveSettings(
+            AppSettings(
+                supabaseUrl = state.supabaseUrl,
+                supabaseAnonKey = state.supabaseAnonKey,
+                storeName = state.storeName,
+                storeAddress = state.storeAddress,
+                storePhone = state.storePhone,
+                cashierName = state.cashierName,
+                receiptFooter = state.receiptFooter,
+                printerMacAddress = state.printerMacAddress,
+                printerName = state.printerName,
+                paperWidth = state.paperWidth,
+                autoPrintCheckout = state.autoPrintCheckout,
+                cashierPin = state.cashierPin,
+                ownerPin = state.ownerPin,
+                dailyFixedCost = state.dailyFixedCost,
+                dailyRevenueTarget = state.dailyRevenueTarget
+            )
         )
-        settingsRepository.saveSettings(settings)
-        supabaseClient.updateConfig(settings.supabaseUrl, settings.supabaseAnonKey)
     }
 
     fun testPrintReceipt() {
-        saveSettings()
         val state = _uiState.value
         if (state.printerMacAddress.isBlank()) {
             _uiState.update {
                 it.copy(
+                    isTestingPrint = false,
                     isPrintTestSuccess = false,
-                    printTestStatusMessage = "Pilih printer Bluetooth terlebih dahulu dari daftar."
+                    printTestStatusMessage = "Silakan pilih printer Bluetooth terlebih dahulu."
                 )
             }
             return
@@ -142,19 +166,19 @@ class SettingsViewModel(
             val builder = com.kapos.mobile.core.printer.EscPosBuilder(state.paperWidth)
             val sampleItems = listOf(
                 com.kapos.mobile.core.printer.EscPosItem(
-                    name = "Taichan Pedas Lv.3",
-                    price = 18000.0,
-                    quantity = 2,
-                    spiceLevel = "Lv.3",
-                    notes = "sambal dipisah",
-                    subtotal = 36000.0
+                    name = "Sate Taichan Paha (10 tsk)",
+                    price = 28000.0,
+                    quantity = 1,
+                    spiceLevel = "Lv. 3",
+                    notes = "Sambal dipisah",
+                    subtotal = 28000.0
                 ),
                 com.kapos.mobile.core.printer.EscPosItem(
-                    name = "Es Teh Manis",
-                    price = 5000.0,
-                    quantity = 2,
+                    name = "Es Jeruk Peras",
+                    price = 10000.0,
+                    quantity = 1,
                     spiceLevel = "",
-                    notes = "",
+                    notes = "Sedikit gula",
                     subtotal = 10000.0
                 )
             )
@@ -171,12 +195,12 @@ class SettingsViewModel(
                 cashierName = state.cashierName,
                 customerName = "Tes Printer",
                 items = sampleItems,
-                subtotal = 46000.0,
+                subtotal = 38000.0,
                 discount = 0.0,
-                total = 46000.0,
+                total = 38000.0,
                 paymentMethod = "Tunai",
                 cashGiven = 50000.0,
-                change = 4000.0
+                change = 12000.0
             )
 
             val result = bluetoothPrinterService.printBytes(state.printerMacAddress, receiptBytes)

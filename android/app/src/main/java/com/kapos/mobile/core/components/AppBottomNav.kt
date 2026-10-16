@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Settings
@@ -31,12 +32,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kapos.mobile.core.theme.OutlineSoft
 import com.kapos.mobile.core.theme.Primary
 import com.kapos.mobile.core.theme.PrimarySoft
 import com.kapos.mobile.core.theme.SurfaceTint
 import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextSecondary
+import com.kapos.mobile.domain.model.UserRole
 
 sealed class NavDestination(
     val route: String,
@@ -46,29 +49,51 @@ sealed class NavDestination(
     object Pos : NavDestination("pos", "Kasir", Icons.Default.PointOfSale)
     object Transactions : NavDestination("transactions", "Transaksi", Icons.Default.ReceiptLong)
     object Shift : NavDestination("shift", "Shift", Icons.Default.WorkHistory)
-    object Report : NavDestination("report", "Laporan", Icons.Default.BarChart)
+    object Stock : NavDestination("stock", "Stok", Icons.Default.List)
+    object Analytics : NavDestination("analytics", "Analisa", Icons.Default.BarChart)
     object Settings : NavDestination("settings", "Pengaturan", Icons.Default.Settings)
 }
 
-val bottomNavDestinations = listOf(
+fun getBottomNavDestinations(role: UserRole): List<NavDestination> {
+    return when (role) {
+        UserRole.CASHIER -> listOf(
+            NavDestination.Pos,
+            NavDestination.Transactions,
+            NavDestination.Shift
+        )
+        UserRole.OWNER -> listOf(
+            NavDestination.Pos,
+            NavDestination.Transactions,
+            NavDestination.Stock,
+            NavDestination.Analytics,
+            NavDestination.Settings
+        )
+    }
+}
+
+val allBottomNavDestinations = listOf(
     NavDestination.Pos,
     NavDestination.Transactions,
     NavDestination.Shift,
-    NavDestination.Report,
+    NavDestination.Stock,
+    NavDestination.Analytics,
     NavDestination.Settings
 )
 
 @Composable
 fun AppBottomNav(
     currentRoute: String,
+    role: UserRole,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val destinations = getBottomNavDestinations(role)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -79,7 +104,7 @@ fun AppBottomNav(
                 .clip(CircleShape)
                 .background(SurfaceWhite)
                 .border(1.dp, OutlineSoft, CircleShape)
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 6.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -87,7 +112,7 @@ fun AppBottomNav(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                bottomNavDestinations.forEach { dest ->
+                destinations.forEach { dest ->
                     val isSelected = currentRoute == dest.route
                     BottomNavItem(
                         item = dest,
@@ -112,7 +137,7 @@ fun BottomNavItem(
             .background(if (isSelected) Primary else SurfaceTint)
             .clickable(onClick = onClick)
             .padding(
-                horizontal = if (isSelected) 16.dp else 12.dp,
+                horizontal = if (isSelected) 14.dp else 10.dp,
                 vertical = 8.dp
             ),
         contentAlignment = Alignment.Center
@@ -122,15 +147,16 @@ fun BottomNavItem(
                 imageVector = item.icon,
                 contentDescription = item.title,
                 tint = if (isSelected) SurfaceWhite else TextSecondary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
             )
             if (isSelected) {
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.labelMedium.copy(
                         color = SurfaceWhite,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
                     )
                 )
             }

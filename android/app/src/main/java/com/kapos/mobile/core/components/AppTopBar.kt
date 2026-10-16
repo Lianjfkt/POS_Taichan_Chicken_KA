@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,9 +37,12 @@ import com.kapos.mobile.core.theme.Primary
 import com.kapos.mobile.core.theme.PrimaryDark
 import com.kapos.mobile.core.theme.PrimarySoft
 import com.kapos.mobile.core.theme.Success
+import com.kapos.mobile.core.theme.SurfaceTint
+import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
 import com.kapos.mobile.core.theme.Warning
+import com.kapos.mobile.domain.model.UserRole
 
 @Composable
 fun AppTopBar(
@@ -45,73 +51,77 @@ fun AppTopBar(
     isOnline: Boolean = true,
     isSyncing: Boolean = false,
     savedOrdersCount: Int = 0,
+    userRole: UserRole? = null,
     onSavedOrdersClick: () -> Unit = {},
     onSyncClick: () -> Unit = {},
+    onLockClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        // Logo Monogram + Title
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
-                    .background(PrimarySoft),
+                    .background(Primary),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "🍢",
-                    fontSize = 20.sp
+                    text = "KA",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = SurfaceWhite,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge.copy(
+                    style = MaterialTheme.typography.titleMedium.copy(
                         color = PrimaryDark,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
                     )
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 11.sp)
                     )
                 }
             }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Status Indicator
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(if (isOnline) Color(0xFFE8F7EE) else Color(0xFFFFF4E5))
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = if (isOnline) Icons.Default.CloudDone else Icons.Default.CloudOff,
-                        contentDescription = "Connection Status",
-                        tint = if (isOnline) Success else Warning,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+            // User Role Tag
+            if (userRole != null) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (userRole == UserRole.OWNER) Color(0xFFFEF3C7) else SurfaceTint)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
                     Text(
-                        text = if (isOnline) "Online" else "Offline",
+                        text = userRole.displayName,
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = if (isOnline) Success else Warning,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold,
+                            color = if (userRole == UserRole.OWNER) Color(0xFFB45309) else Primary,
+                            fontSize = 11.sp
                         )
                     )
                 }
+                Spacer(modifier = Modifier.width(6.dp))
             }
 
             // Saved Orders (Hold) Button
@@ -121,40 +131,52 @@ fun AppTopBar(
                         .clip(CircleShape)
                         .background(Color(0xFFFFF3CD))
                         .clickable(onClick = onSavedOrdersClick)
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Bookmark,
                             contentDescription = "Saved Orders",
                             tint = Color(0xFF856404),
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(13.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "$savedOrdersCount Hold",
+                            text = "$savedOrdersCount Disimpan",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = Color(0xFF856404),
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp
                             )
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
             }
 
+            // Quick Lock Button
             IconButton(
-                onClick = onSyncClick,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(PrimarySoft)
+                onClick = onLockClick,
+                modifier = Modifier.size(32.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Sync,
-                    contentDescription = "Sync",
-                    tint = Primary,
-                    modifier = Modifier.size(18.dp)
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = "Kunci Layar",
+                    tint = TextSecondary,
+                    modifier = Modifier.size(17.dp)
+                )
+            }
+
+            // Logout Button
+            IconButton(
+                onClick = onLogoutClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Logout,
+                    contentDescription = "Keluar",
+                    tint = TextSecondary,
+                    modifier = Modifier.size(17.dp)
                 )
             }
         }

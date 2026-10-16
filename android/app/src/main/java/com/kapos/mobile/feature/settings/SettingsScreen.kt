@@ -22,11 +22,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -59,17 +61,22 @@ import com.kapos.mobile.core.theme.SurfaceTint
 import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
+import androidx.compose.material.icons.filled.Logout
 import com.kapos.mobile.core.theme.Warning
 
 @Composable
 fun SettingsRoute(
     viewModel: SettingsViewModel,
+    onLockClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     SettingsScreen(
         uiState = uiState,
+        onLockClick = onLockClick,
+        onLogoutClick = onLogoutClick,
         onUrlChange = viewModel::onUrlChange,
         onAnonKeyChange = viewModel::onAnonKeyChange,
         onStoreNameChange = viewModel::onStoreNameChange,
@@ -77,6 +84,10 @@ fun SettingsRoute(
         onStorePhoneChange = viewModel::onStorePhoneChange,
         onCashierNameChange = viewModel::onCashierNameChange,
         onReceiptFooterChange = viewModel::onReceiptFooterChange,
+        onCashierPinChange = viewModel::onCashierPinChange,
+        onOwnerPinChange = viewModel::onOwnerPinChange,
+        onDailyFixedCostChange = viewModel::onDailyFixedCostChange,
+        onDailyRevenueTargetChange = viewModel::onDailyRevenueTargetChange,
         onRefreshPrinters = viewModel::loadPairedPrinters,
         onSelectPrinter = viewModel::onSelectPrinter,
         onPaperWidthChange = viewModel::onPaperWidthChange,
@@ -93,6 +104,8 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
+    onLockClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     onUrlChange: (String) -> Unit,
     onAnonKeyChange: (String) -> Unit,
     onStoreNameChange: (String) -> Unit,
@@ -100,6 +113,10 @@ fun SettingsScreen(
     onStorePhoneChange: (String) -> Unit,
     onCashierNameChange: (String) -> Unit,
     onReceiptFooterChange: (String) -> Unit,
+    onCashierPinChange: (String) -> Unit,
+    onOwnerPinChange: (String) -> Unit,
+    onDailyFixedCostChange: (Double) -> Unit,
+    onDailyRevenueTargetChange: (Double) -> Unit,
     onRefreshPrinters: () -> Unit,
     onSelectPrinter: (name: String, address: String) -> Unit,
     onPaperWidthChange: (Int) -> Unit,
@@ -126,22 +143,62 @@ fun SettingsScreen(
                 .padding(bottom = 100.dp)
         ) {
             // Header
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Pengaturan",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                Column {
+                    Text(
+                        text = "Pengaturan",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
                     )
-                )
-                Text(
-                    text = "Koneksi Supabase, Profil Gerai & Struk",
-                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                )
+                    Text(
+                        text = "Koneksi Supabase, Profil Gerai & Akses",
+                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                    )
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(SurfaceWhite)
+                            .border(1.dp, OutlineSoft, CircleShape)
+                            .clickable { onLockClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Kunci",
+                            tint = TextSecondary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFDE4E5))
+                            .border(1.dp, Danger.copy(alpha = 0.3f), CircleShape)
+                            .clickable { onLogoutClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Logout,
+                            contentDescription = "Logout",
+                            tint = Danger,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
             }
 
             Column(
@@ -340,6 +397,155 @@ fun SettingsScreen(
                             value = uiState.receiptFooter,
                             onValueChange = onReceiptFooterChange,
                             label = { Text("Pesan Kaki Struk (Footer)") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                // Section 2C: Keamanan & Otorisasi PIN
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Md)
+                        .background(SurfaceWhite)
+                        .border(1.dp, OutlineSoft, AppShapes.Md)
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimarySoft),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Keamanan & PIN Akses",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(
+                                    text = "PIN keypad 4-digit untuk Kasir dan Owner",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = uiState.cashierPin,
+                                onValueChange = onCashierPinChange,
+                                label = { Text("PIN Kasir") },
+                                singleLine = true,
+                                shape = AppShapes.Sm,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Primary,
+                                    unfocusedBorderColor = OutlineSoft
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            OutlinedTextField(
+                                value = uiState.ownerPin,
+                                onValueChange = onOwnerPinChange,
+                                label = { Text("PIN Owner") },
+                                singleLine = true,
+                                shape = AppShapes.Sm,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Primary,
+                                    unfocusedBorderColor = OutlineSoft
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+
+                // Section 2D: Target Finansial & Titik Impas (BEP)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Md)
+                        .background(SurfaceWhite)
+                        .border(1.dp, OutlineSoft, AppShapes.Md)
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimarySoft),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TrendingUp,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Target Finansial & Titik Impas (BEP)",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(
+                                    text = "Parameter kalkulasi progres BEP harian",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        OutlinedTextField(
+                            value = "%.0f".format(uiState.dailyRevenueTarget),
+                            onValueChange = { str ->
+                                val clean = str.filter { it.isDigit() }
+                                onDailyRevenueTargetChange(clean.toDoubleOrNull() ?: 0.0)
+                            },
+                            label = { Text("Target Omzet Harian (Rp)") },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = "%.0f".format(uiState.dailyFixedCost),
+                            onValueChange = { str ->
+                                val clean = str.filter { it.isDigit() }
+                                onDailyFixedCostChange(clean.toDoubleOrNull() ?: 0.0)
+                            },
+                            label = { Text("Beban Tetap Harian (Sewa, Listrik, Gaji) (Rp)") },
                             singleLine = true,
                             shape = AppShapes.Sm,
                             colors = OutlinedTextFieldDefaults.colors(
