@@ -125,4 +125,102 @@ class EscPosBuilder(private val paperWidth: Int = 58) {
 
         return out.toByteArray()
     }
+
+    fun buildShiftReceipt(
+        storeName: String,
+        cashierName: String,
+        openedAtStr: String,
+        closedAtStr: String,
+        startCash: Double,
+        cashSales: Double,
+        nonCashSales: Double,
+        cashIn: Double,
+        cashOut: Double,
+        expectedCash: Double,
+        actualCash: Double,
+        selisih: Double
+    ): ByteArray {
+        val out = ByteArrayOutputStream()
+
+        fun write(vararg b: Int) = b.forEach { out.write(it) }
+        fun writeText(text: String) = out.write(text.toByteArray(Charsets.ISO_8859_1))
+        fun line(text: String = "") {
+            writeText(text)
+            write(0x0A)
+        }
+        fun divider() = line("-".repeat(maxCols))
+        fun doubleDivider() = line("=".repeat(maxCols))
+
+        fun twoCols(left: String, right: String): String {
+            val space = maxCols - left.length - right.length
+            return if (space > 0) left + " ".repeat(space) + right else "$left $right"
+        }
+
+        // Initialize printer
+        write(0x1B, 0x40)
+
+        // Store Header (Center, Bold)
+        write(0x1B, 0x61, 0x01)
+        write(0x1B, 0x45, 0x01)
+        write(0x1D, 0x21, 0x11)
+        line(storeName)
+
+        // Title
+        write(0x1D, 0x21, 0x00)
+        write(0x1B, 0x45, 0x00)
+        line("LAPORAN REKAP SHIFT")
+        doubleDivider()
+
+        // Shift Metadata (Left)
+        write(0x1B, 0x61, 0x00)
+        line(twoCols("Kasir", cashierName))
+        line(twoCols("Buka", openedAtStr))
+        line(twoCols("Tutup", closedAtStr))
+        divider()
+
+        // Cash Flow Details
+        line(twoCols("Modal Awal (Laci)", formatRp(startCash)))
+        line(twoCols("Penjualan Tunai", formatRp(cashSales)))
+        if (cashIn > 0) {
+            line(twoCols("Kas Masuk (+)", formatRp(cashIn)))
+        }
+        if (cashOut > 0) {
+            line(twoCols("Kas Keluar (-)", "- ${formatRp(cashOut)}"))
+        }
+        divider()
+
+        // Expected vs Actual Cash
+        write(0x1B, 0x45, 0x01)
+        line(twoCols("Kas Sistem (Diharapkan)", formatRp(expectedCash)))
+        line(twoCols("Kas Fisik (Dihitung)", formatRp(actualCash)))
+        write(0x1B, 0x45, 0x00)
+
+        val selisihStatus = when {
+            selisih > 0 -> "Lebih: +${formatRp(selisih)}"
+            selisih < 0 -> "Kurang: -${formatRp(-selisih)}"
+            else -> "Seimbang (Pas)"
+        }
+        line(twoCols("Status Selisih", selisihStatus))
+        divider()
+
+        // Non Cash Sales
+        line(twoCols("Penjualan Non-Tunai", formatRp(nonCashSales)))
+        line(twoCols("Total Omzet Shift", formatRp(cashSales + nonCashSales)))
+        doubleDivider()
+
+        // Signatures (Center)
+        write(0x1B, 0x61, 0x01)
+        line("")
+        line("Tanda Tangan Kasir")
+        line("")
+        line("")
+        line("( $cashierName )")
+        line("")
+        line("")
+
+        // Paper Feed & Cut
+        write(0x1D, 0x56, 0x42, 0x00)
+
+        return out.toByteArray()
+    }
 }

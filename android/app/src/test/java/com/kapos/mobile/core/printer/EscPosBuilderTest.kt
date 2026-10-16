@@ -48,4 +48,28 @@ class EscPosBuilderTest {
         assertTrue(content.contains("KA-20261015-001"))
         assertTrue(content.contains("31.000") || content.contains("31000"))
     }
+
+    @Test
+    fun testBuildShiftReceiptProducesBytes() {
+        val builder = EscPosBuilder(paperWidth = 58)
+        val bytes = builder.buildShiftReceipt(
+            storeName = "KA Taichan & Chicken",
+            cashierName = "Kasir Budi",
+            openedAtStr = "16 Okt 2026, 10:00",
+            closedAtStr = "16 Okt 2026, 22:00",
+            startCash = 200000.0,
+            cashSales = 1000000.0,
+            nonCashSales = 500000.0,
+            cashIn = 50000.0,
+            cashOut = 20000.0,
+            expectedCash = 1230000.0,
+            actualCash = 1230000.0,
+            selisih = 0.0
+        )
+        assertTrue(bytes.isNotEmpty())
+        val content = String(bytes, Charsets.ISO_8859_1)
+        assertTrue(content.contains("REKAP SHIFT"))
+        assertTrue(content.contains("Kasir Budi"))
+        assertTrue(content.contains("1.230.000") || content.contains("1230000"))
+    }
 }
