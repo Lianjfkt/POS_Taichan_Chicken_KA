@@ -65,7 +65,12 @@ fun KaPosApp(
         )
     }
     val shiftViewModel: ShiftViewModel = viewModel {
-        ShiftViewModel(app.shiftRepository, app.settingsRepository)
+        ShiftViewModel(
+            shiftRepository = app.shiftRepository,
+            settingsRepository = app.settingsRepository,
+            posRepository = app.posRepository,
+            bluetoothPrinterService = app.bluetoothPrinterService
+        )
     }
     val stockViewModel: StockViewModel = viewModel {
         StockViewModel(app.stockRepository, app.posRepository)

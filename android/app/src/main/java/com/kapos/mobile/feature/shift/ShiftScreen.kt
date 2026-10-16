@@ -1,10 +1,9 @@
 package com.kapos.mobile.feature.shift
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,21 +21,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.WorkHistory
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.kapos.mobile.core.components.PrimaryButton
 import com.kapos.mobile.core.components.SecondaryButton
 import com.kapos.mobile.core.theme.AppShapes
@@ -62,8 +60,9 @@ import com.kapos.mobile.core.theme.SurfaceTint
 import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
-import com.kapos.mobile.core.theme.Warning
 import com.kapos.mobile.core.utils.CurrencyFormatter
+import com.kapos.mobile.domain.model.CashMovement
+import com.kapos.mobile.domain.model.CashMovementType
 import com.kapos.mobile.domain.model.Shift
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -85,14 +84,24 @@ fun ShiftRoute(viewModel: ShiftViewModel, modifier: Modifier = Modifier) {
     ShiftScreen(
         uiState = uiState,
         onOpenShiftClick = viewModel::onShowOpenShiftDialog,
-        onCloseShiftClick = viewModel::onShowCloseShiftDialog,
+        onCloseShiftClick = viewModel::onShowBlindCountDialog,
         onDismissOpenShift = viewModel::onDismissOpenShiftDialog,
-        onDismissCloseShift = viewModel::onDismissCloseShiftDialog,
         onStartCashChange = viewModel::onStartCashInputChange,
-        onEndCashChange = viewModel::onEndCashInputChange,
         onCashierNameChange = viewModel::onCashierNameInputChange,
         onConfirmOpenShift = viewModel::openShift,
-        onConfirmCloseShift = viewModel::closeShift,
+        onShowPettyCash = viewModel::onShowPettyCashDialog,
+        onDismissPettyCash = viewModel::onDismissPettyCashDialog,
+        onPettyCashCategoryChange = viewModel::onPettyCashCategoryChange,
+        onPettyCashAmountChange = viewModel::onPettyCashAmountChange,
+        onPettyCashNotesChange = viewModel::onPettyCashNotesChange,
+        onSubmitPettyCash = viewModel::submitPettyCash,
+        onDismissBlindCount = viewModel::onDismissBlindCountDialog,
+        onDenominationCountChange = viewModel::onDenominationCountChange,
+        onCoinChange = viewModel::onCoinAmountChange,
+        onConfirmCloseShift = viewModel::confirmCloseShift,
+        onPrintShiftReceipt = viewModel::printShiftReceipt,
+        getWhatsAppShareText = viewModel::getWhatsAppShareText,
+        onDismissShiftReport = viewModel::onDismissShiftReportDialog,
         modifier = modifier
     )
 }
@@ -103,12 +112,22 @@ fun ShiftScreen(
     onOpenShiftClick: () -> Unit,
     onCloseShiftClick: () -> Unit,
     onDismissOpenShift: () -> Unit,
-    onDismissCloseShift: () -> Unit,
     onStartCashChange: (String) -> Unit,
-    onEndCashChange: (String) -> Unit,
     onCashierNameChange: (String) -> Unit,
     onConfirmOpenShift: () -> Unit,
+    onShowPettyCash: (CashMovementType) -> Unit,
+    onDismissPettyCash: () -> Unit,
+    onPettyCashCategoryChange: (String) -> Unit,
+    onPettyCashAmountChange: (String) -> Unit,
+    onPettyCashNotesChange: (String) -> Unit,
+    onSubmitPettyCash: () -> Unit,
+    onDismissBlindCount: () -> Unit,
+    onDenominationCountChange: (denomination: Int, count: Int) -> Unit,
+    onCoinChange: (String) -> Unit,
     onConfirmCloseShift: () -> Unit,
+    onPrintShiftReceipt: () -> Unit,
+    getWhatsAppShareText: () -> String,
+    onDismissShiftReport: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -132,14 +151,14 @@ fun ShiftScreen(
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     Text(
-                        text = "⏱️ Manajemen Shift",
+                        text = "⏱️ Manajemen Shift & Laci Kas",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                     )
                     Text(
-                        text = "Buka & tutup shift, pantau kas harian",
+                        text = "Buka & tutup shift, petty cash, rekonsiliasi kasir",
                         style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
                     )
                 }
@@ -178,13 +197,32 @@ fun ShiftScreen(
                 ActiveShiftCard(
                     uiState = uiState,
                     onOpenShiftClick = onOpenShiftClick,
-                    onCloseShiftClick = onCloseShiftClick
+                    onCloseShiftClick = onCloseShiftClick,
+                    onShowPettyCash = onShowPettyCash
                 )
+            }
+
+            // Petty Cash Movements List (Active Shift)
+            if (uiState.hasActiveShift && uiState.cashMovements.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Arus Kas Laci (Shift Ini)",
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        ),
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                    )
+                }
+                items(uiState.cashMovements) { movement ->
+                    CashMovementItemCard(movement = movement)
+                }
             }
 
             // History header
             if (uiState.recentShifts.isNotEmpty()) {
                 item {
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "Riwayat Shift Terakhir",
                         style = MaterialTheme.typography.titleSmall.copy(
@@ -211,13 +249,40 @@ fun ShiftScreen(
             )
         }
 
-        // Close Shift Dialog
-        if (uiState.showCloseShiftDialog) {
-            CloseShiftDialog(
+        // Petty Cash Dialog (Kas Masuk / Kas Keluar)
+        if (uiState.showPettyCashDialog) {
+            PettyCashDialog(
+                type = uiState.pettyCashType,
+                selectedCategory = uiState.pettyCashCategory,
+                amountInput = uiState.pettyCashAmountInput,
+                notesInput = uiState.pettyCashNotesInput,
+                onCategoryChange = onPettyCashCategoryChange,
+                onAmountChange = onPettyCashAmountChange,
+                onNotesChange = onPettyCashNotesChange,
+                onDismiss = onDismissPettyCash,
+                onSubmit = onSubmitPettyCash
+            )
+        }
+
+        // Blind Cash Count Dialog
+        if (uiState.showBlindCountDialog) {
+            BlindCountDialog(
                 uiState = uiState,
-                onDismiss = onDismissCloseShift,
-                onEndCashChange = onEndCashChange,
-                onConfirm = onConfirmCloseShift
+                onCountChange = onDenominationCountChange,
+                onCoinChange = onCoinChange,
+                onDismiss = onDismissBlindCount,
+                onConfirmClose = onConfirmCloseShift
+            )
+        }
+
+        // Shift Closed Summary Dialog
+        if (uiState.showShiftReportDialog && uiState.lastClosedSummary != null) {
+            ShiftReportSummaryDialog(
+                summary = uiState.lastClosedSummary,
+                isPrinting = uiState.isPrinting,
+                onPrintReceipt = onPrintShiftReceipt,
+                whatsAppShareText = getWhatsAppShareText(),
+                onDismiss = onDismissShiftReport
             )
         }
     }
@@ -227,7 +292,8 @@ fun ShiftScreen(
 private fun ActiveShiftCard(
     uiState: ShiftUiState,
     onOpenShiftClick: () -> Unit,
-    onCloseShiftClick: () -> Unit
+    onCloseShiftClick: () -> Unit,
+    onShowPettyCash: (CashMovementType) -> Unit
 ) {
     val shift = uiState.activeShift
 
@@ -268,7 +334,7 @@ private fun ActiveShiftCard(
                     if (shift != null) {
                         val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID"))
                         Text(
-                            text = "Dibuka: ${sdf.format(Date(shift.openedAt))}",
+                            text = "Kasir: ${shift.cashierName} • Buka: ${sdf.format(Date(shift.openedAt))}",
                             style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                         )
                     }
@@ -278,32 +344,73 @@ private fun ActiveShiftCard(
             if (shift != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider(color = OutlineSoft)
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    text = shift.cashierName,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                )
+                ShiftStatRow("Modal Awal (Kas Laci)", uiState.formattedStartCash)
+                ShiftStatRow("Penjualan Tunai", uiState.formattedCashSales, color = Primary)
+                ShiftStatRow("Penjualan Non-Tunai", uiState.formattedNonCashSales)
+                if (uiState.cashInTotal > 0) {
+                    ShiftStatRow("Kas Masuk (+)", uiState.formattedCashIn, color = Color(0xFF10B981))
+                }
+                if (uiState.cashOutTotal > 0) {
+                    ShiftStatRow("Kas Keluar (-)", "- ${uiState.formattedCashOut}", color = Danger)
+                }
+
+                Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+                ShiftStatRow("Estimasi Kas Akhir", uiState.formattedExpectedCash, color = Success, bold = true)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Petty Cash Action Buttons (+ Kas Masuk, - Kas Keluar)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(AppShapes.Sm)
+                            .background(Color(0xFF10B981).copy(alpha = 0.12f))
+                            .border(1.dp, Color(0xFF10B981).copy(alpha = 0.4f), AppShapes.Sm)
+                            .clickable { onShowPettyCash(CashMovementType.CASH_IN) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = Color(0xFF10B981), modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "Kas Masuk", color = Color(0xFF10B981), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(AppShapes.Sm)
+                            .background(Danger.copy(alpha = 0.12f))
+                            .border(1.dp, Danger.copy(alpha = 0.4f), AppShapes.Sm)
+                            .clickable { onShowPettyCash(CashMovementType.CASH_OUT) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.Remove, contentDescription = null, tint = Danger, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "Kas Keluar", color = Danger, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(10.dp))
 
-                ShiftStatRow("Kas Awal", uiState.formattedStartCash)
-                ShiftStatRow("Penjualan (Sistem)", uiState.formattedSystemSales, color = Primary)
-                ShiftStatRow("Estimasi Kas Akhir", uiState.formattedExpectedCash, color = Success, bold = true)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (uiState.hasActiveShift) {
                 SecondaryButton(
-                    text = "Tutup Shift & Hitung Kas",
+                    text = "Tutup Shift & Blind Count",
                     icon = Icons.Default.Lock,
                     onClick = onCloseShiftClick,
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
+                Spacer(modifier = Modifier.height(16.dp))
                 PrimaryButton(
                     text = "Buka Shift Baru",
                     icon = Icons.Default.LockOpen,
@@ -316,11 +423,83 @@ private fun ActiveShiftCard(
 }
 
 @Composable
+private fun CashMovementItemCard(movement: CashMovement) {
+    val isCashIn = movement.type == CashMovementType.CASH_IN
+    val accentColor = if (isCashIn) Color(0xFF10B981) else Danger
+    val sdf = SimpleDateFormat("HH:mm", Locale("id", "ID"))
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clip(AppShapes.Md)
+            .background(SurfaceWhite)
+            .border(1.dp, OutlineSoft, AppShapes.Md)
+            .padding(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .clip(AppShapes.Xs)
+                            .background(accentColor.copy(alpha = 0.15f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = movement.type.displayName,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = accentColor,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp
+                            )
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = movement.category,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        )
+                    )
+                }
+                if (movement.notes.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = movement.notes,
+                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                    )
+                }
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = (if (isCashIn) "+ " else "- ") + CurrencyFormatter.formatRupiah(movement.amount),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
+                )
+                Text(
+                    text = sdf.format(Date(movement.createdAt)),
+                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 10.sp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun ShiftStatRow(label: String, value: String, color: Color = TextPrimary, bold: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 3.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
@@ -377,7 +556,7 @@ private fun ShiftHistoryCard(shift: Shift) {
                         )
                     )
                     Text(
-                        text = "Penjualan",
+                        text = "Total Penjualan",
                         style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                     )
                 }
@@ -391,13 +570,13 @@ private fun ShiftHistoryCard(shift: Shift) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                InfoChip("Kas Awal", CurrencyFormatter.formatRupiah(shift.startCash))
-                InfoChip("Kas Akhir", CurrencyFormatter.formatRupiah(shift.endCash))
-                val diff = shift.endCash - (shift.startCash + shift.systemSales)
-                InfoChip(
-                    label = if (diff >= 0) "Lebih" else "Kurang",
-                    value = CurrencyFormatter.formatRupiah(Math.abs(diff)),
-                    valueColor = if (diff >= 0) Success else Danger
+                Text(
+                    text = "Kas Awal: ${CurrencyFormatter.formatRupiah(shift.startCash)}",
+                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                )
+                Text(
+                    text = "Kas Akhir: ${CurrencyFormatter.formatRupiah(shift.endCash)}",
+                    style = MaterialTheme.typography.labelSmall.copy(color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 )
             }
         }
@@ -405,184 +584,81 @@ private fun ShiftHistoryCard(shift: Shift) {
 }
 
 @Composable
-private fun InfoChip(label: String, value: String, valueColor: Color = TextPrimary) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 10.sp)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = valueColor
-            )
-        )
-    }
-}
-
-// --- Dialogs ---
-
-@Composable
-fun OpenShiftDialog(
+private fun OpenShiftDialog(
     uiState: ShiftUiState,
     onDismiss: () -> Unit,
     onStartCashChange: (String) -> Unit,
     onCashierNameChange: (String) -> Unit,
     onConfirm: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SurfaceWhite,
-        title = {
-            Text(
-                text = "🔓 Buka Shift Baru",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = "Masukkan nama kasir dan jumlah kas awal di laci kas.",
-                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
-                )
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(AppShapes.Lg)
+                .background(SurfaceWhite)
+                .border(1.dp, OutlineSoft, AppShapes.Lg)
+                .padding(20.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Buka Shift Baru",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = TextSecondary)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(text = "Nama Kasir", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = uiState.cashierNameInput,
                     onValueChange = onCashierNameChange,
-                    label = { Text("Nama Kasir") },
+                    placeholder = { Text("Nama kasir...", fontSize = 13.sp) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
+                    shape = AppShapes.Sm,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Primary,
-                        focusedLabelColor = Primary
+                        unfocusedBorderColor = OutlineSoft
                     )
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(text = "Modal Awal Laci (Rp)", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = uiState.startCashInput,
                     onValueChange = onStartCashChange,
-                    label = { Text("Kas Awal (Rp)") },
-                    singleLine = true,
+                    placeholder = { Text("Contoh: 200000", fontSize = 13.sp) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
+                    shape = AppShapes.Sm,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Primary,
-                        focusedLabelColor = Primary
+                        unfocusedBorderColor = OutlineSoft
                     )
                 )
-                if (uiState.errorMessage != null) {
-                    Text(
-                        text = uiState.errorMessage,
-                        style = MaterialTheme.typography.labelSmall.copy(color = Danger)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            PrimaryButton(
-                text = "Buka Shift",
-                icon = Icons.Default.Check,
-                onClick = onConfirm,
-                isLoading = uiState.isLoading
-            )
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Batal", color = TextSecondary)
-            }
-        }
-    )
-}
 
-@Composable
-fun CloseShiftDialog(
-    uiState: ShiftUiState,
-    onDismiss: () -> Unit,
-    onEndCashChange: (String) -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SurfaceWhite,
-        title = {
-            Text(
-                text = "🔒 Tutup Shift",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                // Summary info
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Sm)
-                        .background(SurfaceTint)
-                        .padding(12.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        ShiftStatRow("Kas Awal", uiState.formattedStartCash)
-                        ShiftStatRow("Penjualan (Sistem)", uiState.formattedSystemSales, color = Primary)
-                        ShiftStatRow("Estimasi Kas Akhir", uiState.formattedExpectedCash, color = Success, bold = true)
-                    }
-                }
-                OutlinedTextField(
-                    value = uiState.endCashInput,
-                    onValueChange = onEndCashChange,
-                    label = { Text("Kas Akhir Aktual (Rp)") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Primary,
-                        focusedLabelColor = Primary
-                    )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                PrimaryButton(
+                    text = "Buka Shift",
+                    onClick = onConfirm,
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                // Selisih indicator
-                if (uiState.endCashInput.isNotBlank()) {
-                    val selisih = uiState.selisih
-                    val selisihColor = if (selisih >= 0) Success else Danger
-                    val selisihLabel = if (selisih >= 0) "Lebih" else "Kurang"
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(AppShapes.Sm)
-                            .background(selisihColor.copy(alpha = 0.1f))
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Selisih Kas ($selisihLabel)",
-                            style = MaterialTheme.typography.bodySmall.copy(color = selisihColor)
-                        )
-                        Text(
-                            text = CurrencyFormatter.formatRupiah(Math.abs(selisih)),
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = selisihColor,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                }
-                if (uiState.errorMessage != null) {
-                    Text(
-                        text = uiState.errorMessage,
-                        style = MaterialTheme.typography.labelSmall.copy(color = Danger)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            SecondaryButton(
-                text = "Tutup & Simpan",
-                icon = Icons.Default.Lock,
-                onClick = onConfirm,
-                isLoading = uiState.isLoading
-            )
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Batal", color = TextSecondary)
             }
         }
-    )
+    }
 }
