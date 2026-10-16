@@ -138,6 +138,39 @@ fun OrderDetailDialog(
                     }
                 }
 
+                if (order.paymentStatus == PaymentStatus.VOID) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(AppShapes.Sm)
+                            .background(Danger.copy(alpha = 0.12f))
+                            .border(1.dp, Danger.copy(alpha = 0.4f), AppShapes.Sm)
+                            .padding(10.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "⚠️ TRANSAKSI DIBATALKAN (VOID)",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Danger
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Alasan: ${order.voidReason ?: '-'}",
+                                style = MaterialTheme.typography.bodySmall.copy(color = Danger)
+                            )
+                            if (order.voidedAt != null) {
+                                Text(
+                                    text = "Waktu Void: ${dateFormat.format(Date(order.voidedAt))}",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = Danger.copy(alpha = 0.8f))
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Items list

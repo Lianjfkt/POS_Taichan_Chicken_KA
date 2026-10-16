@@ -18,11 +18,14 @@ data class TransactionsUiState(
     val selectedOrderItems: List<OrderItem> = emptyList(),
     val isLoadingDetail: Boolean = false,
     val isSyncing: Boolean = false,
-    // VOID with PIN
+    // VOID with PIN & Reason
     val showVoidPinDialog: Boolean = false,
     val orderToVoid: Order? = null,
     val voidPinInput: String = "",
     val voidPinError: String? = null,
+    val selectedVoidReason: String = "Salah Input Menu",
+    val voidReasonNotes: String = "",
+    val voidReasonError: String? = null,
     val isVoiding: Boolean = false
 ) {
     val filteredOrders: List<Order>

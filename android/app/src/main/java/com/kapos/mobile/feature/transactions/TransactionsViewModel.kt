@@ -52,20 +52,41 @@ class TransactionsViewModel(
         _uiState.update { it.copy(selectedOrder = null, selectedOrderItems = emptyList()) }
     }
 
-    // --- VOID with PIN ---
+    // --- VOID with PIN & Reason ---
     fun onShowVoidPinDialog(order: Order) {
         _uiState.update {
             it.copy(
                 orderToVoid = order,
                 showVoidPinDialog = true,
                 voidPinInput = "",
-                voidPinError = null
+                voidPinError = null,
+                selectedVoidReason = "Salah Input Menu",
+                voidReasonNotes = "",
+                voidReasonError = null
             )
         }
     }
 
     fun onDismissVoidPinDialog() {
-        _uiState.update { it.copy(showVoidPinDialog = false, orderToVoid = null, voidPinInput = "", voidPinError = null) }
+        _uiState.update {
+            it.copy(
+                showVoidPinDialog = false,
+                orderToVoid = null,
+                voidPinInput = "",
+                voidPinError = null,
+                selectedVoidReason = "Salah Input Menu",
+                voidReasonNotes = "",
+                voidReasonError = null
+            )
+        }
+    }
+
+    fun onSelectVoidReason(reason: String) {
+        _uiState.update { it.copy(selectedVoidReason = reason, voidReasonError = null) }
+    }
+
+    fun onVoidReasonNotesChange(notes: String) {
+        _uiState.update { it.copy(voidReasonNotes = notes, voidReasonError = null) }
     }
 
     fun onVoidPinInputChange(pin: String) {
@@ -79,14 +100,30 @@ class TransactionsViewModel(
         val order = state.orderToVoid ?: return
         val correctPin = settingsRepository.settingsFlow.value.ownerPin
 
+        if (state.selectedVoidReason.isBlank()) {
+            _uiState.update { it.copy(voidReasonError = "Silakan pilih alasan pembatalan.") }
+            return
+        }
+
+        if (state.selectedVoidReason == "Lainnya" && state.voidReasonNotes.isBlank()) {
+            _uiState.update { it.copy(voidReasonError = "Tuliskan keterangan untuk alasan 'Lainnya'.") }
+            return
+        }
+
         if (state.voidPinInput != correctPin) {
             _uiState.update { it.copy(voidPinError = "PIN Owner salah. Coba lagi.") }
             return
         }
 
+        val fullReason = if (state.voidReasonNotes.isNotBlank()) {
+            "${state.selectedVoidReason} (${state.voidReasonNotes.trim()})"
+        } else {
+            state.selectedVoidReason
+        }
+
         _uiState.update { it.copy(isVoiding = true) }
         viewModelScope.launch {
-            repository.voidOrder(order.id)
+            repository.voidOrder(order.id, fullReason)
             _uiState.update {
                 it.copy(
                     isVoiding = false,
@@ -94,6 +131,9 @@ class TransactionsViewModel(
                     orderToVoid = null,
                     voidPinInput = "",
                     voidPinError = null,
+                    selectedVoidReason = "Salah Input Menu",
+                    voidReasonNotes = "",
+                    voidReasonError = null,
                     selectedOrder = null,
                     selectedOrderItems = emptyList()
                 )

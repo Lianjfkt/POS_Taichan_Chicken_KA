@@ -88,6 +88,8 @@ fun TransactionsRoute(
         onSyncClick = viewModel::syncPending,
         onVoidClick = viewModel::onShowVoidPinDialog,
         onDismissVoidPin = viewModel::onDismissVoidPinDialog,
+        onSelectVoidReason = viewModel::onSelectVoidReason,
+        onVoidReasonNotesChange = viewModel::onVoidReasonNotesChange,
         onVoidPinChange = viewModel::onVoidPinInputChange,
         onConfirmVoid = viewModel::confirmVoid,
         modifier = modifier
@@ -105,6 +107,8 @@ fun TransactionsScreen(
     onSyncClick: () -> Unit,
     onVoidClick: (Order) -> Unit,
     onDismissVoidPin: () -> Unit,
+    onSelectVoidReason: (String) -> Unit,
+    onVoidReasonNotesChange: (String) -> Unit,
     onVoidPinChange: (String) -> Unit,
     onConfirmVoid: () -> Unit,
     modifier: Modifier = Modifier
@@ -224,9 +228,14 @@ fun TransactionsScreen(
         if (uiState.showVoidPinDialog && uiState.orderToVoid != null) {
             VoidPinDialog(
                 orderNo = uiState.orderToVoid.orderNo,
+                selectedReason = uiState.selectedVoidReason,
+                reasonNotes = uiState.voidReasonNotes,
+                reasonError = uiState.voidReasonError,
                 pin = uiState.voidPinInput,
                 errorMessage = uiState.voidPinError,
                 isLoading = uiState.isVoiding,
+                onSelectReason = onSelectVoidReason,
+                onReasonNotesChange = onVoidReasonNotesChange,
                 onPinChange = onVoidPinChange,
                 onConfirm = onConfirmVoid,
                 onDismiss = onDismissVoidPin
@@ -343,13 +352,26 @@ fun FilterChipItem(
 @Composable
 fun VoidPinDialog(
     orderNo: String,
+    selectedReason: String,
+    reasonNotes: String,
+    reasonError: String?,
     pin: String,
     errorMessage: String?,
     isLoading: Boolean,
+    onSelectReason: (String) -> Unit,
+    onReasonNotesChange: (String) -> Unit,
     onPinChange: (String) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val predefinedReasons = listOf(
+        "Salah Input Menu",
+        "Pelanggan Membatalkan",
+        "Meja Pindah",
+        "Komplain Makanan",
+        "Lainnya"
+    )
+
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
@@ -357,15 +379,15 @@ fun VoidPinDialog(
                 .clip(AppShapes.Lg)
                 .background(SurfaceWhite)
                 .border(1.dp, OutlineSoft, AppShapes.Lg)
-                .padding(24.dp)
+                .padding(20.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(42.dp)
                         .clip(CircleShape)
                         .background(Danger.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
@@ -374,7 +396,7 @@ fun VoidPinDialog(
                         imageVector = Icons.Default.Lock,
                         contentDescription = "Security",
                         tint = Danger,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
 
@@ -386,9 +408,9 @@ fun VoidPinDialog(
                             color = TextPrimary
                         )
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Masukkan 6-digit PIN Owner untuk membatalkan nota $orderNo.",
+                        text = "Batalkan nota $orderNo",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = TextSecondary,
                             textAlign = TextAlign.Center
@@ -396,33 +418,115 @@ fun VoidPinDialog(
                     )
                 }
 
-                OutlinedTextField(
-                    value = pin,
-                    onValueChange = onPinChange,
-                    singleLine = true,
-                    placeholder = { Text("••••••", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    textStyle = MaterialTheme.typography.titleLarge.copy(
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 8.sp
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = if (errorMessage != null) Danger else Primary,
-                        unfocusedBorderColor = if (errorMessage != null) Danger else OutlineSoft
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                if (errorMessage != null) {
+                // Alasan Pembatalan
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = errorMessage,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = Danger,
-                            fontWeight = FontWeight.Medium
+                        text = "Alasan Pembatalan (Wajib):",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
                         )
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    predefinedReasons.chunked(2).forEach { pair ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            pair.forEach { reason ->
+                                val isSelected = selectedReason == reason
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(AppShapes.Sm)
+                                        .background(if (isSelected) Danger.copy(alpha = 0.12f) else SurfaceTint)
+                                        .border(1.dp, if (isSelected) Danger else OutlineSoft, AppShapes.Sm)
+                                        .clickable { onSelectReason(reason) }
+                                        .padding(vertical = 6.dp, horizontal = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = reason,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = if (isSelected) Danger else TextPrimary,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            fontSize = 11.sp
+                                        )
+                                    )
+                                }
+                            }
+                            if (pair.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                    }
+
+                    if (selectedReason == "Lainnya") {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        OutlinedTextField(
+                            value = reasonNotes,
+                            onValueChange = onReasonNotesChange,
+                            placeholder = { Text("Tuliskan alasan spesifik...", fontSize = 12.sp) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Danger,
+                                unfocusedBorderColor = OutlineSoft
+                            )
+                        )
+                    }
+
+                    if (reasonError != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = reasonError,
+                            style = MaterialTheme.typography.labelSmall.copy(color = Danger)
+                        )
+                    }
+                }
+
+                // PIN Input
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "PIN Owner (6 Digit):",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = pin,
+                        onValueChange = onPinChange,
+                        singleLine = true,
+                        placeholder = { Text("••••••", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        textStyle = MaterialTheme.typography.titleLarge.copy(
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 8.sp
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = if (errorMessage != null) Danger else Primary,
+                            unfocusedBorderColor = if (errorMessage != null) Danger else OutlineSoft
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    if (errorMessage != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = errorMessage,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Danger,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                    }
                 }
 
                 Row(
