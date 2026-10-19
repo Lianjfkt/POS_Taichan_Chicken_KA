@@ -127,4 +127,39 @@ object SampleData {
             description = "Air mineral dingin/biasa."
         )
     )
+
+    val customers = listOf(
+        com.kapos.mobile.domain.model.Customer(
+            id = "cust_budi",
+            name = "Budi Santoso",
+            phone = "081234567890",
+            points = 120,
+            totalSpend = 450000.0,
+            orderCount = 6
+        ),
+        com.kapos.mobile.domain.model.Customer(
+            id = "cust_siti",
+            name = "Siti Aminah",
+            phone = "081987654321",
+            points = 250,
+            totalSpend = 920000.0,
+            orderCount = 12
+        ),
+        com.kapos.mobile.domain.model.Customer(
+            id = "cust_ahmad",
+            name = "Ahmad Fauzi",
+            phone = "085678901234",
+            points = 60,
+            totalSpend = 210000.0,
+            orderCount = 3
+        ),
+        com.kapos.mobile.domain.model.Customer(
+            id = "cust_dewi",
+            name = "Dewi Lestari",
+            phone = "087712345678",
+            points = 350,
+            totalSpend = 1450000.0,
+            orderCount = 18
+        )
+    )
 }

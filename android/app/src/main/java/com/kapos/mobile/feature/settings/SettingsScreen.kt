@@ -21,10 +21,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Sync
@@ -69,6 +72,8 @@ fun SettingsRoute(
     viewModel: SettingsViewModel,
     onLockClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
+    onNavigateToMenuManagement: () -> Unit = {},
+    onNavigateToCustomers: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -77,6 +82,8 @@ fun SettingsRoute(
         uiState = uiState,
         onLockClick = onLockClick,
         onLogoutClick = onLogoutClick,
+        onNavigateToMenuManagement = onNavigateToMenuManagement,
+        onNavigateToCustomers = onNavigateToCustomers,
         onUrlChange = viewModel::onUrlChange,
         onAnonKeyChange = viewModel::onAnonKeyChange,
         onStoreNameChange = viewModel::onStoreNameChange,
@@ -106,6 +113,8 @@ fun SettingsScreen(
     uiState: SettingsUiState,
     onLockClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
+    onNavigateToMenuManagement: () -> Unit = {},
+    onNavigateToCustomers: () -> Unit = {},
     onUrlChange: (String) -> Unit,
     onAnonKeyChange: (String) -> Unit,
     onStoreNameChange: (String) -> Unit,
@@ -207,6 +216,131 @@ fun SettingsScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                // Section 0: Hub Kelola Menu & Pelanggan
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Md)
+                        .background(SurfaceWhite)
+                        .border(1.dp, OutlineSoft, AppShapes.Md)
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "Kelola Bisnis & Operasional",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            text = "Akses cepat manajemen master menu dan data member",
+                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Menu Management Tile
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(SurfaceTint)
+                                .border(1.dp, OutlineSoft, AppShapes.Sm)
+                                .clickable(onClick = onNavigateToMenuManagement)
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(PrimarySoft),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.RestaurantMenu,
+                                        contentDescription = null,
+                                        tint = Primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Kelola Menu & Kategori",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary
+                                        )
+                                    )
+                                    Text(
+                                        text = "Tambah produk, atur harga, HPP modal & kategori",
+                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                    )
+                                }
+                            }
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = TextSecondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Customer Management Tile
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(SurfaceTint)
+                                .border(1.dp, OutlineSoft, AppShapes.Sm)
+                                .clickable(onClick = onNavigateToCustomers)
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(PrimarySoft),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.People,
+                                        contentDescription = null,
+                                        tint = Primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Kelola Pelanggan (CRM) & Poin",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary
+                                        )
+                                    )
+                                    Text(
+                                        text = "Database member, riwayat belanja & loyalty points",
+                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                    )
+                                }
+                            }
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = TextSecondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+
                 // Section 1: Supabase Configuration
                 Box(
                     modifier = Modifier

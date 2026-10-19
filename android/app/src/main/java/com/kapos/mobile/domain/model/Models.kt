@@ -54,6 +54,16 @@ data class Category(
     val isActive: Boolean = true
 ) : Serializable
 
+data class Customer(
+    val id: String,
+    val name: String,
+    val phone: String,
+    val points: Int = 0,
+    val totalSpend: Double = 0.0,
+    val orderCount: Int = 0,
+    val createdAt: Long = System.currentTimeMillis()
+) : Serializable
+
 data class Product(
     val id: String,
     val categoryId: String?,

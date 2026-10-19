@@ -25,8 +25,13 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,7 +64,9 @@ import com.kapos.mobile.core.theme.SurfaceTint
 import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
+import com.kapos.mobile.core.theme.Warning
 import com.kapos.mobile.core.utils.CurrencyFormatter
+import com.kapos.mobile.domain.model.Customer
 import com.kapos.mobile.domain.model.OrderType
 import com.kapos.mobile.domain.model.PaymentMethod
 
@@ -78,6 +85,13 @@ fun ConfirmSaleRoute(
         onOrderTypeChange = viewModel::onOrderTypeChange,
         onTableNoChange = viewModel::onTableNoChange,
         onCustomerNameChange = viewModel::onCustomerNameChange,
+        onSelectCustomer = viewModel::onSelectCustomer,
+        onToggleRedeemPoints = viewModel::onToggleRedeemPoints,
+        onOpenSelectCustomerDialog = { viewModel.setSelectCustomerDialogOpen(true) },
+        onCloseSelectCustomerDialog = { viewModel.setSelectCustomerDialogOpen(false) },
+        onOpenQuickAddCustomerDialog = { viewModel.setQuickAddCustomerDialogOpen(true) },
+        onCloseQuickAddCustomerDialog = { viewModel.setQuickAddCustomerDialogOpen(false) },
+        onQuickAddCustomer = viewModel::quickAddCustomer,
         onDiscountTypeChange = viewModel::onDiscountTypeChange,
         onDiscountInputChange = viewModel::onDiscountInputChange,
         onPaymentMethodChange = viewModel::onPaymentMethodChange,
@@ -100,6 +114,13 @@ fun ConfirmSaleScreen(
     onOrderTypeChange: (OrderType) -> Unit,
     onTableNoChange: (String) -> Unit,
     onCustomerNameChange: (String) -> Unit,
+    onSelectCustomer: (Customer?) -> Unit,
+    onToggleRedeemPoints: (Boolean) -> Unit,
+    onOpenSelectCustomerDialog: () -> Unit,
+    onCloseSelectCustomerDialog: () -> Unit,
+    onOpenQuickAddCustomerDialog: () -> Unit,
+    onCloseQuickAddCustomerDialog: () -> Unit,
+    onQuickAddCustomer: (String, String) -> Unit,
     onDiscountTypeChange: (com.kapos.mobile.domain.model.DiscountType) -> Unit,
     onDiscountInputChange: (Double) -> Unit,
     onPaymentMethodChange: (PaymentMethod) -> Unit,
@@ -211,19 +232,205 @@ fun ConfirmSaleScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = uiState.customerName,
-                            onValueChange = onCustomerNameChange,
-                            label = { Text("Nama Pelanggan (Opsional)") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Customer / Member CRM Section
+                        if (uiState.selectedCustomer != null) {
+                            val member = uiState.selectedCustomer
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(PrimarySoft)
+                                    .border(1.dp, Primary, AppShapes.Sm)
+                                    .padding(12.dp)
+                            ) {
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Primary),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Person,
+                                                    contentDescription = null,
+                                                    tint = SurfaceWhite,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(10.dp))
+                                            Column {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Text(
+                                                        text = member.name,
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = TextPrimary
+                                                        )
+                                                    )
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .clip(CircleShape)
+                                                            .background(Color(0xFFFEF3C7))
+                                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = "⭐ ${member.points} Poin",
+                                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                                color = Color(0xFF92400E),
+                                                                fontWeight = FontWeight.Bold,
+                                                                fontSize = 10.sp
+                                                            )
+                                                        )
+                                                    }
+                                                }
+                                                Text(
+                                                    text = "Member • ${member.phone.ifBlank { "Tanpa No HP" }}",
+                                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                                )
+                                            }
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(SurfaceWhite)
+                                                .border(1.dp, OutlineSoft, CircleShape)
+                                                .clickable { onOpenSelectCustomerDialog() }
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "Ganti",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Primary
+                                                )
+                                            )
+                                        }
+                                    }
+
+                                    // Loyalty points redemption toggle
+                                    if (uiState.availablePoints > 0) {
+                                        Spacer(modifier = Modifier.height(10.dp))
+                                        Divider(color = Primary.copy(alpha = 0.2f), thickness = 1.dp)
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(
+                                                        Icons.Default.Star,
+                                                        contentDescription = null,
+                                                        tint = Warning,
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        text = "Tukar Poin Loyalty",
+                                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                                                    )
+                                                }
+                                                Text(
+                                                    text = if (uiState.isRedeemingPoints) {
+                                                        "Gunakan ${uiState.pointsToRedeem} Poin (-${CurrencyFormatter.formatRupiah(uiState.pointDiscount)})"
+                                                    } else {
+                                                        "Tersedia ${uiState.availablePoints} Poin (1 Poin = Rp 100)"
+                                                    },
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        color = if (uiState.isRedeemingPoints) Primary else TextSecondary,
+                                                        fontWeight = if (uiState.isRedeemingPoints) FontWeight.Bold else FontWeight.Normal
+                                                    )
+                                                )
+                                            }
+
+                                            Switch(
+                                                checked = uiState.isRedeemingPoints,
+                                                onCheckedChange = onToggleRedeemPoints,
+                                                colors = SwitchDefaults.colors(
+                                                    checkedThumbColor = SurfaceWhite,
+                                                    checkedTrackColor = Primary
+                                                )
+                                            )
+                                        }
+                                    }
+
+                                    // Points earned preview
+                                    if (uiState.pointsEarned > 0) {
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text(
+                                            text = "🎁 Member akan mendapatkan +${uiState.pointsEarned} Poin dari order ini",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                color = Success,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                OutlinedTextField(
+                                    value = uiState.customerName,
+                                    onValueChange = onCustomerNameChange,
+                                    label = { Text("Nama Pelanggan (Umum)") },
+                                    placeholder = { Text("Contoh: Kak Andi") },
+                                    singleLine = true,
+                                    shape = AppShapes.Sm,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = Primary,
+                                        unfocusedBorderColor = OutlineSoft
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .clip(AppShapes.Sm)
+                                        .background(PrimarySoft)
+                                        .border(1.dp, Primary, AppShapes.Sm)
+                                        .clickable { onOpenSelectCustomerDialog() }
+                                        .padding(horizontal = 12.dp, vertical = 14.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            Icons.Default.PersonSearch,
+                                            contentDescription = null,
+                                            tint = Primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "Member",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = Primary
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -326,15 +533,33 @@ fun ConfirmSaleScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        if (uiState.discount > 0) {
+                        if (uiState.manualDiscount > 0) {
                             Spacer(modifier = Modifier.height(6.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(text = "Potongan Diskon", style = MaterialTheme.typography.bodySmall.copy(color = Danger))
+                                Text(text = "Potongan Diskon Menu", style = MaterialTheme.typography.bodySmall.copy(color = Danger))
                                 Text(
-                                    text = "- ${CurrencyFormatter.formatRupiah(uiState.discount)}",
+                                    text = "- ${CurrencyFormatter.formatRupiah(uiState.manualDiscount)}",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = Danger, fontWeight = FontWeight.Bold)
+                                )
+                            }
+                        }
+
+                        if (uiState.pointDiscount > 0) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Star, contentDescription = null, tint = Warning, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(text = "Diskon Poin (${uiState.pointsToRedeem} pts)", style = MaterialTheme.typography.bodySmall.copy(color = Danger))
+                                }
+                                Text(
+                                    text = "- ${CurrencyFormatter.formatRupiah(uiState.pointDiscount)}",
                                     style = MaterialTheme.typography.bodySmall.copy(color = Danger, fontWeight = FontWeight.Bold)
                                 )
                             }
@@ -520,6 +745,28 @@ fun ConfirmSaleScreen(
                     )
                 }
             }
+        }
+
+        // Customer Selection Dialog
+        if (uiState.isSelectCustomerDialogOpen) {
+            SelectCustomerDialog(
+                customers = uiState.availableCustomers,
+                selectedCustomer = uiState.selectedCustomer,
+                onSelectCustomer = onSelectCustomer,
+                onOpenQuickAdd = {
+                    onCloseSelectCustomerDialog()
+                    onOpenQuickAddCustomerDialog()
+                },
+                onDismiss = onCloseSelectCustomerDialog
+            )
+        }
+
+        // Quick Add Customer Dialog
+        if (uiState.isQuickAddCustomerDialogOpen) {
+            QuickAddCustomerDialog(
+                onSave = onQuickAddCustomer,
+                onDismiss = onCloseQuickAddCustomerDialog
+            )
         }
     }
 }

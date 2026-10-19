@@ -30,6 +30,10 @@ import com.kapos.mobile.feature.report.ReportRoute
 import com.kapos.mobile.feature.report.ReportViewModel
 import com.kapos.mobile.feature.settings.SettingsRoute
 import com.kapos.mobile.feature.settings.SettingsViewModel
+import com.kapos.mobile.feature.customer.CustomerRoute
+import com.kapos.mobile.feature.customer.CustomerViewModel
+import com.kapos.mobile.feature.menu.MenuManagementRoute
+import com.kapos.mobile.feature.menu.MenuManagementViewModel
 import com.kapos.mobile.feature.shift.ShiftRoute
 import com.kapos.mobile.feature.shift.ShiftViewModel
 import com.kapos.mobile.feature.stock.StockRoute
@@ -55,7 +59,18 @@ fun KaPosApp(
         PosViewModel(app.posRepository, app.savedOrderRepository)
     }
     val checkoutViewModel: CheckoutViewModel = viewModel {
-        CheckoutViewModel(app.posRepository, app.settingsRepository, app.bluetoothPrinterService)
+        CheckoutViewModel(
+            app.posRepository,
+            app.settingsRepository,
+            app.bluetoothPrinterService,
+            app.customerRepository
+        )
+    }
+    val customerViewModel: CustomerViewModel = viewModel {
+        CustomerViewModel(app.customerRepository)
+    }
+    val menuManagementViewModel: MenuManagementViewModel = viewModel {
+        MenuManagementViewModel(app.posRepository)
     }
     val transactionsViewModel: com.kapos.mobile.feature.transactions.TransactionsViewModel = viewModel {
         com.kapos.mobile.feature.transactions.TransactionsViewModel(
@@ -184,7 +199,27 @@ fun KaPosApp(
                             app.settingsRepository.updateSession(
                                 AuthSession(isLoggedIn = false, role = UserRole.CASHIER, cashierName = "")
                             )
+                        },
+                        onNavigateToMenuManagement = {
+                            navController.navigate("menu_management")
+                        },
+                        onNavigateToCustomers = {
+                            navController.navigate("customers")
                         }
+                    )
+                }
+
+                composable("menu_management") {
+                    MenuManagementRoute(
+                        viewModel = menuManagementViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable("customers") {
+                    CustomerRoute(
+                        viewModel = customerViewModel,
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }

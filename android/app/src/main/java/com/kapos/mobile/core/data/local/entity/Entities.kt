@@ -120,3 +120,17 @@ data class CashMovementEntity(
     val createdAt: Long
 )
 
+@Entity(
+    tableName = "customers",
+    indices = [Index("phone")]
+)
+data class CustomerEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val phone: String,
+    val points: Int = 0,
+    val totalSpend: Double = 0.0,
+    val orderCount: Int = 0,
+    val createdAt: Long = System.currentTimeMillis()
+)
+

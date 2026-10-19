@@ -89,36 +89,93 @@ class PosRepository(
 
     fun observeCategories(): Flow<List<Category>> {
         return categoryDao.observeAll().map { list ->
-            list.map {
-                Category(
-                    id = it.id,
-                    name = it.name,
-                    emoji = it.emoji,
-                    color = it.color,
-                    sortOrder = it.sortOrder,
-                    isActive = it.isActive
-                )
-            }
+            list.map { it.toDomain() }
         }
+    }
+
+    fun observeAllCategories(includeInactive: Boolean = true): Flow<List<Category>> {
+        val flow = if (includeInactive) categoryDao.observeAllIncludeInactive() else categoryDao.observeAll()
+        return flow.map { list -> list.map { it.toDomain() } }
+    }
+
+    suspend fun saveCategory(category: Category) = withContext(Dispatchers.IO) {
+        val id = if (category.id.isBlank()) UUID.randomUUID().toString() else category.id
+        categoryDao.upsert(
+            CategoryEntity(
+                id = id,
+                name = category.name.trim(),
+                emoji = category.emoji.ifBlank { "🍽️" },
+                color = category.color.ifBlank { "#0B5C73" },
+                sortOrder = category.sortOrder,
+                isActive = category.isActive
+            )
+        )
+    }
+
+    suspend fun deleteCategory(id: String) = withContext(Dispatchers.IO) {
+        categoryDao.deleteById(id)
+    }
+
+    suspend fun toggleCategoryActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
+        categoryDao.toggleActive(id, isActive)
     }
 
     fun observeProducts(): Flow<List<Product>> {
         return productDao.observeAll().map { list ->
-            list.map {
-                Product(
-                    id = it.id,
-                    categoryId = it.categoryId,
-                    name = it.name,
-                    price = it.price,
-                    costPrice = it.costPrice,
-                    emoji = it.emoji,
-                    spiceLevel = it.spiceLevel,
-                    description = it.description,
-                    isActive = it.isActive
-                )
-            }
+            list.map { it.toDomain() }
         }
     }
+
+    fun observeAllProducts(includeInactive: Boolean = true): Flow<List<Product>> {
+        val flow = if (includeInactive) productDao.observeAllIncludeInactive() else productDao.observeAll()
+        return flow.map { list -> list.map { it.toDomain() } }
+    }
+
+    suspend fun saveProduct(product: Product) = withContext(Dispatchers.IO) {
+        val id = if (product.id.isBlank()) UUID.randomUUID().toString() else product.id
+        productDao.upsert(
+            ProductEntity(
+                id = id,
+                categoryId = product.categoryId,
+                name = product.name.trim(),
+                price = product.price.coerceAtLeast(0.0),
+                costPrice = product.costPrice.coerceAtLeast(0.0),
+                emoji = product.emoji.ifBlank { "🍢" },
+                spiceLevel = product.spiceLevel,
+                description = product.description.trim(),
+                isActive = product.isActive
+            )
+        )
+    }
+
+    suspend fun deleteProduct(id: String) = withContext(Dispatchers.IO) {
+        productDao.deleteById(id)
+    }
+
+    suspend fun toggleProductActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
+        productDao.toggleActive(id, isActive)
+    }
+
+    private fun CategoryEntity.toDomain() = Category(
+        id = id,
+        name = name,
+        emoji = emoji,
+        color = color,
+        sortOrder = sortOrder,
+        isActive = isActive
+    )
+
+    private fun ProductEntity.toDomain() = Product(
+        id = id,
+        categoryId = categoryId,
+        name = name,
+        price = price,
+        costPrice = costPrice,
+        emoji = emoji,
+        spiceLevel = spiceLevel,
+        description = description,
+        isActive = isActive
+    )
 
     fun observeOrders(): Flow<List<Order>> {
         return orderDao.observeOrders().map { list ->
