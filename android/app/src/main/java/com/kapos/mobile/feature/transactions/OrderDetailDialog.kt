@@ -59,6 +59,8 @@ fun OrderDetailDialog(
     order: Order,
     items: List<OrderItem>,
     isLoading: Boolean,
+    storeName: String = "🍢 Taichan & Chicken KA",
+    storeAddress: String = "Bandar Lampung",
     onPrint: () -> Unit = {},
     onVoid: (() -> Unit)? = null,
     onDismiss: () -> Unit
@@ -102,7 +104,7 @@ fun OrderDetailDialog(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "🍢 Taichan & Chicken KA",
+                    text = storeName,
                     style = MaterialTheme.typography.titleLarge.copy(
                         color = Primary,
                         fontWeight = FontWeight.Bold,
@@ -110,7 +112,7 @@ fun OrderDetailDialog(
                     )
                 )
                 Text(
-                    text = "Bandar Lampung",
+                    text = storeAddress,
                     style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                 )
 

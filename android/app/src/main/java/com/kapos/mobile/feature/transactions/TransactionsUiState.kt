@@ -1,5 +1,7 @@
 package com.kapos.mobile.feature.transactions
 
+import com.kapos.mobile.domain.model.DateFilterPreset
+import com.kapos.mobile.domain.model.DateRangeFilter
 import com.kapos.mobile.domain.model.Order
 import com.kapos.mobile.domain.model.OrderItem
 import com.kapos.mobile.domain.model.PaymentStatus
@@ -13,6 +15,8 @@ enum class TransactionFilter {
 data class TransactionsUiState(
     val searchQuery: String = "",
     val filter: TransactionFilter = TransactionFilter.ALL,
+    val dateFilter: DateRangeFilter = DateRangeFilter(preset = DateFilterPreset.TODAY),
+    val showDatePickerDialog: Boolean = false,
     val orders: List<Order> = emptyList(),
     val selectedOrder: Order? = null,
     val selectedOrderItems: List<OrderItem> = emptyList(),
@@ -26,11 +30,17 @@ data class TransactionsUiState(
     val selectedVoidReason: String = "Salah Input Menu",
     val voidReasonNotes: String = "",
     val voidReasonError: String? = null,
-    val isVoiding: Boolean = false
+    val isVoiding: Boolean = false,
+    val printFeedbackMessage: String? = null,
+    val storeName: String = "🍢 Taichan & Chicken KA",
+    val storeAddress: String = "Bandar Lampung"
 ) {
     val filteredOrders: List<Order>
         get() {
             var list = orders
+            val (startCutoff, endCutoff) = dateFilter.getTimeRange()
+            list = list.filter { it.createdAt in startCutoff..endCutoff }
+
             list = when (filter) {
                 TransactionFilter.ALL -> list
                 TransactionFilter.PAID -> list.filter { it.paymentStatus == PaymentStatus.PAID }

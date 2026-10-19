@@ -30,6 +30,16 @@ class TransactionsViewModel(
                 _uiState.update { it.copy(isSyncing = syncing) }
             }
         }
+        viewModelScope.launch {
+            settingsRepository.settingsFlow.collect { settings ->
+                _uiState.update {
+                    it.copy(
+                        storeName = settings.storeName,
+                        storeAddress = settings.storeAddress
+                    )
+                }
+            }
+        }
     }
 
     fun onSearchQueryChange(query: String) {
@@ -38,6 +48,27 @@ class TransactionsViewModel(
 
     fun onFilterChange(filter: TransactionFilter) {
         _uiState.update { it.copy(filter = filter) }
+    }
+
+    fun onDatePresetChange(preset: com.kapos.mobile.domain.model.DateFilterPreset) {
+        _uiState.update { it.copy(dateFilter = it.dateFilter.copy(preset = preset)) }
+    }
+
+    fun onCustomDateRangeSelected(startMillis: Long, endMillis: Long) {
+        _uiState.update {
+            it.copy(
+                dateFilter = it.dateFilter.copy(
+                    preset = com.kapos.mobile.domain.model.DateFilterPreset.CUSTOM,
+                    customStartMillis = startMillis,
+                    customEndMillis = endMillis
+                ),
+                showDatePickerDialog = false
+            )
+        }
+    }
+
+    fun onShowDatePickerDialog(show: Boolean) {
+        _uiState.update { it.copy(showDatePickerDialog = show) }
     }
 
     fun onSelectOrder(order: Order) {
@@ -144,7 +175,10 @@ class TransactionsViewModel(
     fun printOrder(order: Order, items: List<com.kapos.mobile.domain.model.OrderItem>) {
         viewModelScope.launch {
             val settings = settingsRepository.settingsFlow.value
-            if (settings.printerMacAddress.isBlank()) return@launch
+            if (settings.printerMacAddress.isBlank()) {
+                _uiState.update { it.copy(printFeedbackMessage = "Printer Bluetooth belum dipilih di Pengaturan.") }
+                return@launch
+            }
 
             try {
                 val builder = com.kapos.mobile.core.printer.EscPosBuilder(settings.paperWidth)
@@ -159,6 +193,7 @@ class TransactionsViewModel(
                     )
                 }
                 val dateStr = java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", java.util.Locale("id", "ID")).format(java.util.Date(order.createdAt))
+                val isVoid = (order.paymentStatus == com.kapos.mobile.domain.model.PaymentStatus.VOID)
                 val receiptBytes = builder.buildReceipt(
                     storeName = settings.storeName,
                     address = settings.storeAddress,
@@ -176,11 +211,23 @@ class TransactionsViewModel(
                     total = order.total,
                     paymentMethod = order.paymentMethod.displayName,
                     cashGiven = order.total,
-                    change = 0.0
+                    change = 0.0,
+                    isVoid = isVoid
                 )
-                bluetoothPrinterService.printBytes(settings.printerMacAddress, receiptBytes)
-            } catch (_: Exception) {}
+                val result = bluetoothPrinterService.printBytes(settings.printerMacAddress, receiptBytes)
+                if (result.isSuccess) {
+                    _uiState.update { it.copy(printFeedbackMessage = "Struk berhasil dicetak ke printer!") }
+                } else {
+                    _uiState.update { it.copy(printFeedbackMessage = "Gagal mencetak: ${result.exceptionOrNull()?.message}") }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(printFeedbackMessage = "Gagal mencetak struk: ${e.message}") }
+            }
         }
+    }
+
+    fun clearPrintFeedback() {
+        _uiState.update { it.copy(printFeedbackMessage = null) }
     }
 
     fun syncPending() {

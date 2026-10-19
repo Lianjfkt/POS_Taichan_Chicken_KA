@@ -38,8 +38,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kapos.mobile.core.components.BadgeType
+import com.kapos.mobile.core.components.DateFilterBar
+import com.kapos.mobile.core.components.DateRangePickerDialog
 import com.kapos.mobile.core.components.SearchField
 import com.kapos.mobile.core.components.StatusBadge
+import com.kapos.mobile.domain.model.DateFilterPreset
 import com.kapos.mobile.core.theme.AppShapes
 import com.kapos.mobile.core.theme.OutlineSoft
 import com.kapos.mobile.core.theme.Primary
@@ -82,6 +85,9 @@ fun TransactionsRoute(
         uiState = uiState,
         onSearchChange = viewModel::onSearchQueryChange,
         onFilterChange = viewModel::onFilterChange,
+        onDatePresetChange = viewModel::onDatePresetChange,
+        onCustomDateRangeSelected = viewModel::onCustomDateRangeSelected,
+        onShowDatePickerDialog = viewModel::onShowDatePickerDialog,
         onSelectOrder = viewModel::onSelectOrder,
         onDismissDetail = viewModel::onDismissDetail,
         onPrintOrder = viewModel::printOrder,
@@ -101,6 +107,9 @@ fun TransactionsScreen(
     uiState: TransactionsUiState,
     onSearchChange: (String) -> Unit,
     onFilterChange: (TransactionFilter) -> Unit,
+    onDatePresetChange: (com.kapos.mobile.domain.model.DateFilterPreset) -> Unit,
+    onCustomDateRangeSelected: (Long, Long) -> Unit,
+    onShowDatePickerDialog: (Boolean) -> Unit,
     onSelectOrder: (Order) -> Unit,
     onDismissDetail: () -> Unit,
     onPrintOrder: (Order, List<com.kapos.mobile.domain.model.OrderItem>) -> Unit,
@@ -171,6 +180,15 @@ fun TransactionsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Date Filter Bar
+            DateFilterBar(
+                currentFilter = uiState.dateFilter,
+                onPresetSelected = onDatePresetChange,
+                onOpenDatePicker = { onShowDatePickerDialog(true) }
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             // Filter Tabs
             Row(
                 modifier = Modifier
@@ -218,6 +236,8 @@ fun TransactionsScreen(
                 order = uiState.selectedOrder,
                 items = uiState.selectedOrderItems,
                 isLoading = uiState.isLoadingDetail,
+                storeName = uiState.storeName,
+                storeAddress = uiState.storeAddress,
                 onPrint = { onPrintOrder(uiState.selectedOrder, uiState.selectedOrderItems) },
                 onVoid = { onVoidClick(uiState.selectedOrder) },
                 onDismiss = onDismissDetail
@@ -239,6 +259,18 @@ fun TransactionsScreen(
                 onPinChange = onVoidPinChange,
                 onConfirm = onConfirmVoid,
                 onDismiss = onDismissVoidPin
+            )
+        }
+
+        // Custom Date Range Picker Dialog
+        if (uiState.showDatePickerDialog) {
+            DateRangePickerDialog(
+                initialStartDate = uiState.dateFilter.customStartMillis,
+                initialEndDate = uiState.dateFilter.customEndMillis,
+                onConfirm = { start, end ->
+                    onCustomDateRangeSelected(start, end)
+                },
+                onDismiss = { onShowDatePickerDialog(false) }
             )
         }
     }
