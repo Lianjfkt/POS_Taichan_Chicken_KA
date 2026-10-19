@@ -15,6 +15,12 @@ interface CashMovementDao {
     @Query("SELECT * FROM cash_movements WHERE shiftId = :shiftId ORDER BY createdAt DESC")
     suspend fun getByShift(shiftId: String): List<CashMovementEntity>
 
+    @Query("SELECT * FROM cash_movements ORDER BY createdAt DESC")
+    fun observeAll(): Flow<List<CashMovementEntity>>
+
+    @Query("SELECT * FROM cash_movements WHERE createdAt >= :since ORDER BY createdAt DESC")
+    fun observeSince(since: Long): Flow<List<CashMovementEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(movement: CashMovementEntity)
 }

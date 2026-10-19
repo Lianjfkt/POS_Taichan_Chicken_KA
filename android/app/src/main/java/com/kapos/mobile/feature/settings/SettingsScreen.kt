@@ -2,6 +2,7 @@ package com.kapos.mobile.feature.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -103,6 +104,8 @@ fun SettingsRoute(
         onSave = viewModel::saveSettings,
         onTestConnection = viewModel::testConnection,
         onSyncNow = viewModel::syncNow,
+        onSelectActiveStaff = viewModel::onSelectActiveStaff,
+        onAddStaff = viewModel::onAddStaff,
         modifier = modifier
     )
 }
@@ -134,6 +137,8 @@ fun SettingsScreen(
     onSave: () -> Unit,
     onTestConnection: () -> Unit,
     onSyncNow: () -> Unit,
+    onSelectActiveStaff: (String) -> Unit = {},
+    onAddStaff: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -509,6 +514,41 @@ fun SettingsScreen(
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        if (uiState.staffList.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Pilih Kasir Bertugas:",
+                                style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontWeight = FontWeight.SemiBold)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                uiState.staffList.forEach { staff ->
+                                    val isSelected = staff.equals(uiState.cashierName, ignoreCase = true)
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(if (isSelected) Primary else SurfaceTint)
+                                            .border(1.dp, if (isSelected) Primary else OutlineSoft, CircleShape)
+                                            .clickable { onSelectActiveStaff(staff) }
+                                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                                    ) {
+                                        Text(
+                                            text = staff,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                color = if (isSelected) SurfaceWhite else TextPrimary,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(10.dp))
 

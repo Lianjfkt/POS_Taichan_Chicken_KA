@@ -223,4 +223,99 @@ class EscPosBuilder(private val paperWidth: Int = 58) {
 
         return out.toByteArray()
     }
+
+    fun buildFinancialReport(
+        storeName: String,
+        periodName: String,
+        cashierName: String,
+        dateStr: String,
+        grossRevenue: Double,
+        discount: Double,
+        netRevenue: Double,
+        cogs: Double,
+        grossProfit: Double,
+        expenses: Double,
+        netProfit: Double,
+        totalTransactions: Int,
+        cashSales: Double,
+        nonCashSales: Double
+    ): ByteArray {
+        val out = ByteArrayOutputStream()
+
+        fun write(vararg b: Int) = b.forEach { out.write(it) }
+        fun writeText(text: String) = out.write(text.toByteArray(Charsets.ISO_8859_1))
+        fun line(text: String = "") {
+            writeText(text)
+            write(0x0A)
+        }
+        fun divider() = line("-".repeat(maxCols))
+        fun doubleDivider() = line("=".repeat(maxCols))
+
+        fun twoCols(left: String, right: String): String {
+            val space = maxCols - left.length - right.length
+            return if (space > 0) left + " ".repeat(space) + right else "$left $right"
+        }
+
+        // Initialize printer
+        write(0x1B, 0x40)
+
+        // Store Header (Center, Bold)
+        write(0x1B, 0x61, 0x01)
+        write(0x1B, 0x45, 0x01)
+        write(0x1D, 0x21, 0x11)
+        line(storeName)
+
+        // Title
+        write(0x1D, 0x21, 0x00)
+        write(0x1B, 0x45, 0x00)
+        line("LAPORAN KEUANGAN & LABA RUGI")
+        doubleDivider()
+
+        // Metadata (Left)
+        write(0x1B, 0x61, 0x00)
+        line(twoCols("Periode", periodName))
+        line(twoCols("Petugas", cashierName))
+        line(twoCols("Waktu Cetak", dateStr))
+        divider()
+
+        // Financials
+        line(twoCols("Penjualan Kotor", formatRp(grossRevenue)))
+        if (discount > 0) {
+            line(twoCols("Diskon", "- ${formatRp(discount)}"))
+        }
+        write(0x1B, 0x45, 0x01)
+        line(twoCols("Penjualan Bersih", formatRp(netRevenue)))
+        write(0x1B, 0x45, 0x00)
+        line(twoCols("HPP Modal (COGS)", formatRp(cogs)))
+        line(twoCols("Laba Kotor", formatRp(grossProfit)))
+        if (expenses > 0) {
+            line(twoCols("Pengeluaran Kas", "- ${formatRp(expenses)}"))
+        }
+        divider()
+
+        // Net Profit (Bold)
+        write(0x1B, 0x45, 0x01)
+        line(twoCols("LABA BERSIH", formatRp(netProfit)))
+        write(0x1B, 0x45, 0x00)
+        doubleDivider()
+
+        // Payment Methods & Stats
+        line(twoCols("Penjualan Tunai", formatRp(cashSales)))
+        line(twoCols("Penjualan Non-Tunai", formatRp(nonCashSales)))
+        line(twoCols("Total Struk", "$totalTransactions Struk"))
+        val aov = if (totalTransactions > 0) netRevenue / totalTransactions else 0.0
+        line(twoCols("Rata-rata Struk", formatRp(aov)))
+        divider()
+
+        write(0x1B, 0x61, 0x01)
+        line("")
+        line("Dicetak Otomatis oleh KA POS")
+        line("")
+        line("")
+
+        // Paper Feed & Cut
+        write(0x1D, 0x56, 0x42, 0x00)
+
+        return out.toByteArray()
+    }
 }

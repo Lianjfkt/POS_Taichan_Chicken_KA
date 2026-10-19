@@ -221,6 +221,24 @@ class PosRepository(
         }
     }
 
+    fun observeAllOrderItems(): Flow<List<OrderItem>> {
+        return orderDao.observeAllOrderItems().map { list ->
+            list.map {
+                OrderItem(
+                    id = it.id,
+                    orderId = it.orderId,
+                    productId = it.productId,
+                    productName = it.productName,
+                    price = it.price,
+                    quantity = it.quantity,
+                    spiceLevel = it.spiceLevel,
+                    notes = it.notes,
+                    subtotal = it.subtotal
+                )
+            }
+        }
+    }
+
     suspend fun submitOrder(
         order: Order,
         items: List<CartItem>

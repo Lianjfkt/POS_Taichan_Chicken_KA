@@ -94,7 +94,12 @@ fun KaPosApp(
         AnalyticsViewModel(app.posRepository, app.settingsRepository)
     }
     val reportViewModel: ReportViewModel = viewModel {
-        ReportViewModel(app.posRepository, app.settingsRepository)
+        ReportViewModel(
+            repository = app.posRepository,
+            settingsRepository = app.settingsRepository,
+            shiftRepository = app.shiftRepository,
+            bluetoothPrinterService = app.bluetoothPrinterService
+        )
     }
     val settingsViewModel: SettingsViewModel = viewModel {
         SettingsViewModel(

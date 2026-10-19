@@ -38,6 +38,12 @@ class ShiftRepository(private val database: AppDatabase) {
         }
     }
 
+    fun observeAllCashMovements(): Flow<List<CashMovement>> {
+        return cashMovementDao.observeAll().map { list ->
+            list.map { it.toDomain() }
+        }
+    }
+
     suspend fun getCashMovements(shiftId: String): List<CashMovement> = withContext(Dispatchers.IO) {
         cashMovementDao.getByShift(shiftId).map { it.toDomain() }
     }

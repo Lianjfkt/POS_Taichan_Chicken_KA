@@ -24,6 +24,7 @@ data class AppSettings(
     val ownerPin: String = "1234",
     val dailyFixedCost: Double = 350000.0,
     val dailyRevenueTarget: Double = 1500000.0,
+    val staffList: String = "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
     val currentSession: AuthSession = AuthSession(
         isLoggedIn = false,
         role = UserRole.CASHIER,
@@ -62,6 +63,7 @@ class SettingsRepository(context: Context? = null) {
             ownerPin = prefs.getString("owner_pin", "1234") ?: "1234",
             dailyFixedCost = prefs.getFloat("daily_fixed_cost", 350000f).toDouble(),
             dailyRevenueTarget = prefs.getFloat("daily_revenue_target", 1500000f).toDouble(),
+            staffList = prefs.getString("staff_list", "Kasir Utama,Kasir Pagi,Kasir Malam,Manager") ?: "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
             currentSession = AuthSession(
                 isLoggedIn = isSessionActive,
                 role = sessionRole,
@@ -87,8 +89,37 @@ class SettingsRepository(context: Context? = null) {
             ?.putString("owner_pin", settings.ownerPin)
             ?.putFloat("daily_fixed_cost", settings.dailyFixedCost.toFloat())
             ?.putFloat("daily_revenue_target", settings.dailyRevenueTarget.toFloat())
+            ?.putString("staff_list", settings.staffList)
             ?.apply()
         _settingsFlow.value = settings
+    }
+
+    fun getStaffNames(): List<String> {
+        return _settingsFlow.value.staffList.split(",").map { it.trim() }.filter { it.isNotBlank() }
+    }
+
+    fun switchActiveCashier(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return
+        val current = _settingsFlow.value
+        val updated = current.copy(
+            cashierName = trimmed,
+            currentSession = current.currentSession.copy(cashierName = trimmed)
+        )
+        saveSettings(updated)
+        prefs?.edit()?.putString("session_cashier_name", trimmed)?.apply()
+    }
+
+    fun addStaffName(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return
+        val currentList = getStaffNames().toMutableList()
+        if (!currentList.contains(trimmed)) {
+            currentList.add(trimmed)
+            val updatedString = currentList.joinToString(",")
+            val updated = _settingsFlow.value.copy(staffList = updatedString)
+            saveSettings(updated)
+        }
     }
 
     fun updateSession(session: AuthSession) {

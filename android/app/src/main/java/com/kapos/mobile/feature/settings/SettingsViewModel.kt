@@ -43,7 +43,8 @@ class SettingsViewModel(
                         cashierPin = settings.cashierPin,
                         ownerPin = settings.ownerPin,
                         dailyFixedCost = settings.dailyFixedCost,
-                        dailyRevenueTarget = settings.dailyRevenueTarget
+                        dailyRevenueTarget = settings.dailyRevenueTarget,
+                        staffList = settingsRepository.getStaffNames()
                     )
                 }
             }
@@ -234,5 +235,15 @@ class SettingsViewModel(
         viewModelScope.launch {
             posRepository.refreshFromSupabase()
         }
+    }
+
+    fun onSelectActiveStaff(staffName: String) {
+        settingsRepository.switchActiveCashier(staffName)
+        _uiState.update { it.copy(cashierName = staffName) }
+    }
+
+    fun onAddStaff(staffName: String) {
+        settingsRepository.addStaffName(staffName)
+        _uiState.update { it.copy(staffList = settingsRepository.getStaffNames()) }
     }
 }

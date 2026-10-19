@@ -24,5 +24,6 @@ data class SettingsUiState(
     val printTestStatusMessage: String? = null,
     val isPrintTestSuccess: Boolean? = null,
     val isSyncing: Boolean = false,
-    val pendingSyncCount: Int = 0
+    val pendingSyncCount: Int = 0,
+    val staffList: List<String> = emptyList()
 )
