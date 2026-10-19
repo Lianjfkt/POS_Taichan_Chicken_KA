@@ -2,10 +2,13 @@ package com.kapos.mobile.feature.stock
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kapos.mobile.core.data.repository.InventoryRepository
 import com.kapos.mobile.core.data.repository.PosRepository
 import com.kapos.mobile.core.data.repository.StockRepository
 import com.kapos.mobile.domain.model.ChickenPart
 import com.kapos.mobile.domain.model.PaymentStatus
+import com.kapos.mobile.domain.model.RawMaterial
+import com.kapos.mobile.domain.model.RawMaterialCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,10 +16,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.UUID
 
 class StockViewModel(
     private val stockRepository: StockRepository,
     private val posRepository: PosRepository? = null,
+    private val inventoryRepository: InventoryRepository? = null,
     private val scope: kotlinx.coroutines.CoroutineScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
 ) : ViewModel() {
 
@@ -24,6 +29,17 @@ class StockViewModel(
     private val _isRestockDialogOpen = MutableStateFlow(false)
     private val _restockChickenPart = MutableStateFlow(ChickenPart.SAYAP)
     private val _taichanSoldToday = MutableStateFlow(0)
+
+    // Raw Material states
+    private val _rawMaterials = MutableStateFlow<List<RawMaterial>>(emptyList())
+    private val _selectedMaterialCategory = MutableStateFlow<RawMaterialCategory?>(null)
+    private val _materialSearchQuery = MutableStateFlow("")
+    private val _selectedMaterialForAction = MutableStateFlow<RawMaterial?>(null)
+    private val _isAddEditMaterialOpen = MutableStateFlow(false)
+    private val _materialToEdit = MutableStateFlow<RawMaterial?>(null)
+    private val _isRestockMaterialOpen = MutableStateFlow(false)
+    private val _isWasteMaterialOpen = MutableStateFlow(false)
+    private val _isOpnameMaterialOpen = MutableStateFlow(false)
 
     init {
         posRepository?.let { repo ->
@@ -52,23 +68,78 @@ class StockViewModel(
                 }
             }
         }
+
+        inventoryRepository?.let { inv ->
+            scope.launch {
+                inv.observeRawMaterials().collect { list ->
+                    _rawMaterials.value = list
+                }
+            }
+        }
     }
 
     val uiState: StateFlow<StockUiState> = combine(
-        combine(_activeTab, _isRestockDialogOpen, _restockChickenPart) { tab, dialog, part ->
-            Triple(tab, dialog, part)
+        combine(
+            _activeTab,
+            _isRestockDialogOpen,
+            _restockChickenPart,
+            _taichanSoldToday
+        ) { tab, dialog, part, soldToday ->
+            listOf(tab, dialog, part, soldToday)
+        },
+        combine(
+            _rawMaterials,
+            _selectedMaterialCategory,
+            _materialSearchQuery,
+            _selectedMaterialForAction
+        ) { mats, cat, query, selectedMat ->
+            listOf(mats, cat, query, selectedMat)
+        },
+        combine(
+            _isAddEditMaterialOpen,
+            _materialToEdit,
+            _isRestockMaterialOpen,
+            _isWasteMaterialOpen,
+            _isOpnameMaterialOpen
+        ) { addEdit, toEdit, restock, waste, opname ->
+            listOf(addEdit, toEdit, restock, waste, opname)
         },
         stockRepository.taichanBatches,
-        stockRepository.chickenBatches,
-        _taichanSoldToday
-    ) { (tab, isDialogOpen, chickenPart), tcBatches, ckBatches, soldToday ->
+        stockRepository.chickenBatches
+    ) { baseList, matList, dialogList, tcBatches, ckBatches ->
+        val tab = baseList[0] as StockTab
+        val isDialogOpen = baseList[1] as Boolean
+        val chickenPart = baseList[2] as ChickenPart
+        val soldToday = baseList[3] as Int
+
+        @Suppress("UNCHECKED_CAST")
+        val mats = matList[0] as List<RawMaterial>
+        val cat = matList[1] as RawMaterialCategory?
+        val query = matList[2] as String
+        val selectedMat = matList[3] as RawMaterial?
+
+        val addEdit = dialogList[0] as Boolean
+        val toEdit = dialogList[1] as RawMaterial?
+        val restock = dialogList[2] as Boolean
+        val waste = dialogList[3] as Boolean
+        val opname = dialogList[4] as Boolean
+
         StockUiState(
             activeTab = tab,
             taichanBatches = tcBatches,
             chickenBatches = ckBatches,
             taichanSoldToday = soldToday,
             isRestockDialogOpen = isDialogOpen,
-            restockChickenPart = chickenPart
+            restockChickenPart = chickenPart,
+            rawMaterials = mats,
+            selectedMaterialCategory = cat,
+            materialSearchQuery = query,
+            selectedMaterialForAction = selectedMat,
+            isAddEditMaterialOpen = addEdit,
+            materialToEdit = toEdit,
+            isRestockMaterialOpen = restock,
+            isWasteMaterialOpen = waste,
+            isOpnameMaterialOpen = opname
         )
     }.stateIn(
         scope = scope,
@@ -83,6 +154,7 @@ class StockViewModel(
         _activeTab.value = tab
     }
 
+    // --- Taichan & Chicken Batches ---
     fun openRestockDialog(part: ChickenPart = ChickenPart.SAYAP) {
         _restockChickenPart.value = part
         _isRestockDialogOpen.value = true
@@ -120,5 +192,124 @@ class StockViewModel(
 
     fun setTaichanSoldTodayForTest(sold: Int) {
         _taichanSoldToday.value = sold
+    }
+
+    // --- Raw Materials & BOM Actions ---
+    fun onMaterialCategorySelect(category: RawMaterialCategory?) {
+        _selectedMaterialCategory.value = category
+    }
+
+    fun onMaterialSearchQueryChange(query: String) {
+        _materialSearchQuery.value = query
+    }
+
+    fun openAddMaterial() {
+        _materialToEdit.value = null
+        _isAddEditMaterialOpen.value = true
+    }
+
+    fun openEditMaterial(material: RawMaterial) {
+        _materialToEdit.value = material
+        _isAddEditMaterialOpen.value = true
+    }
+
+    fun closeAddEditMaterial() {
+        _isAddEditMaterialOpen.value = false
+        _materialToEdit.value = null
+    }
+
+    fun saveMaterial(
+        name: String,
+        category: RawMaterialCategory,
+        unit: String,
+        currentStock: Double,
+        minStock: Double,
+        costPerUnit: Double
+    ) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return
+        val current = _materialToEdit.value
+        viewModelScope.launch {
+            val material = if (current != null) {
+                current.copy(
+                    name = trimmed,
+                    category = category,
+                    unit = unit.trim().ifBlank { "gram" },
+                    currentStock = currentStock.coerceAtLeast(0.0),
+                    minStock = minStock.coerceAtLeast(0.0),
+                    costPerUnit = costPerUnit.coerceAtLeast(0.0)
+                )
+            } else {
+                RawMaterial(
+                    id = UUID.randomUUID().toString(),
+                    name = trimmed,
+                    category = category,
+                    unit = unit.trim().ifBlank { "gram" },
+                    currentStock = currentStock.coerceAtLeast(0.0),
+                    minStock = minStock.coerceAtLeast(0.0),
+                    costPerUnit = costPerUnit.coerceAtLeast(0.0),
+                    lastRestockedAt = System.currentTimeMillis()
+                )
+            }
+            inventoryRepository?.saveRawMaterial(material)
+            closeAddEditMaterial()
+        }
+    }
+
+    fun deleteMaterial(id: String) {
+        viewModelScope.launch {
+            inventoryRepository?.deleteRawMaterial(id)
+        }
+    }
+
+    fun openRestockMaterial(material: RawMaterial) {
+        _selectedMaterialForAction.value = material
+        _isRestockMaterialOpen.value = true
+    }
+
+    fun closeRestockMaterial() {
+        _isRestockMaterialOpen.value = false
+        _selectedMaterialForAction.value = null
+    }
+
+    fun confirmRestockMaterial(materialId: String, quantity: Double, cost: Double, notes: String) {
+        viewModelScope.launch {
+            inventoryRepository?.restockMaterial(materialId, quantity, cost, notes)
+            closeRestockMaterial()
+        }
+    }
+
+    fun openWasteMaterial(material: RawMaterial) {
+        _selectedMaterialForAction.value = material
+        _isWasteMaterialOpen.value = true
+    }
+
+    fun closeWasteMaterial() {
+        _isWasteMaterialOpen.value = false
+        _selectedMaterialForAction.value = null
+    }
+
+    fun confirmWasteMaterial(materialId: String, quantity: Double, notes: String) {
+        viewModelScope.launch {
+            inventoryRepository?.recordWaste(materialId, quantity, notes)
+            closeWasteMaterial()
+        }
+    }
+
+    fun openOpnameMaterial(material: RawMaterial) {
+        _selectedMaterialForAction.value = material
+        _isOpnameMaterialOpen.value = true
+    }
+
+    fun closeOpnameMaterial() {
+        _isOpnameMaterialOpen.value = false
+        _selectedMaterialForAction.value = null
+    }
+
+    fun confirmOpnameMaterial(materialId: String, newStock: Double, notes: String) {
+        viewModelScope.launch {
+            inventoryRepository?.adjustStock(materialId, newStock, notes)
+            closeOpnameMaterial()
+        }
     }
 }

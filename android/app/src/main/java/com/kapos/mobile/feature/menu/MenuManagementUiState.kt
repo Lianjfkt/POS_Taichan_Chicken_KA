@@ -20,7 +20,10 @@ data class MenuManagementUiState(
     val productToDelete: Product? = null,
     val isAddEditCategoryOpen: Boolean = false,
     val categoryToEdit: Category? = null,
-    val categoryToDelete: Category? = null
+    val categoryToDelete: Category? = null,
+    val selectedProductForRecipe: Product? = null,
+    val recipeItems: List<com.kapos.mobile.domain.model.RecipeItem> = emptyList(),
+    val allRawMaterials: List<com.kapos.mobile.domain.model.RawMaterial> = emptyList()
 ) {
     val filteredProducts: List<Product>
         get() {

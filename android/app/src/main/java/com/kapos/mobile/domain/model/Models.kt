@@ -140,3 +140,52 @@ data class SavedOrder(
     val subtotal: Double = 0.0,
     val createdAt: Long = System.currentTimeMillis()
 ) : Serializable
+
+enum class RawMaterialCategory(val displayName: String) {
+    BUMBU_SAMBAL("Bumbu & Sambal"),
+    PROTEIN("Daging & Protein"),
+    KARBO("Beras & Karbo"),
+    MINUMAN("Bahan Minuman"),
+    PACKAGING("Kemasan & Alat")
+}
+
+data class RawMaterial(
+    val id: String,
+    val name: String,
+    val category: RawMaterialCategory = RawMaterialCategory.BUMBU_SAMBAL,
+    val unit: String = "gram", // gram, kg, pcs, ml, botol, porsi
+    val currentStock: Double = 0.0,
+    val minStock: Double = 100.0,
+    val costPerUnit: Double = 0.0,
+    val lastRestockedAt: Long = System.currentTimeMillis()
+) : Serializable {
+    val isLowStock: Boolean
+        get() = currentStock <= minStock
+}
+
+data class RecipeItem(
+    val id: String,
+    val productId: String,
+    val materialId: String,
+    val materialName: String = "",
+    val unit: String = "gram",
+    val quantityRequired: Double = 1.0
+) : Serializable
+
+enum class StockMovementType(val displayName: String) {
+    RESTOCK("Stok Masuk / Pembelian"),
+    ORDER_DEDUCTION("Potong Otomatis (BOM)"),
+    WASTE("Stok Rusak / Terbuang"),
+    ADJUSTMENT("Penyesuaian Opname")
+}
+
+data class StockMovement(
+    val id: String,
+    val materialId: String,
+    val materialName: String = "",
+    val type: StockMovementType,
+    val quantity: Double,
+    val costTotal: Double = 0.0,
+    val notes: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+) : Serializable

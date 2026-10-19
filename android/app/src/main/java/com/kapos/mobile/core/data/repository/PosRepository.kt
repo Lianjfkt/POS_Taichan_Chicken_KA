@@ -32,6 +32,7 @@ import java.util.UUID
 class PosRepository(
     private val database: AppDatabase,
     private val supabaseClient: SupabaseClient,
+    private val inventoryRepository: InventoryRepository? = null,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
     private val categoryDao = database.categoryDao()
@@ -260,7 +261,10 @@ class PosRepository(
         // 1. Instantly write to Room (SSOT)
         database.orderDao().insertCompleteOrder(orderEntity, itemEntities)
 
-        // 2. Trigger asynchronous background push to Supabase
+        // 2. Automatically deduct raw material stock via BOM
+        inventoryRepository?.deductStockForOrderItems(items)
+
+        // 3. Trigger asynchronous background push to Supabase
         scope.launch {
             syncPendingOrders()
         }

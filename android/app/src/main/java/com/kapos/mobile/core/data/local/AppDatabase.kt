@@ -9,14 +9,20 @@ import com.kapos.mobile.core.data.local.dao.CategoryDao
 import com.kapos.mobile.core.data.local.dao.CustomerDao
 import com.kapos.mobile.core.data.local.dao.OrderDao
 import com.kapos.mobile.core.data.local.dao.ProductDao
+import com.kapos.mobile.core.data.local.dao.RawMaterialDao
+import com.kapos.mobile.core.data.local.dao.RecipeDao
 import com.kapos.mobile.core.data.local.dao.ShiftDao
+import com.kapos.mobile.core.data.local.dao.StockMovementDao
 import com.kapos.mobile.core.data.local.entity.CashMovementEntity
 import com.kapos.mobile.core.data.local.entity.CategoryEntity
 import com.kapos.mobile.core.data.local.entity.CustomerEntity
 import com.kapos.mobile.core.data.local.entity.OrderEntity
 import com.kapos.mobile.core.data.local.entity.OrderItemEntity
 import com.kapos.mobile.core.data.local.entity.ProductEntity
+import com.kapos.mobile.core.data.local.entity.RawMaterialEntity
+import com.kapos.mobile.core.data.local.entity.RecipeItemEntity
 import com.kapos.mobile.core.data.local.entity.ShiftEntity
+import com.kapos.mobile.core.data.local.entity.StockMovementEntity
 
 @Database(
     entities = [
@@ -26,9 +32,12 @@ import com.kapos.mobile.core.data.local.entity.ShiftEntity
         OrderItemEntity::class,
         ShiftEntity::class,
         CashMovementEntity::class,
-        CustomerEntity::class
+        CustomerEntity::class,
+        RawMaterialEntity::class,
+        RecipeItemEntity::class,
+        StockMovementEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -38,6 +47,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun shiftDao(): ShiftDao
     abstract fun cashMovementDao(): CashMovementDao
     abstract fun customerDao(): CustomerDao
+    abstract fun rawMaterialDao(): RawMaterialDao
+    abstract fun recipeDao(): RecipeDao
+    abstract fun stockMovementDao(): StockMovementDao
 
     companion object {
         @Volatile

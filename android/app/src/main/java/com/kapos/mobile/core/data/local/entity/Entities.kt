@@ -134,3 +134,65 @@ data class CustomerEntity(
     val createdAt: Long = System.currentTimeMillis()
 )
 
+@Entity(
+    tableName = "raw_materials",
+    indices = [Index("category")]
+)
+data class RawMaterialEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val category: String, // BUMBU_SAMBAL, PROTEIN, KARBO, MINUMAN, PACKAGING
+    val unit: String,     // gram, kg, pcs, ml, botol, porsi
+    val currentStock: Double,
+    val minStock: Double,
+    val costPerUnit: Double,
+    val lastRestockedAt: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "recipe_items",
+    foreignKeys = [
+        ForeignKey(
+            entity = ProductEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["productId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = RawMaterialEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["materialId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("productId"), Index("materialId")]
+)
+data class RecipeItemEntity(
+    @PrimaryKey val id: String,
+    val productId: String,
+    val materialId: String,
+    val quantityRequired: Double
+)
+
+@Entity(
+    tableName = "stock_movements",
+    foreignKeys = [
+        ForeignKey(
+            entity = RawMaterialEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["materialId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("materialId")]
+)
+data class StockMovementEntity(
+    @PrimaryKey val id: String,
+    val materialId: String,
+    val type: String, // RESTOCK, ORDER_DEDUCTION, WASTE, ADJUSTMENT
+    val quantity: Double,
+    val costTotal: Double = 0.0,
+    val notes: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
+

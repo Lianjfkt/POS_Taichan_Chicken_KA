@@ -105,6 +105,10 @@ fun MenuManagementRoute(
         onOpenDeleteCategory = viewModel::openDeleteCategory,
         onCloseDeleteCategory = viewModel::closeDeleteCategoryDialog,
         onConfirmDeleteCategory = viewModel::confirmDeleteCategory,
+        onOpenRecipe = viewModel::openRecipeDialog,
+        onCloseRecipe = viewModel::closeRecipeDialog,
+        onAddRecipeItem = viewModel::addOrUpdateRecipeItem,
+        onDeleteRecipeItem = viewModel::deleteRecipeItem,
         modifier = modifier
     )
 }
@@ -132,6 +136,10 @@ fun MenuManagementScreen(
     onOpenDeleteCategory: (Category) -> Unit,
     onCloseDeleteCategory: () -> Unit,
     onConfirmDeleteCategory: () -> Unit,
+    onOpenRecipe: (Product) -> Unit = {},
+    onCloseRecipe: () -> Unit = {},
+    onAddRecipeItem: (productId: String, materialId: String, quantity: Double) -> Unit = { _, _, _ -> },
+    onDeleteRecipeItem: (recipeId: String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -308,7 +316,8 @@ fun MenuManagementScreen(
                                 category = category,
                                 onToggleActive = { active -> onToggleProductActive(product, active) },
                                 onEdit = { onOpenEditProduct(product) },
-                                onDelete = { onOpenDeleteProduct(product) }
+                                onDelete = { onOpenDeleteProduct(product) },
+                                onOpenRecipe = { onOpenRecipe(product) }
                             )
                         }
                     }
@@ -384,6 +393,18 @@ fun MenuManagementScreen(
                 onDismiss = onCloseDeleteCategory
             )
         }
+
+        if (uiState.selectedProductForRecipe != null) {
+            val prod = uiState.selectedProductForRecipe
+            RecipeBomDialog(
+                product = prod,
+                recipes = uiState.recipeItems,
+                allMaterials = uiState.allRawMaterials,
+                onAddRecipeItem = { matId, qty -> onAddRecipeItem(prod.id, matId, qty) },
+                onDeleteRecipeItem = onDeleteRecipeItem,
+                onDismiss = onCloseRecipe
+            )
+        }
     }
 }
 
@@ -444,7 +465,8 @@ fun ProductItemCard(
     category: Category?,
     onToggleActive: (Boolean) -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onOpenRecipe: () -> Unit = {}
 ) {
     val profit = product.price - product.costPrice
     val marginPercent = if (product.price > 0) ((profit / product.price) * 100).toInt() else 0
@@ -557,20 +579,42 @@ fun ProductItemCard(
                     }
                 }
 
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Color(0xFFDCFCE7))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "+$marginPercent% Margin",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color(0xFF166534),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp
+                    Box(
+                        modifier = Modifier
+                            .clip(AppShapes.Sm)
+                            .background(SurfaceTint)
+                            .clickable(onClick = onOpenRecipe)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "📋 Resep BOM",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Primary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp
+                            )
                         )
-                    )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color(0xFFDCFCE7))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "+$marginPercent% Margin",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color(0xFF166534),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp
+                            )
+                        )
+                    }
                 }
             }
         }

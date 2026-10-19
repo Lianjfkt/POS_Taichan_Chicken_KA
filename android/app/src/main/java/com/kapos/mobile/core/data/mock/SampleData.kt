@@ -162,4 +162,187 @@ object SampleData {
             orderCount = 18
         )
     )
+
+    val rawMaterials = listOf(
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_cabe",
+            name = "Cabe Rawit Merah (Sambal)",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.BUMBU_SAMBAL,
+            unit = "gram",
+            currentStock = 2500.0,
+            minStock = 500.0,
+            costPerUnit = 50.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_bawang",
+            name = "Bawang Putih & Bumbu Kaldu",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.BUMBU_SAMBAL,
+            unit = "gram",
+            currentStock = 3000.0,
+            minStock = 500.0,
+            costPerUnit = 35.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_jeruk_nipis",
+            name = "Jeruk Nipis Segar",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.BUMBU_SAMBAL,
+            unit = "buah",
+            currentStock = 150.0,
+            minStock = 30.0,
+            costPerUnit = 1000.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_ayam_fillet",
+            name = "Daging Ayam Fillet",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.PROTEIN,
+            unit = "gram",
+            currentStock = 15000.0,
+            minStock = 2500.0,
+            costPerUnit = 55.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_kulit_ayam",
+            name = "Kulit Ayam Segar",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.PROTEIN,
+            unit = "gram",
+            currentStock = 8000.0,
+            minStock = 1500.0,
+            costPerUnit = 35.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_ayam_potong",
+            name = "Ayam Potong Segar",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.PROTEIN,
+            unit = "potong",
+            currentStock = 40.0,
+            minStock = 10.0,
+            costPerUnit = 9000.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_beras",
+            name = "Beras Pulen",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.KARBO,
+            unit = "gram",
+            currentStock = 20000.0,
+            minStock = 3000.0,
+            costPerUnit = 15.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_lontong",
+            name = "Lontong Daun",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.KARBO,
+            unit = "pcs",
+            currentStock = 50.0,
+            minStock = 15.0,
+            costPerUnit = 1500.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_minyak",
+            name = "Minyak Goreng",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.BUMBU_SAMBAL,
+            unit = "ml",
+            currentStock = 10000.0,
+            minStock = 2000.0,
+            costPerUnit = 18.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_tusuk_sate",
+            name = "Tusuk Sate Bambu",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.PACKAGING,
+            unit = "pcs",
+            currentStock = 2500.0,
+            minStock = 500.0,
+            costPerUnit = 50.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_cup_sambal",
+            name = "Cup Sambal Mini + Tutup",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.PACKAGING,
+            unit = "pcs",
+            currentStock = 300.0,
+            minStock = 50.0,
+            costPerUnit = 300.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_teh_jumbo",
+            name = "Teh Melati Jumbo",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.MINUMAN,
+            unit = "pcs",
+            currentStock = 100.0,
+            minStock = 20.0,
+            costPerUnit = 800.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_gula",
+            name = "Gula Pasir",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.MINUMAN,
+            unit = "gram",
+            currentStock = 5000.0,
+            minStock = 1000.0,
+            costPerUnit = 18.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_cup_minuman",
+            name = "Cup Plastik 16oz + Sedotan",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.PACKAGING,
+            unit = "pcs",
+            currentStock = 250.0,
+            minStock = 50.0,
+            costPerUnit = 400.0
+        ),
+        com.kapos.mobile.domain.model.RawMaterial(
+            id = "mat_air_mineral",
+            name = "Air Mineral Botol 600ml",
+            category = com.kapos.mobile.domain.model.RawMaterialCategory.MINUMAN,
+            unit = "botol",
+            currentStock = 48.0,
+            minStock = 12.0,
+            costPerUnit = 2200.0
+        )
+    )
+
+    val recipeItems = listOf(
+        // Sate Taichan Daging
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r1", "prod_tc_daging", "mat_ayam_fillet", 150.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r2", "prod_tc_daging", "mat_tusuk_sate", 10.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r3", "prod_tc_daging", "mat_cabe", 25.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r4", "prod_tc_daging", "mat_jeruk_nipis", 1.0),
+
+        // Sate Taichan Kulit
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r5", "prod_tc_kulit", "mat_kulit_ayam", 120.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r6", "prod_tc_kulit", "mat_tusuk_sate", 10.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r7", "prod_tc_kulit", "mat_cabe", 25.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r8", "prod_tc_kulit", "mat_jeruk_nipis", 1.0),
+
+        // Sate Taichan Campur
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r9", "prod_tc_campur", "mat_ayam_fillet", 75.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r10", "prod_tc_campur", "mat_kulit_ayam", 60.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r11", "prod_tc_campur", "mat_tusuk_sate", 10.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r12", "prod_tc_campur", "mat_cabe", 25.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r13", "prod_tc_campur", "mat_jeruk_nipis", 1.0),
+
+        // Ayam Goreng Taichan
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r14", "prod_ay_geprek", "mat_ayam_potong", 1.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r15", "prod_ay_geprek", "mat_minyak", 50.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r16", "prod_ay_geprek", "mat_cabe", 30.0),
+
+        // Nasi Putih
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r17", "prod_nasi", "mat_beras", 120.0),
+
+        // Lontong
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r18", "prod_lontong", "mat_lontong", 1.0),
+
+        // Ekstra Sambal
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r19", "prod_sambal_xtra", "mat_cabe", 50.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r20", "prod_sambal_xtra", "mat_jeruk_nipis", 1.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r21", "prod_sambal_xtra", "mat_cup_sambal", 1.0),
+
+        // Es Teh Manis
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r22", "prod_teh_manis", "mat_teh_jumbo", 1.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r23", "prod_teh_manis", "mat_gula", 25.0),
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r24", "prod_teh_manis", "mat_cup_minuman", 1.0),
+
+        // Air Mineral
+        com.kapos.mobile.core.data.local.entity.RecipeItemEntity("r25", "prod_mineral", "mat_air_mineral", 1.0)
+    )
 }

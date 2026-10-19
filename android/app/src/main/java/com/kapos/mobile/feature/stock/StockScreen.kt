@@ -3,6 +3,7 @@ package com.kapos.mobile.feature.stock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,15 +18,25 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,18 +48,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kapos.mobile.core.components.PrimaryButton
 import com.kapos.mobile.core.components.StatCard
+import com.kapos.mobile.core.theme.AppShapes
+import com.kapos.mobile.core.theme.Danger
 import com.kapos.mobile.core.theme.OutlineSoft
 import com.kapos.mobile.core.theme.Primary
 import com.kapos.mobile.core.theme.PrimarySoft
 import com.kapos.mobile.core.theme.ScreenBackground
+import com.kapos.mobile.core.theme.Success
 import com.kapos.mobile.core.theme.SurfaceTint
 import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
+import com.kapos.mobile.core.theme.Warning
+import com.kapos.mobile.core.utils.CurrencyFormatter
 import com.kapos.mobile.domain.model.ChickenBatch
 import com.kapos.mobile.domain.model.ChickenPart
+import com.kapos.mobile.domain.model.RawMaterial
+import com.kapos.mobile.domain.model.RawMaterialCategory
 import com.kapos.mobile.domain.model.StockFreshness
 import com.kapos.mobile.domain.model.TaichanBatch
 
@@ -70,6 +87,23 @@ fun StockRoute(
         onAddChicken = viewModel::addChickenBatch,
         onUpdateChickenFried = viewModel::updateChickenFried,
         onDeleteChicken = viewModel::deleteChickenBatch,
+        // Raw Materials callbacks
+        onMaterialCategorySelect = viewModel::onMaterialCategorySelect,
+        onMaterialSearchQueryChange = viewModel::onMaterialSearchQueryChange,
+        onOpenAddMaterial = viewModel::openAddMaterial,
+        onOpenEditMaterial = viewModel::openEditMaterial,
+        onCloseAddEditMaterial = viewModel::closeAddEditMaterial,
+        onSaveMaterial = viewModel::saveMaterial,
+        onDeleteMaterial = viewModel::deleteMaterial,
+        onOpenRestockMaterial = viewModel::openRestockMaterial,
+        onCloseRestockMaterial = viewModel::closeRestockMaterial,
+        onConfirmRestockMaterial = viewModel::confirmRestockMaterial,
+        onOpenWasteMaterial = viewModel::openWasteMaterial,
+        onCloseWasteMaterial = viewModel::closeWasteMaterial,
+        onConfirmWasteMaterial = viewModel::confirmWasteMaterial,
+        onOpenOpnameMaterial = viewModel::openOpnameMaterial,
+        onCloseOpnameMaterial = viewModel::closeOpnameMaterial,
+        onConfirmOpnameMaterial = viewModel::confirmOpnameMaterial,
         modifier = modifier
     )
 }
@@ -86,6 +120,23 @@ fun StockScreen(
     onAddChicken: (part: ChickenPart, raw: Int, notes: String) -> Unit,
     onUpdateChickenFried: (id: String, fried: Int) -> Unit,
     onDeleteChicken: (id: String) -> Unit,
+    // Raw Materials
+    onMaterialCategorySelect: (RawMaterialCategory?) -> Unit,
+    onMaterialSearchQueryChange: (String) -> Unit,
+    onOpenAddMaterial: () -> Unit,
+    onOpenEditMaterial: (RawMaterial) -> Unit,
+    onCloseAddEditMaterial: () -> Unit,
+    onSaveMaterial: (name: String, category: RawMaterialCategory, unit: String, currentStock: Double, minStock: Double, costPerUnit: Double) -> Unit,
+    onDeleteMaterial: (id: String) -> Unit,
+    onOpenRestockMaterial: (RawMaterial) -> Unit,
+    onCloseRestockMaterial: () -> Unit,
+    onConfirmRestockMaterial: (materialId: String, quantity: Double, cost: Double, notes: String) -> Unit,
+    onOpenWasteMaterial: (RawMaterial) -> Unit,
+    onCloseWasteMaterial: () -> Unit,
+    onConfirmWasteMaterial: (materialId: String, quantity: Double, notes: String) -> Unit,
+    onOpenOpnameMaterial: (RawMaterial) -> Unit,
+    onCloseOpnameMaterial: () -> Unit,
+    onConfirmOpnameMaterial: (materialId: String, newStock: Double, notes: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -109,24 +160,30 @@ fun StockScreen(
             ) {
                 Column {
                     Text(
-                        text = "Pelacak Stok Harian",
+                        text = "Inventaris & Bahan Baku",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                     )
                     Text(
-                        text = "Kontrol batch mentah, matang & kesegaran",
+                        text = if (uiState.activeTab == StockTab.MATERIALS) "Stok bahan baku, resep BOM & opname" else "Kontrol stok harian, batch & penggorengan",
                         style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                     )
                 }
 
-                // Add Batch Button
+                // Action Button in Header
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(Primary)
-                        .clickable { onOpenRestock(uiState.restockChickenPart) }
+                        .clickable {
+                            if (uiState.activeTab == StockTab.MATERIALS) {
+                                onOpenAddMaterial()
+                            } else {
+                                onOpenRestock(uiState.restockChickenPart)
+                            }
+                        }
                         .padding(horizontal = 14.dp, vertical = 8.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -134,7 +191,7 @@ fun StockScreen(
                         Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah", tint = SurfaceWhite, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Restock",
+                            text = if (uiState.activeTab == StockTab.MATERIALS) "Bahan Baru" else "Restock",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = SurfaceWhite
@@ -144,7 +201,7 @@ fun StockScreen(
                 }
             }
 
-            // Tab Selector: Taichan vs Ayam
+            // Tab Selector: 3 Tabs (Taichan, Ayam Potong, Bahan Baku BOM)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -164,7 +221,11 @@ fun StockScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = tab.displayName,
+                            text = when (tab) {
+                                StockTab.TAICHAN -> "Sate Taichan"
+                                StockTab.CHICKEN -> "Ayam Potong"
+                                StockTab.MATERIALS -> "Bahan (BOM)"
+                            },
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) SurfaceWhite else TextPrimary
@@ -176,112 +237,492 @@ fun StockScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Metric Summary Row
-            if (uiState.activeTab == StockTab.TAICHAN) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    StatCard(
-                        title = "Total Mentah",
-                        value = "${uiState.taichanTotalRaw} tsk",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatCard(
-                        title = "Siap Jual",
-                        value = "${uiState.taichanRemaining} tsk",
-                        subtitle = "Goreng: ${uiState.taichanTotalFried}",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatCard(
-                        title = "Terjual Hari Ini",
-                        value = "${uiState.taichanSoldToday} tsk",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ChickenPart.values().forEach { part ->
-                        val summary = uiState.chickenSummaries[part]
+            when (uiState.activeTab) {
+                StockTab.TAICHAN -> {
+                    // Metric Summary Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         StatCard(
-                            title = part.displayName,
-                            value = "${summary?.remaining ?: 0} ptg",
-                            subtitle = "M: ${summary?.totalRaw ?: 0}",
+                            title = "Stok Mentah",
+                            value = "${uiState.taichanTotalRaw}",
+                            subtitle = "tusuk",
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "Sudah Digoreng",
+                            value = "${uiState.taichanTotalFried}",
+                            subtitle = "tusuk",
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "Terjual Hari Ini",
+                            value = "${uiState.taichanSoldToday}",
+                            subtitle = "tusuk",
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "Sisa Siap Saji",
+                            value = "${uiState.taichanRemaining}",
+                            subtitle = "tusuk",
                             modifier = Modifier.weight(1f)
                         )
                     }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-            // Batches List
-            Text(
-                text = "Daftar Batch Masuk",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                ),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
+                    Text(
+                        text = "Daftar Batch Siap Saji",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
 
-            if (uiState.activeTab == StockTab.TAICHAN) {
-                if (uiState.taichanBatches.isEmpty()) {
-                    EmptyStockView(tabName = "Sate Taichan")
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(uiState.taichanBatches, key = { it.id }) { batch ->
-                            TaichanBatchCard(
-                                batch = batch,
-                                onUpdateFried = { onUpdateTaichanFried(batch.id, it) },
-                                onDelete = { onDeleteTaichan(batch.id) }
-                            )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (uiState.taichanBatches.isEmpty()) {
+                        EmptyStockView(tabName = "Sate Taichan")
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(uiState.taichanBatches, key = { it.id }) { batch ->
+                                TaichanBatchCard(
+                                    batch = batch,
+                                    onUpdateFried = { newFried -> onUpdateTaichanFried(batch.id, newFried) },
+                                    onDelete = { onDeleteTaichan(batch.id) }
+                                )
+                            }
                         }
                     }
                 }
-            } else {
-                if (uiState.chickenBatches.isEmpty()) {
-                    EmptyStockView(tabName = "Ayam Potong")
-                } else {
-                    LazyColumn(
+
+                StockTab.CHICKEN -> {
+                    // Grid summary per chicken part
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        items(uiState.chickenBatches, key = { it.id }) { batch ->
-                            ChickenBatchCard(
-                                batch = batch,
-                                onUpdateFried = { onUpdateChickenFried(batch.id, it) },
-                                onDelete = { onDeleteChicken(batch.id) }
+                        ChickenPart.values().forEach { part ->
+                            val summary = uiState.chickenSummaries[part]
+                            StatCard(
+                                title = part.displayName,
+                                value = "${summary?.remaining ?: 0}",
+                                subtitle = "ptg siap",
+                                modifier = Modifier.weight(1f)
                             )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "Daftar Batch Potongan Ayam",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (uiState.chickenBatches.isEmpty()) {
+                        EmptyStockView(tabName = "Ayam Potong")
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(uiState.chickenBatches, key = { it.id }) { batch ->
+                                ChickenBatchCard(
+                                    batch = batch,
+                                    onUpdateFried = { newFried -> onUpdateChickenFried(batch.id, newFried) },
+                                    onDelete = { onDeleteChicken(batch.id) }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                StockTab.MATERIALS -> {
+                    // Low Stock Alert Warning Banner
+                    if (uiState.lowStockCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .clip(AppShapes.Sm)
+                                .background(Color(0xFFFEF3C7))
+                                .border(1.dp, Warning, AppShapes.Sm)
+                                .padding(12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Warning, contentDescription = null, tint = Warning, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Peringatan: Ada ${uiState.lowStockCount} bahan baku di bawah stok minimum! Segera restock.",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = Color(0xFF92400E),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    // Category Filter chips
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        CategoryFilterChip(
+                            label = "Semua (${uiState.rawMaterials.size})",
+                            isSelected = uiState.selectedMaterialCategory == null,
+                            onClick = { onMaterialCategorySelect(null) }
+                        )
+                        RawMaterialCategory.values().forEach { cat ->
+                            val count = uiState.rawMaterials.count { it.category == cat }
+                            CategoryFilterChip(
+                                label = "${cat.displayName} ($count)",
+                                isSelected = uiState.selectedMaterialCategory == cat,
+                                onClick = { onMaterialCategorySelect(cat) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Search input
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        OutlinedTextField(
+                            value = uiState.materialSearchQuery,
+                            onValueChange = onMaterialSearchQueryChange,
+                            placeholder = { Text("Cari nama bahan baku (e.g. cabe, beras, fillet)...") },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
+                            trailingIcon = {
+                                if (uiState.materialSearchQuery.isNotBlank()) {
+                                    IconButton(onClick = { onMaterialSearchQueryChange("") }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Hapus", tint = TextSecondary)
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            shape = AppShapes.Sm,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = OutlineSoft,
+                                focusedContainerColor = SurfaceWhite,
+                                unfocusedContainerColor = SurfaceWhite
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Materials List
+                    if (uiState.filteredMaterials.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                            Text(text = "Tidak ada bahan baku ditemukan", style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary))
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.filteredMaterials, key = { it.id }) { material ->
+                                RawMaterialItemCard(
+                                    material = material,
+                                    onRestock = { onOpenRestockMaterial(material) },
+                                    onWaste = { onOpenWasteMaterial(material) },
+                                    onOpname = { onOpenOpnameMaterial(material) },
+                                    onEdit = { onOpenEditMaterial(material) },
+                                    onDelete = { onDeleteMaterial(material.id) }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Restock Dialog
+        // Dialogs
         if (uiState.isRestockDialogOpen) {
             AddStockBatchDialog(
-                activeTab = uiState.activeTab,
                 selectedChickenPart = uiState.restockChickenPart,
-                onDismiss = onCloseRestock,
+                activeTab = uiState.activeTab,
                 onAddTaichan = onAddTaichan,
-                onAddChicken = onAddChicken
+                onAddChicken = onAddChicken,
+                onDismiss = onCloseRestock
             )
+        }
+
+        if (uiState.isAddEditMaterialOpen) {
+            AddEditMaterialDialog(
+                material = uiState.materialToEdit,
+                onSave = onSaveMaterial,
+                onDismiss = onCloseAddEditMaterial
+            )
+        }
+
+        if (uiState.isRestockMaterialOpen && uiState.selectedMaterialForAction != null) {
+            RestockMaterialDialog(
+                material = uiState.selectedMaterialForAction!!,
+                onConfirm = { qty, cost, notes ->
+                    onConfirmRestockMaterial(uiState.selectedMaterialForAction!!.id, qty, cost, notes)
+                },
+                onDismiss = onCloseRestockMaterial
+            )
+        }
+
+        if (uiState.isWasteMaterialOpen && uiState.selectedMaterialForAction != null) {
+            WasteMaterialDialog(
+                material = uiState.selectedMaterialForAction!!,
+                onConfirm = { qty, notes ->
+                    onConfirmWasteMaterial(uiState.selectedMaterialForAction!!.id, qty, notes)
+                },
+                onDismiss = onCloseWasteMaterial
+            )
+        }
+
+        if (uiState.isOpnameMaterialOpen && uiState.selectedMaterialForAction != null) {
+            OpnameMaterialDialog(
+                material = uiState.selectedMaterialForAction!!,
+                onConfirm = { newStock, notes ->
+                    onConfirmOpnameMaterial(uiState.selectedMaterialForAction!!.id, newStock, notes)
+                },
+                onDismiss = onCloseOpnameMaterial
+            )
+        }
+    }
+}
+
+@Composable
+fun CategoryFilterChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(if (isSelected) PrimarySoft else SurfaceWhite)
+            .border(1.dp, if (isSelected) Primary else OutlineSoft, CircleShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) Primary else TextPrimary
+            )
+        )
+    }
+}
+
+@Composable
+fun RawMaterialItemCard(
+    material: RawMaterial,
+    onRestock: () -> Unit,
+    onWaste: () -> Unit,
+    onOpname: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val progress = (material.currentStock / (material.minStock * 2.0).coerceAtLeast(1.0)).toFloat().coerceIn(0f, 1f)
+    val isLow = material.isLowStock
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(AppShapes.Md)
+            .background(SurfaceWhite)
+            .border(1.dp, if (isLow) Warning else OutlineSoft, AppShapes.Md)
+            .padding(14.dp)
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(if (isLow) Color(0xFFFEF3C7) else PrimarySoft),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isLow) Icons.Default.Warning else Icons.Default.Inventory,
+                            contentDescription = null,
+                            tint = if (isLow) Warning else Primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = material.name,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                            )
+                            if (isLow) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFFEF3C7))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "Menipis",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = Color(0xFF92400E),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        Text(
+                            text = "${material.category.displayName} • Min: ${material.minStock} ${material.unit}",
+                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        )
+                    }
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(onClick = onEdit, modifier = Modifier.size(30.dp)) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Primary, modifier = Modifier.size(16.dp))
+                    }
+                    IconButton(onClick = onDelete, modifier = Modifier.size(30.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = Danger, modifier = Modifier.size(16.dp))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Stock progress & values
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Sisa: ${material.currentStock} ${material.unit}",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = if (isLow) Danger else Primary
+                    )
+                )
+                if (material.costPerUnit > 0) {
+                    Text(
+                        text = "${CurrencyFormatter.formatRupiah(material.costPerUnit)} / ${material.unit}",
+                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(CircleShape),
+                color = if (isLow) Danger else Primary,
+                trackColor = SurfaceTint
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Action buttons row: + Masuk, - Rusak, Opname
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(AppShapes.Sm)
+                        .background(PrimarySoft)
+                        .border(1.dp, Primary, AppShapes.Sm)
+                        .clickable(onClick = onRestock)
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "+ Masuk",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Primary
+                        )
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(AppShapes.Sm)
+                        .background(SurfaceTint)
+                        .border(1.dp, OutlineSoft, AppShapes.Sm)
+                        .clickable(onClick = onWaste)
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "- Rusak",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Danger
+                        )
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(AppShapes.Sm)
+                        .background(SurfaceTint)
+                        .border(1.dp, OutlineSoft, AppShapes.Sm)
+                        .clickable(onClick = onOpname)
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Opname",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    )
+                }
+            }
         }
     }
 }
@@ -310,7 +751,7 @@ private fun TaichanBatchCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Tanggal: ${batch.date}",
+                        text = "Batch ${batch.date}",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp

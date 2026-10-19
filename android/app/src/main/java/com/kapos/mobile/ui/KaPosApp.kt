@@ -70,7 +70,7 @@ fun KaPosApp(
         CustomerViewModel(app.customerRepository)
     }
     val menuManagementViewModel: MenuManagementViewModel = viewModel {
-        MenuManagementViewModel(app.posRepository)
+        MenuManagementViewModel(app.posRepository, app.inventoryRepository)
     }
     val transactionsViewModel: com.kapos.mobile.feature.transactions.TransactionsViewModel = viewModel {
         com.kapos.mobile.feature.transactions.TransactionsViewModel(
@@ -88,7 +88,7 @@ fun KaPosApp(
         )
     }
     val stockViewModel: StockViewModel = viewModel {
-        StockViewModel(app.stockRepository, app.posRepository)
+        StockViewModel(app.stockRepository, app.posRepository, app.inventoryRepository)
     }
     val analyticsViewModel: AnalyticsViewModel = viewModel {
         AnalyticsViewModel(app.posRepository, app.settingsRepository)

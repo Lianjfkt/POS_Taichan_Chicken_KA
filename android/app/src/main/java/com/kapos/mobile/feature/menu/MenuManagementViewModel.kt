@@ -12,12 +12,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+import com.kapos.mobile.core.data.repository.InventoryRepository
+import kotlinx.coroutines.Job
+
 class MenuManagementViewModel(
-    private val posRepository: PosRepository
+    private val posRepository: PosRepository,
+    private val inventoryRepository: InventoryRepository? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MenuManagementUiState(isLoading = true))
     val uiState: StateFlow<MenuManagementUiState> = _uiState.asStateFlow()
+    private var recipeObservationJob: Job? = null
 
     init {
         loadData()
@@ -32,6 +37,13 @@ class MenuManagementViewModel(
         viewModelScope.launch {
             posRepository.observeAllCategories(includeInactive = true).collect { cats ->
                 _uiState.update { it.copy(categories = cats) }
+            }
+        }
+        inventoryRepository?.let { inv ->
+            viewModelScope.launch {
+                inv.observeRawMaterials().collect { mats ->
+                    _uiState.update { it.copy(allRawMaterials = mats) }
+                }
             }
         }
     }
@@ -194,6 +206,36 @@ class MenuManagementViewModel(
         viewModelScope.launch {
             posRepository.deleteCategory(toDelete.id)
             closeDeleteCategoryDialog()
+        }
+    }
+
+    // --- Recipe BOM Actions ---
+    fun openRecipeDialog(product: Product) {
+        recipeObservationJob?.cancel()
+        _uiState.update { it.copy(selectedProductForRecipe = product, recipeItems = emptyList()) }
+        inventoryRepository?.let { inv ->
+            recipeObservationJob = viewModelScope.launch {
+                inv.observeRecipesForProduct(product.id).collect { items ->
+                    _uiState.update { it.copy(recipeItems = items) }
+                }
+            }
+        }
+    }
+
+    fun closeRecipeDialog() {
+        recipeObservationJob?.cancel()
+        _uiState.update { it.copy(selectedProductForRecipe = null, recipeItems = emptyList()) }
+    }
+
+    fun addOrUpdateRecipeItem(productId: String, materialId: String, quantityRequired: Double) {
+        viewModelScope.launch {
+            inventoryRepository?.saveRecipeItem(productId, materialId, quantityRequired)
+        }
+    }
+
+    fun deleteRecipeItem(recipeId: String) {
+        viewModelScope.launch {
+            inventoryRepository?.deleteRecipeItem(recipeId)
         }
     }
 }
