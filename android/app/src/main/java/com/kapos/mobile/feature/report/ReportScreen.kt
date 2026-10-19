@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Download
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -52,7 +54,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kapos.mobile.core.components.DateFilterBar
+import com.kapos.mobile.core.components.DateRangePickerDialog
 import com.kapos.mobile.core.components.StatCard
+import com.kapos.mobile.domain.model.DateFilterPreset
 import com.kapos.mobile.core.theme.AppShapes
 import com.kapos.mobile.core.theme.Danger
 import com.kapos.mobile.core.theme.OutlineSoft
@@ -70,6 +75,7 @@ import com.kapos.mobile.core.utils.CurrencyFormatter
 @Composable
 fun ReportRoute(
     viewModel: ReportViewModel,
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -86,7 +92,10 @@ fun ReportRoute(
     Box(modifier = modifier.fillMaxSize()) {
         ReportScreen(
             uiState = uiState,
-            onPeriodChange = viewModel::onPeriodChange,
+            onBack = onBack,
+            onPresetSelected = viewModel::onDatePresetChange,
+            onCustomDateRangeSelected = viewModel::onCustomDateRangeSelected,
+            onShowDatePickerDialog = viewModel::onShowDatePickerDialog,
             onPrintReceipt = viewModel::printFinancialSummaryReceipt,
             onExportTransactionsCsv = { viewModel.exportTransactionsCsv(context) },
             onExportSummaryCsv = { viewModel.exportFinancialSummaryCsv(context) },
@@ -105,7 +114,10 @@ fun ReportRoute(
 @Composable
 fun ReportScreen(
     uiState: ReportUiState,
-    onPeriodChange: (ReportPeriod) -> Unit,
+    onBack: (() -> Unit)? = null,
+    onPresetSelected: (DateFilterPreset) -> Unit = {},
+    onCustomDateRangeSelected: (Long, Long) -> Unit = { _, _ -> },
+    onShowDatePickerDialog: (Boolean) -> Unit = {},
     onPrintReceipt: () -> Unit = {},
     onExportTransactionsCsv: () -> Unit = {},
     onExportSummaryCsv: () -> Unit = {},
@@ -133,45 +145,37 @@ fun ReportScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Laporan Keuangan",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                    )
-                    Text(
-                        text = "Laba Rugi & Performa Gerai KA",
-                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                    )
-                }
-
-                // Period Chips
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    ReportPeriod.values().forEach { period ->
-                        val isSelected = uiState.selectedPeriod == period
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(if (isSelected) Primary else SurfaceWhite)
-                                .border(1.dp, if (isSelected) Primary else OutlineSoft, CircleShape)
-                                .clickable { onPeriodChange(period) }
-                                .padding(horizontal = 10.dp, vertical = 6.dp)
-                        ) {
-                            Text(
-                                text = period.displayName,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) SurfaceWhite else TextSecondary
-                                )
-                            )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Kembali", tint = TextPrimary)
                         }
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                    Column {
+                        Text(
+                            text = "Laporan Keuangan",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                        )
+                        Text(
+                            text = "Laba Rugi & Performa Gerai KA",
+                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            // Date Filter Bar
+            DateFilterBar(
+                currentFilter = uiState.dateFilter,
+                onPresetSelected = onPresetSelected,
+                onOpenDatePicker = { onShowDatePickerDialog(true) }
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // 1. Executive Card: Net Profit (Laba Bersih) & Gross Profit Summary
             Box(
@@ -488,6 +492,18 @@ fun ReportScreen(
                     }
                 }
             }
+        }
+
+        // Custom Date Range Picker Dialog
+        if (uiState.showDatePickerDialog) {
+            DateRangePickerDialog(
+                initialStartDate = uiState.dateFilter.customStartMillis,
+                initialEndDate = uiState.dateFilter.customEndMillis,
+                onConfirm = { start, end ->
+                    onCustomDateRangeSelected(start, end)
+                },
+                onDismiss = { onShowDatePickerDialog(false) }
+            )
         }
     }
 }

@@ -2,6 +2,8 @@ package com.kapos.mobile.feature.report
 
 import com.kapos.mobile.domain.model.CashMovement
 import com.kapos.mobile.domain.model.CashMovementType
+import com.kapos.mobile.domain.model.DateFilterPreset
+import com.kapos.mobile.domain.model.DateRangeFilter
 import com.kapos.mobile.domain.model.Order
 import com.kapos.mobile.domain.model.OrderItem
 import com.kapos.mobile.domain.model.PaymentMethod
@@ -23,6 +25,13 @@ data class ProductSalesStat(
 
 data class ReportUiState(
     val selectedPeriod: ReportPeriod = ReportPeriod.TODAY,
+    val dateFilter: DateRangeFilter = when (selectedPeriod) {
+        ReportPeriod.TODAY -> DateRangeFilter(DateFilterPreset.TODAY)
+        ReportPeriod.WEEK -> DateRangeFilter(DateFilterPreset.LAST_7_DAYS)
+        ReportPeriod.MONTH -> DateRangeFilter(DateFilterPreset.THIS_MONTH)
+        ReportPeriod.ALL -> DateRangeFilter(DateFilterPreset.ALL)
+    },
+    val showDatePickerDialog: Boolean = false,
     val orders: List<Order> = emptyList(),
     val orderItems: List<OrderItem> = emptyList(),
     val cashMovements: List<CashMovement> = emptyList(),
@@ -31,32 +40,41 @@ data class ReportUiState(
     val isExporting: Boolean = false,
     val snackbarMessage: String? = null
 ) {
-    val periodCutoff: Long
-        get() {
-            val now = System.currentTimeMillis()
-            return when (selectedPeriod) {
-                ReportPeriod.TODAY -> {
-                    val cal = java.util.Calendar.getInstance()
-                    cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
-                    cal.set(java.util.Calendar.MINUTE, 0)
-                    cal.set(java.util.Calendar.SECOND, 0)
-                    cal.set(java.util.Calendar.MILLISECOND, 0)
-                    cal.timeInMillis
-                }
-                ReportPeriod.WEEK -> now - 7L * 24 * 60 * 60 * 1000
-                ReportPeriod.MONTH -> now - 30L * 24 * 60 * 60 * 1000
-                ReportPeriod.ALL -> 0L
+    val activeDateFilter: DateRangeFilter
+        get() = if (dateFilter.preset == DateFilterPreset.TODAY && selectedPeriod != ReportPeriod.TODAY) {
+            when (selectedPeriod) {
+                ReportPeriod.TODAY -> DateRangeFilter(DateFilterPreset.TODAY)
+                ReportPeriod.WEEK -> DateRangeFilter(DateFilterPreset.LAST_7_DAYS)
+                ReportPeriod.MONTH -> DateRangeFilter(DateFilterPreset.THIS_MONTH)
+                ReportPeriod.ALL -> DateRangeFilter(DateFilterPreset.ALL)
             }
+        } else {
+            dateFilter
         }
 
+    val periodTimeRange: Pair<Long, Long>
+        get() = activeDateFilter.getTimeRange()
+
+    val periodCutoff: Long
+        get() = periodTimeRange.first
+
     val periodOrders: List<Order>
-        get() = orders.filter { it.createdAt >= periodCutoff && it.paymentStatus == PaymentStatus.PAID }
+        get() {
+            val (start, end) = periodTimeRange
+            return orders.filter { it.createdAt in start..end && it.paymentStatus == PaymentStatus.PAID }
+        }
 
     val periodVoidOrders: List<Order>
-        get() = orders.filter { it.createdAt >= periodCutoff && it.paymentStatus == PaymentStatus.VOID }
+        get() {
+            val (start, end) = periodTimeRange
+            return orders.filter { it.createdAt in start..end && it.paymentStatus == PaymentStatus.VOID }
+        }
 
     val periodCashMovements: List<CashMovement>
-        get() = cashMovements.filter { it.createdAt >= periodCutoff }
+        get() {
+            val (start, end) = periodTimeRange
+            return cashMovements.filter { it.createdAt in start..end }
+        }
 
     // Map orderId to Order for filtering items
     private val periodOrderIds: Set<String>

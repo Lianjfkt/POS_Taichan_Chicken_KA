@@ -66,7 +66,34 @@ class ReportViewModel(
     }
 
     fun onPeriodChange(period: ReportPeriod) {
-        _uiState.update { it.copy(selectedPeriod = period) }
+        val preset = when (period) {
+            ReportPeriod.TODAY -> com.kapos.mobile.domain.model.DateFilterPreset.TODAY
+            ReportPeriod.WEEK -> com.kapos.mobile.domain.model.DateFilterPreset.LAST_7_DAYS
+            ReportPeriod.MONTH -> com.kapos.mobile.domain.model.DateFilterPreset.THIS_MONTH
+            ReportPeriod.ALL -> com.kapos.mobile.domain.model.DateFilterPreset.ALL
+        }
+        onDatePresetChange(preset)
+    }
+
+    fun onDatePresetChange(preset: com.kapos.mobile.domain.model.DateFilterPreset) {
+        _uiState.update { it.copy(dateFilter = it.dateFilter.copy(preset = preset)) }
+    }
+
+    fun onCustomDateRangeSelected(startMillis: Long, endMillis: Long) {
+        _uiState.update {
+            it.copy(
+                dateFilter = it.dateFilter.copy(
+                    preset = com.kapos.mobile.domain.model.DateFilterPreset.CUSTOM,
+                    customStartMillis = startMillis,
+                    customEndMillis = endMillis
+                ),
+                showDatePickerDialog = false
+            )
+        }
+    }
+
+    fun onShowDatePickerDialog(show: Boolean) {
+        _uiState.update { it.copy(showDatePickerDialog = show) }
     }
 
     fun exportTransactionsCsv(context: Context) {
@@ -74,15 +101,16 @@ class ReportViewModel(
             try {
                 _uiState.update { it.copy(isExporting = true) }
                 val state = _uiState.value
+                val label = state.dateFilter.getDisplayLabel()
                 val file = CsvExporter.exportOrdersToCsv(
                     context = context,
-                    periodName = state.selectedPeriod.displayName,
+                    periodName = label,
                     orders = state.periodOrders,
                     orderItems = state.periodOrderItems
                 )
                 withContext(Dispatchers.Main) {
                     _uiState.update { it.copy(isExporting = false, snackbarMessage = "CSV Transaksi berhasil dibuat") }
-                    CsvExporter.shareCsvFile(context, file, "Bagikan Laporan Transaksi (${state.selectedPeriod.displayName})")
+                    CsvExporter.shareCsvFile(context, file, "Bagikan Laporan Transaksi ($label)")
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
@@ -97,9 +125,10 @@ class ReportViewModel(
             try {
                 _uiState.update { it.copy(isExporting = true) }
                 val state = _uiState.value
+                val label = state.dateFilter.getDisplayLabel()
                 val file = CsvExporter.exportFinancialSummaryToCsv(
                     context = context,
-                    periodName = state.selectedPeriod.displayName,
+                    periodName = label,
                     cashierName = state.cashierShiftName,
                     grossRevenue = state.grossRevenue,
                     discount = state.totalDiscount,
@@ -114,7 +143,7 @@ class ReportViewModel(
                 )
                 withContext(Dispatchers.Main) {
                     _uiState.update { it.copy(isExporting = false, snackbarMessage = "CSV Laba Rugi berhasil dibuat") }
-                    CsvExporter.shareCsvFile(context, file, "Bagikan Ringkasan Laba Rugi (${state.selectedPeriod.displayName})")
+                    CsvExporter.shareCsvFile(context, file, "Bagikan Ringkasan Laba Rugi ($label)")
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
@@ -148,7 +177,7 @@ class ReportViewModel(
                 val builder = EscPosBuilder(paperWidth = settings.paperWidth)
                 val bytes = builder.buildFinancialReport(
                     storeName = settings.storeName,
-                    periodName = state.selectedPeriod.displayName,
+                    periodName = state.dateFilter.getDisplayLabel(),
                     cashierName = state.cashierShiftName,
                     dateStr = dateStr,
                     grossRevenue = state.grossRevenue,
