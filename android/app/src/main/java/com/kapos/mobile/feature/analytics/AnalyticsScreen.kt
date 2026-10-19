@@ -38,6 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kapos.mobile.core.components.DateFilterBar
+import com.kapos.mobile.core.components.DateRangePickerDialog
 import com.kapos.mobile.core.components.StatCard
 import com.kapos.mobile.core.theme.OutlineSoft
 import com.kapos.mobile.core.theme.Primary
@@ -49,6 +51,7 @@ import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
 import com.kapos.mobile.core.utils.CurrencyFormatter
 import com.kapos.mobile.domain.model.AnalyticsPeriod
+import com.kapos.mobile.domain.model.DateFilterPreset
 
 @Composable
 fun AnalyticsRoute(
@@ -59,7 +62,9 @@ fun AnalyticsRoute(
 
     AnalyticsScreen(
         uiState = uiState,
-        onPeriodChange = viewModel::onPeriodChange,
+        onPresetChange = viewModel::onDatePresetChange,
+        onCustomDateRangeSelected = viewModel::onCustomDateRangeSelected,
+        onShowDatePickerDialog = viewModel::onShowDatePickerDialog,
         modifier = modifier
     )
 }
@@ -67,7 +72,10 @@ fun AnalyticsRoute(
 @Composable
 fun AnalyticsScreen(
     uiState: AnalyticsUiState,
-    onPeriodChange: (AnalyticsPeriod) -> Unit,
+    onPresetChange: (DateFilterPreset) -> Unit = {},
+    onCustomDateRangeSelected: (Long, Long) -> Unit = { _, _ -> },
+    onShowDatePickerDialog: (Boolean) -> Unit = {},
+    onPeriodChange: ((AnalyticsPeriod) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -85,7 +93,7 @@ fun AnalyticsScreen(
                 .verticalScroll(scrollState)
                 .padding(bottom = 100.dp)
         ) {
-            // Header & Period Filter
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,31 +114,14 @@ fun AnalyticsScreen(
                         style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                     )
                 }
-
-                // Period Chips
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    AnalyticsPeriod.values().forEach { period ->
-                        val isSelected = uiState.selectedPeriod == period
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(if (isSelected) Primary else SurfaceWhite)
-                                .border(1.dp, if (isSelected) Primary else OutlineSoft, CircleShape)
-                                .clickable { onPeriodChange(period) }
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = period.displayName,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) SurfaceWhite else TextPrimary
-                                )
-                            )
-                        }
-                    }
-                }
             }
+
+            // Date Filter Bar
+            DateFilterBar(
+                currentFilter = uiState.dateFilter,
+                onPresetSelected = onPresetChange,
+                onOpenDatePicker = { onShowDatePickerDialog(true) }
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -365,6 +356,18 @@ fun AnalyticsScreen(
                     modifier = Modifier.weight(1f)
                 )
             }
+        }
+
+        // Custom Date Range Picker Dialog
+        if (uiState.showDatePickerDialog) {
+            DateRangePickerDialog(
+                initialStartDate = uiState.dateFilter.customStartMillis,
+                initialEndDate = uiState.dateFilter.customEndMillis,
+                onConfirm = { start, end ->
+                    onCustomDateRangeSelected(start, end)
+                },
+                onDismiss = { onShowDatePickerDialog(false) }
+            )
         }
     }
 }
