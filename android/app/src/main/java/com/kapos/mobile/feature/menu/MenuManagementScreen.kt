@@ -571,7 +571,7 @@ fun ProductItemCard(
                         )
                     }
                     Column {
-                        Text(text = "HPP Modal", style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 10.sp))
+                        Text(text = "BOP (HPP)", style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 10.sp))
                         Text(
                             text = CurrencyFormatter.formatRupiah(product.costPrice),
                             style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
@@ -600,16 +600,31 @@ fun ProductItemCard(
                         )
                     }
 
+                    val marginBgColor = when {
+                        marginPercent < 0 -> Color(0xFFFEE2E2)
+                        marginPercent < 20 -> Color(0xFFFEF3C7)
+                        else -> Color(0xFFDCFCE7)
+                    }
+                    val marginTextColor = when {
+                        marginPercent < 0 -> Color(0xFF991B1B)
+                        marginPercent < 20 -> Color(0xFF92400E)
+                        else -> Color(0xFF166534)
+                    }
+                    val marginText = when {
+                        marginPercent < 0 -> "$marginPercent% Rugi"
+                        else -> "+$marginPercent% Margin"
+                    }
+
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(Color(0xFFDCFCE7))
+                            .background(marginBgColor)
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = "+$marginPercent% Margin",
+                            text = marginText,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = Color(0xFF166534),
+                                color = marginTextColor,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp
                             )

@@ -68,8 +68,10 @@ import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
 import com.kapos.mobile.core.theme.Warning
 import com.kapos.mobile.core.utils.CurrencyFormatter
+import com.kapos.mobile.domain.model.BatchFreshness
 import com.kapos.mobile.domain.model.ChickenBatch
 import com.kapos.mobile.domain.model.ChickenPart
+import com.kapos.mobile.domain.model.MaterialBatch
 import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RawMaterialCategory
 import com.kapos.mobile.domain.model.StockFreshness
@@ -109,6 +111,13 @@ fun StockRoute(
         onOpenRestockMaterial = viewModel::openRestockMaterial,
         onCloseRestockMaterial = viewModel::closeRestockMaterial,
         onConfirmRestockMaterial = viewModel::confirmRestockMaterial,
+        onConfirmRestockWithBatch = viewModel::confirmRestockWithBatch,
+        onOpenBatchDetail = viewModel::openBatchDetail,
+        onCloseBatchDetail = viewModel::closeBatchDetail,
+        onToggleBatchUsability = viewModel::toggleBatchUsability,
+        onOpenWasteForBatch = viewModel::openWasteForBatch,
+        onCloseWasteForBatch = viewModel::closeWasteForBatch,
+        onConfirmBatchWaste = viewModel::confirmBatchWaste,
         onOpenWasteMaterial = viewModel::openWasteMaterial,
         onCloseWasteMaterial = viewModel::closeWasteMaterial,
         onConfirmWasteMaterial = viewModel::confirmWasteMaterial,
@@ -143,6 +152,13 @@ fun StockScreen(
     onOpenRestockMaterial: (RawMaterial) -> Unit,
     onCloseRestockMaterial: () -> Unit,
     onConfirmRestockMaterial: (materialId: String, quantity: Double, cost: Double, notes: String) -> Unit,
+    onConfirmRestockWithBatch: (materialId: String, quantity: Double, cost: Double, expiryDate: Long?, notes: String) -> Unit = { _, _, _, _, _ -> },
+    onOpenBatchDetail: (RawMaterial) -> Unit = {},
+    onCloseBatchDetail: () -> Unit = {},
+    onToggleBatchUsability: (batchId: String, isUsable: Boolean) -> Unit = { _, _ -> },
+    onOpenWasteForBatch: (com.kapos.mobile.domain.model.MaterialBatch) -> Unit = {},
+    onCloseWasteForBatch: () -> Unit = {},
+    onConfirmBatchWaste: (batchId: String, quantity: Double, notes: String) -> Unit = { _, _, _ -> },
     onOpenWasteMaterial: (RawMaterial) -> Unit,
     onCloseWasteMaterial: () -> Unit,
     onConfirmWasteMaterial: (materialId: String, quantity: Double, notes: String) -> Unit,
@@ -181,7 +197,7 @@ fun StockScreen(
                     )
                     Text(
                         text = when (uiState.activeTab) {
-                            StockTab.MATERIALS -> "Stok bahan baku, resep BOM & opname"
+                            StockTab.INVENTORY, StockTab.MATERIALS -> "Stok bahan baku, resep BOM & opname"
                             StockTab.AUDIT -> "Riwayat mutasi & audit stok otomatis"
                             else -> "Kontrol stok harian, batch & penggorengan"
                         },
@@ -196,7 +212,7 @@ fun StockScreen(
                             .clip(CircleShape)
                             .background(Primary)
                             .clickable {
-                                if (uiState.activeTab == StockTab.MATERIALS) {
+                                if (uiState.activeTab == StockTab.INVENTORY || uiState.activeTab == StockTab.MATERIALS) {
                                     onOpenAddMaterial()
                                 } else {
                                     onOpenRestock(uiState.restockChickenPart)
@@ -209,7 +225,7 @@ fun StockScreen(
                             Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah", tint = SurfaceWhite, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = if (uiState.activeTab == StockTab.MATERIALS) "Bahan Baru" else "Restock",
+                                text = if (uiState.activeTab == StockTab.INVENTORY || uiState.activeTab == StockTab.MATERIALS) "Bahan Baru" else "Restock",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = SurfaceWhite
@@ -220,7 +236,7 @@ fun StockScreen(
                 }
             }
 
-            // Tab Selector: 4 Tabs (Taichan, Ayam Potong, Bahan Baku BOM, Audit Mutasi)
+            // Tab Selector
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -240,12 +256,7 @@ fun StockScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = when (tab) {
-                                StockTab.TAICHAN -> "Sate Taichan"
-                                StockTab.CHICKEN -> "Ayam Potong"
-                                StockTab.MATERIALS -> "Bahan (BOM)"
-                                StockTab.AUDIT -> "Audit Mutasi"
-                            },
+                            text = tab.displayName,
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) SurfaceWhite else TextPrimary
@@ -373,7 +384,7 @@ fun StockScreen(
                     }
                 }
 
-                StockTab.MATERIALS -> {
+                StockTab.INVENTORY, StockTab.MATERIALS -> {
                     // Low Stock Alert Warning Banner
                     if (uiState.lowStockCount > 0) {
                         Box(
@@ -467,9 +478,12 @@ fun StockScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(uiState.filteredMaterials, key = { it.id }) { material ->
+                                val batches = uiState.getBatchesFor(material.id)
                                 RawMaterialItemCard(
                                     material = material,
+                                    batches = batches,
                                     onRestock = { onOpenRestockMaterial(material) },
+                                    onOpenBatchDetail = { onOpenBatchDetail(material) },
                                     onWaste = { onOpenWasteMaterial(material) },
                                     onOpname = { onOpenOpnameMaterial(material) },
                                     onEdit = { onOpenEditMaterial(material) },
@@ -515,10 +529,31 @@ fun StockScreen(
         if (uiState.isRestockMaterialOpen && uiState.selectedMaterialForAction != null) {
             RestockMaterialDialog(
                 material = uiState.selectedMaterialForAction!!,
-                onConfirm = { qty, cost, notes ->
-                    onConfirmRestockMaterial(uiState.selectedMaterialForAction!!.id, qty, cost, notes)
+                onConfirm = { qty, cost, expiryDate, notes ->
+                    onConfirmRestockWithBatch(uiState.selectedMaterialForAction!!.id, qty, cost, expiryDate, notes)
                 },
                 onDismiss = onCloseRestockMaterial
+            )
+        }
+
+        if (uiState.isBatchDetailOpen && uiState.selectedMaterialForBatches != null) {
+            BatchDetailDialog(
+                material = uiState.selectedMaterialForBatches!!,
+                batches = uiState.getBatchesFor(uiState.selectedMaterialForBatches!!.id),
+                onToggleUsable = onToggleBatchUsability,
+                onOpenWaste = onOpenWasteForBatch,
+                onDismiss = onCloseBatchDetail
+            )
+        }
+
+        if (uiState.isWasteDialogOpen && uiState.selectedBatchForWaste != null && uiState.selectedMaterialForBatches != null) {
+            WasteBatchDialog(
+                material = uiState.selectedMaterialForBatches!!,
+                batch = uiState.selectedBatchForWaste!!,
+                onConfirm = { batchId, qty, notes ->
+                    onConfirmBatchWaste(batchId, qty, notes)
+                },
+                onDismiss = onCloseWasteForBatch
             )
         }
 
@@ -572,7 +607,9 @@ fun CategoryFilterChip(
 @Composable
 fun RawMaterialItemCard(
     material: RawMaterial,
+    batches: List<MaterialBatch> = emptyList(),
     onRestock: () -> Unit,
+    onOpenBatchDetail: () -> Unit = {},
     onWaste: () -> Unit,
     onOpname: () -> Unit,
     onEdit: () -> Unit,
@@ -580,13 +617,19 @@ fun RawMaterialItemCard(
 ) {
     val progress = (material.currentStock / (material.minStock * 2.0).coerceAtLeast(1.0)).toFloat().coerceIn(0f, 1f)
     val isLow = material.isLowStock
+    val hasExpired = batches.any { it.freshnessStatus() == BatchFreshness.EXPIRED || it.freshnessStatus() == BatchFreshness.DAMAGED }
+    val hasExpiringSoon = !hasExpired && batches.any { it.freshnessStatus() == BatchFreshness.EXPIRING_SOON }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(AppShapes.Md)
             .background(SurfaceWhite)
-            .border(1.dp, if (isLow) Warning else OutlineSoft, AppShapes.Md)
+            .border(
+                1.dp,
+                if (hasExpired) Danger else if (hasExpiringSoon || isLow) Warning else OutlineSoft,
+                AppShapes.Md
+            )
             .padding(14.dp)
     ) {
         Column {
@@ -600,13 +643,17 @@ fun RawMaterialItemCard(
                         modifier = Modifier
                             .size(38.dp)
                             .clip(CircleShape)
-                            .background(if (isLow) Color(0xFFFEF3C7) else PrimarySoft),
+                            .background(
+                                if (hasExpired) Color(0xFFFEE2E2)
+                                else if (hasExpiringSoon || isLow) Color(0xFFFEF3C7)
+                                else PrimarySoft
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (isLow) Icons.Default.Warning else Icons.Default.Inventory,
+                            imageVector = if (hasExpired || hasExpiringSoon || isLow) Icons.Default.Warning else Icons.Default.Inventory,
                             contentDescription = null,
-                            tint = if (isLow) Warning else Primary,
+                            tint = if (hasExpired) Danger else if (hasExpiringSoon || isLow) Warning else Primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -620,7 +667,41 @@ fun RawMaterialItemCard(
                                     color = TextPrimary
                                 )
                             )
-                            if (isLow) {
+                            if (hasExpired) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFFEE2E2))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "Kadaluarsa",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = Danger,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp
+                                        )
+                                    )
+                                }
+                            } else if (hasExpiringSoon) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFFEF3C7))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "Segera Exp",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = Color(0xFF92400E),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp
+                                        )
+                                    )
+                                }
+                            } else if (isLow) {
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Box(
                                     modifier = Modifier
@@ -668,7 +749,7 @@ fun RawMaterialItemCard(
                     text = "Sisa: ${material.currentStock} ${material.unit}",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = if (isLow) Danger else Primary
+                        color = if (hasExpired || isLow) Danger else Primary
                     )
                 )
                 if (material.costPerUnit > 0) {
@@ -686,16 +767,16 @@ fun RawMaterialItemCard(
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(CircleShape),
-                color = if (isLow) Danger else Primary,
+                color = if (hasExpired || isLow) Danger else Primary,
                 trackColor = SurfaceTint
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Action buttons row: + Masuk, - Rusak, Opname
+            // Action buttons row: + Masuk, Batch (N), - Rusak, Opname
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -712,6 +793,35 @@ fun RawMaterialItemCard(
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = Primary
+                        )
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1.2f)
+                        .clip(AppShapes.Sm)
+                        .background(
+                            if (hasExpired) Color(0xFFFEE2E2)
+                            else if (hasExpiringSoon) Color(0xFFFEF3C7)
+                            else SurfaceTint
+                        )
+                        .border(
+                            1.dp,
+                            if (hasExpired) Danger
+                            else if (hasExpiringSoon) Warning
+                            else OutlineSoft,
+                            AppShapes.Sm
+                        )
+                        .clickable(onClick = onOpenBatchDetail)
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Batch (${batches.size})",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = if (hasExpired) Danger else if (hasExpiringSoon) Color(0xFF92400E) else TextPrimary
                         )
                     )
                 }

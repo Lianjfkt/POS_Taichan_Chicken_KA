@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -251,7 +252,7 @@ fun AddEditMaterialDialog(
 @Composable
 fun RestockMaterialDialog(
     material: RawMaterial,
-    onConfirm: (quantity: Double, cost: Double, notes: String) -> Unit,
+    onConfirm: (quantity: Double, cost: Double, expiryDate: Long?, notes: String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var quantityStr by remember { mutableStateOf("") }
@@ -259,7 +260,17 @@ fun RestockMaterialDialog(
     var notes by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    val now = remember { System.currentTimeMillis() }
+    val oneDay = 24L * 60 * 60 * 1000
+    // Expiry chips: null for non-perishable, or timestamp
+    var selectedExpiryDays by remember { mutableStateOf<Int?>(7) } // default 7 days
+
+    val qty = quantityStr.toDoubleOrNull() ?: 0.0
+    val cost = costStr.toDoubleOrNull() ?: 0.0
+    val unitCostPreview = if (qty > 0 && cost > 0) cost / qty else null
+
     BasicAlertDialog(onDismissRequest = onDismiss) {
+        val scrollState = rememberScrollState()
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -268,7 +279,7 @@ fun RestockMaterialDialog(
                 .border(1.dp, OutlineSoft, AppShapes.Lg)
                 .padding(20.dp)
         ) {
-            Column {
+            Column(modifier = Modifier.verticalScroll(scrollState)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
@@ -314,6 +325,58 @@ fun RestockMaterialDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                if (unitCostPreview != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "≈ ${CurrencyFormatter.formatRupiah(unitCostPreview)} / ${material.unit}",
+                        style = MaterialTheme.typography.labelSmall.copy(color = Primary, fontWeight = FontWeight.Bold)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Expiry selector
+                Text(
+                    text = "Masa Simpan / Kadaluarsa",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = TextSecondary)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val options = listOf(
+                        Pair("3 Hari", 3),
+                        Pair("7 Hari", 7),
+                        Pair("14 Hari", 14),
+                        Pair("30 Hari", 30),
+                        Pair("Non-perishable", null)
+                    )
+
+                    options.forEach { (label, days) ->
+                        val isSelected = selectedExpiryDays == days
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) PrimarySoft else SurfaceTint)
+                                .border(1.dp, if (isSelected) Primary else OutlineSoft, RoundedCornerShape(8.dp))
+                                .clickable { selectedExpiryDays = days }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = if (isSelected) Primary else TextPrimary,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            )
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
@@ -339,11 +402,11 @@ fun RestockMaterialDialog(
                     PrimaryButton(
                         text = "Tambah Stok",
                         onClick = {
-                            val qty = quantityStr.toDoubleOrNull() ?: 0.0
                             if (qty <= 0) {
                                 errorMessage = "Jumlah masuk harus lebih dari 0!"
                             } else {
-                                onConfirm(qty, costStr.toDoubleOrNull() ?: 0.0, notes)
+                                val expiryTimestamp = selectedExpiryDays?.let { now + (it * oneDay) }
+                                onConfirm(qty, cost, expiryTimestamp, notes)
                             }
                         },
                         modifier = Modifier.weight(1.3f)

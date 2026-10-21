@@ -31,11 +31,16 @@ class StockViewModel(
     private val _taichanSoldToday = MutableStateFlow(0)
     private val _chickenSoldToday = MutableStateFlow<Map<ChickenPart, Int>>(emptyMap())
 
-    // Raw Material states
+    // Raw Material & Batch states
     private val _rawMaterials = MutableStateFlow<List<RawMaterial>>(emptyList())
+    private val _batchesByMaterial = MutableStateFlow<Map<String, List<com.kapos.mobile.domain.model.MaterialBatch>>>(emptyMap())
     private val _selectedMaterialCategory = MutableStateFlow<RawMaterialCategory?>(null)
     private val _materialSearchQuery = MutableStateFlow("")
     private val _selectedMaterialForAction = MutableStateFlow<RawMaterial?>(null)
+    private val _selectedMaterialForBatches = MutableStateFlow<RawMaterial?>(null)
+    private val _isBatchDetailOpen = MutableStateFlow(false)
+    private val _selectedBatchForWaste = MutableStateFlow<com.kapos.mobile.domain.model.MaterialBatch?>(null)
+    private val _isWasteDialogOpen = MutableStateFlow(false)
     private val _isAddEditMaterialOpen = MutableStateFlow(false)
     private val _materialToEdit = MutableStateFlow<RawMaterial?>(null)
     private val _isRestockMaterialOpen = MutableStateFlow(false)
@@ -119,6 +124,12 @@ class StockViewModel(
             }
 
             scope.launch {
+                inv.observeAllBatches().collect { list ->
+                    _batchesByMaterial.value = list.groupBy { it.materialId }
+                }
+            }
+
+            scope.launch {
                 inv.observeMovements(100).collect { list ->
                     _stockMovements.value = list
                 }
@@ -138,12 +149,12 @@ class StockViewModel(
         },
         combine(
             _rawMaterials,
+            _batchesByMaterial,
             _selectedMaterialCategory,
             _materialSearchQuery,
-            _selectedMaterialForAction,
-            _stockMovements
-        ) { mats, cat, query, selectedMat, movements ->
-            listOf(mats, cat, query, selectedMat, movements)
+            _selectedMaterialForAction
+        ) { mats, batchesMap, cat, query, selectedMat ->
+            listOf(mats, batchesMap, cat, query, selectedMat)
         },
         combine(
             _isAddEditMaterialOpen,
@@ -155,13 +166,22 @@ class StockViewModel(
             listOf(addEdit, toEdit, restock, waste, opname)
         },
         combine(
+            _stockMovements,
+            _movementFilterType,
+            _selectedMaterialForBatches,
+            _isBatchDetailOpen,
+            _selectedBatchForWaste
+        ) { movements, filterType, matBatches, isBatchOpen, wasteBatch ->
+            listOf(movements, filterType, matBatches, isBatchOpen, wasteBatch)
+        },
+        combine(
             stockRepository.taichanBatches,
             stockRepository.chickenBatches,
-            _movementFilterType
-        ) { tcBatches, ckBatches, filterType ->
-            Triple(tcBatches, ckBatches, filterType)
+            _isWasteDialogOpen
+        ) { tcBatches, ckBatches, isWasteDialog ->
+            Triple(tcBatches, ckBatches, isWasteDialog)
         }
-    ) { baseList, matList, dialogList, repoData ->
+    ) { baseList, matList, dialogList, batchDialogList, repoData ->
         val tab = baseList[0] as StockTab
         val isDialogOpen = baseList[1] as Boolean
         val chickenPart = baseList[2] as ChickenPart
@@ -171,11 +191,11 @@ class StockViewModel(
 
         @Suppress("UNCHECKED_CAST")
         val mats = matList[0] as List<RawMaterial>
-        val cat = matList[1] as RawMaterialCategory?
-        val query = matList[2] as String
-        val selectedMat = matList[3] as RawMaterial?
         @Suppress("UNCHECKED_CAST")
-        val movements = matList[4] as List<com.kapos.mobile.domain.model.StockMovement>
+        val batchesMap = matList[1] as Map<String, List<com.kapos.mobile.domain.model.MaterialBatch>>
+        val cat = matList[2] as RawMaterialCategory?
+        val query = matList[3] as String
+        val selectedMat = matList[4] as RawMaterial?
 
         val addEdit = dialogList[0] as Boolean
         val toEdit = dialogList[1] as RawMaterial?
@@ -183,9 +203,16 @@ class StockViewModel(
         val waste = dialogList[3] as Boolean
         val opname = dialogList[4] as Boolean
 
+        @Suppress("UNCHECKED_CAST")
+        val movements = batchDialogList[0] as List<com.kapos.mobile.domain.model.StockMovement>
+        val movementFilter = batchDialogList[1] as com.kapos.mobile.domain.model.StockMovementType?
+        val matBatches = batchDialogList[2] as RawMaterial?
+        val isBatchOpen = batchDialogList[3] as Boolean
+        val wasteBatch = batchDialogList[4] as com.kapos.mobile.domain.model.MaterialBatch?
+
         val tcBatches = repoData.first
         val ckBatches = repoData.second
-        val movementFilter = repoData.third
+        val isWasteDialog = repoData.third
 
         StockUiState(
             activeTab = tab,
@@ -196,9 +223,14 @@ class StockViewModel(
             isRestockDialogOpen = isDialogOpen,
             restockChickenPart = chickenPart,
             rawMaterials = mats,
+            batchesByMaterial = batchesMap,
             selectedMaterialCategory = cat,
             materialSearchQuery = query,
             selectedMaterialForAction = selectedMat,
+            selectedMaterialForBatches = matBatches,
+            isBatchDetailOpen = isBatchOpen,
+            selectedBatchForWaste = wasteBatch,
+            isWasteDialogOpen = isWasteDialog,
             isAddEditMaterialOpen = addEdit,
             materialToEdit = toEdit,
             isRestockMaterialOpen = restock,
@@ -347,9 +379,53 @@ class StockViewModel(
     }
 
     fun confirmRestockMaterial(materialId: String, quantity: Double, cost: Double, notes: String) {
+        confirmRestockWithBatch(materialId, quantity, cost, null, notes)
+    }
+
+    fun confirmRestockWithBatch(
+        materialId: String,
+        quantity: Double,
+        costTotal: Double,
+        expiryDate: Long?,
+        notes: String
+    ) {
         viewModelScope.launch {
-            inventoryRepository?.restockMaterial(materialId, quantity, cost, notes)
+            inventoryRepository?.restockMaterialWithBatch(materialId, quantity, costTotal, expiryDate, notes)
             closeRestockMaterial()
+        }
+    }
+
+    // --- Batch Detail and Waste Actions ---
+    fun openBatchDetail(material: RawMaterial) {
+        _selectedMaterialForBatches.value = material
+        _isBatchDetailOpen.value = true
+    }
+
+    fun closeBatchDetail() {
+        _isBatchDetailOpen.value = false
+        _selectedMaterialForBatches.value = null
+    }
+
+    fun openWasteForBatch(batch: com.kapos.mobile.domain.model.MaterialBatch) {
+        _selectedBatchForWaste.value = batch
+        _isWasteDialogOpen.value = true
+    }
+
+    fun closeWasteForBatch() {
+        _isWasteDialogOpen.value = false
+        _selectedBatchForWaste.value = null
+    }
+
+    fun confirmBatchWaste(batchId: String, quantity: Double, notes: String) {
+        viewModelScope.launch {
+            inventoryRepository?.recordBatchWaste(batchId, quantity, notes)
+            closeWasteForBatch()
+        }
+    }
+
+    fun toggleBatchUsability(batchId: String, isUsable: Boolean) {
+        viewModelScope.launch {
+            inventoryRepository?.toggleBatchUsability(batchId, isUsable)
         }
     }
 

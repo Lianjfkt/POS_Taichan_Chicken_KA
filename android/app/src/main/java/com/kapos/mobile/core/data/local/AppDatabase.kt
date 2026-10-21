@@ -22,6 +22,8 @@ import com.kapos.mobile.core.data.local.entity.ProductEntity
 import com.kapos.mobile.core.data.local.entity.RawMaterialEntity
 import com.kapos.mobile.core.data.local.entity.RecipeItemEntity
 import com.kapos.mobile.core.data.local.entity.ShiftEntity
+import com.kapos.mobile.core.data.local.dao.MaterialBatchDao
+import com.kapos.mobile.core.data.local.entity.MaterialBatchEntity
 import com.kapos.mobile.core.data.local.entity.StockMovementEntity
 
 @Database(
@@ -35,9 +37,10 @@ import com.kapos.mobile.core.data.local.entity.StockMovementEntity
         CustomerEntity::class,
         RawMaterialEntity::class,
         RecipeItemEntity::class,
-        StockMovementEntity::class
+        StockMovementEntity::class,
+        MaterialBatchEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -50,6 +53,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rawMaterialDao(): RawMaterialDao
     abstract fun recipeDao(): RecipeDao
     abstract fun stockMovementDao(): StockMovementDao
+    abstract fun materialBatchDao(): MaterialBatchDao
 
     companion object {
         @Volatile

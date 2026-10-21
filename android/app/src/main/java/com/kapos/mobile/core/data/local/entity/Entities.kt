@@ -146,7 +146,9 @@ data class RawMaterialEntity(
     val currentStock: Double,
     val minStock: Double,
     val costPerUnit: Double,
-    val lastRestockedAt: Long = System.currentTimeMillis()
+    val lastRestockedAt: Long = System.currentTimeMillis(),
+    val earliestExpiryDate: Long? = null,
+    val hasExpiredBatch: Boolean = false
 )
 
 @Entity(

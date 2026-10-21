@@ -1,19 +1,21 @@
 package com.kapos.mobile.feature.stock
 
+import com.kapos.mobile.domain.model.BatchFreshness
 import com.kapos.mobile.domain.model.ChickenBatch
 import com.kapos.mobile.domain.model.ChickenPart
+import com.kapos.mobile.domain.model.MaterialBatch
 import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RawMaterialCategory
-import com.kapos.mobile.domain.model.TaichanBatch
-
 import com.kapos.mobile.domain.model.StockMovement
 import com.kapos.mobile.domain.model.StockMovementType
+import com.kapos.mobile.domain.model.TaichanBatch
 
 enum class StockTab(val displayName: String) {
-    TAICHAN("Sate Taichan"),
-    CHICKEN("Ayam Potong"),
-    MATERIALS("Bahan Baku (BOM)"),
-    AUDIT("Audit Mutasi")
+    INVENTORY("Bahan Baku & Batch"),
+    AUDIT("Audit Mutasi & Waste"),
+    @Deprecated("Legacy tab") TAICHAN("Sate Taichan"),
+    @Deprecated("Legacy tab") CHICKEN("Ayam Potong"),
+    @Deprecated("Legacy tab") MATERIALS("Bahan Baku (BOM)")
 }
 
 data class ChickenPartSummary(
@@ -25,18 +27,17 @@ data class ChickenPartSummary(
 )
 
 data class StockUiState(
-    val activeTab: StockTab = StockTab.TAICHAN,
-    val taichanBatches: List<TaichanBatch> = emptyList(),
-    val chickenBatches: List<ChickenBatch> = emptyList(),
-    val taichanSoldToday: Int = 0,
-    val chickenSoldToday: Map<ChickenPart, Int> = emptyMap(),
-    val isRestockDialogOpen: Boolean = false,
-    val restockChickenPart: ChickenPart = ChickenPart.SAYAP,
-    // Raw materials BOM state
+    val activeTab: StockTab = StockTab.INVENTORY,
+    // Unified Room DB Raw materials & Batches
     val rawMaterials: List<RawMaterial> = emptyList(),
+    val batchesByMaterial: Map<String, List<MaterialBatch>> = emptyMap(),
     val selectedMaterialCategory: RawMaterialCategory? = null,
     val materialSearchQuery: String = "",
     val selectedMaterialForAction: RawMaterial? = null,
+    val selectedMaterialForBatches: RawMaterial? = null,
+    val isBatchDetailOpen: Boolean = false,
+    val selectedBatchForWaste: MaterialBatch? = null,
+    val isWasteDialogOpen: Boolean = false,
     val isAddEditMaterialOpen: Boolean = false,
     val materialToEdit: RawMaterial? = null,
     val isRestockMaterialOpen: Boolean = false,
@@ -44,7 +45,14 @@ data class StockUiState(
     val isOpnameMaterialOpen: Boolean = false,
     // Stock Movements Audit Log
     val stockMovements: List<StockMovement> = emptyList(),
-    val movementFilterType: StockMovementType? = null
+    val movementFilterType: StockMovementType? = null,
+    // Legacy SharedPreferences compatibility
+    val taichanBatches: List<TaichanBatch> = emptyList(),
+    val chickenBatches: List<ChickenBatch> = emptyList(),
+    val taichanSoldToday: Int = 0,
+    val chickenSoldToday: Map<ChickenPart, Int> = emptyMap(),
+    val isRestockDialogOpen: Boolean = false,
+    val restockChickenPart: ChickenPart = ChickenPart.SAYAP
 ) {
     val taichanTotalRaw: Int
         get() = taichanBatches.sumOf { it.raw }
@@ -101,4 +109,23 @@ data class StockUiState(
 
     val lowStockMaterials: List<RawMaterial>
         get() = rawMaterials.filter { it.isLowStock }
+
+    val totalInventoryAssetValue: Double
+        get() = rawMaterials.sumOf { it.currentStock * it.costPerUnit }
+
+    fun totalExpiredBatches(now: Long = System.currentTimeMillis()): Int {
+        return batchesByMaterial.values.flatten().count {
+            it.remainingQuantity > 0 && it.freshnessStatus(now) == BatchFreshness.EXPIRED
+        }
+    }
+
+    fun totalExpiringSoonBatches(now: Long = System.currentTimeMillis()): Int {
+        return batchesByMaterial.values.flatten().count {
+            it.remainingQuantity > 0 && it.freshnessStatus(now) == BatchFreshness.EXPIRING_SOON
+        }
+    }
+
+    fun getBatchesFor(materialId: String): List<MaterialBatch> {
+        return batchesByMaterial[materialId] ?: emptyList()
+    }
 }
