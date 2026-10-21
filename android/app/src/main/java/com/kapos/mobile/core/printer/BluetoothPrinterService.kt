@@ -49,6 +49,16 @@ class BluetoothPrinterService(private val context: Context) {
         return bluetoothAdapter?.isEnabled == true
     }
 
+    fun hasBluetoothPermission(): Boolean {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            return androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.BLUETOOTH_CONNECT
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        return true
+    }
+
     @SuppressLint("MissingPermission")
     suspend fun printBytes(macAddress: String, data: ByteArray): Result<Unit> = withContext(Dispatchers.IO) {
         val adapter = bluetoothAdapter ?: return@withContext Result.failure(Exception("Bluetooth tidak didukung pada perangkat ini"))

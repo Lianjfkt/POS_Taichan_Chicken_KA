@@ -215,11 +215,12 @@ fun CartItemRow(
                 )
             )
             Text(
-                text = "${item.quantity}x @ ${CurrencyFormatter.formatRupiah(item.product.price)}",
+                text = "${item.quantity}x @ ${CurrencyFormatter.formatRupiah(item.unitPrice)}",
                 style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
             )
             val metaParts = mutableListOf<String>()
-            if (item.spiceLevel.isNotBlank()) metaParts.add("Pedas: ${item.spiceLevel}")
+            if (item.spiceLevel.isNotBlank()) metaParts.add(item.spiceLevel)
+            item.selectedModifiers.forEach { metaParts.add(it.name) }
             if (item.notes.isNotBlank()) metaParts.add(item.notes)
             if (metaParts.isNotEmpty()) {
                 Text(

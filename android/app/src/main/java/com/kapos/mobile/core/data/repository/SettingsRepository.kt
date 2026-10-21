@@ -25,6 +25,7 @@ data class AppSettings(
     val dailyFixedCost: Double = 350000.0,
     val dailyRevenueTarget: Double = 1500000.0,
     val staffList: String = "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
+    val autoLockMinutes: Int = 2,
     val currentSession: AuthSession = AuthSession(
         isLoggedIn = false,
         role = UserRole.CASHIER,
@@ -64,6 +65,7 @@ class SettingsRepository(context: Context? = null) {
             dailyFixedCost = prefs.getFloat("daily_fixed_cost", 350000f).toDouble(),
             dailyRevenueTarget = prefs.getFloat("daily_revenue_target", 1500000f).toDouble(),
             staffList = prefs.getString("staff_list", "Kasir Utama,Kasir Pagi,Kasir Malam,Manager") ?: "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
+            autoLockMinutes = prefs.getInt("auto_lock_minutes", 2),
             currentSession = AuthSession(
                 isLoggedIn = isSessionActive,
                 role = sessionRole,
@@ -90,6 +92,7 @@ class SettingsRepository(context: Context? = null) {
             ?.putFloat("daily_fixed_cost", settings.dailyFixedCost.toFloat())
             ?.putFloat("daily_revenue_target", settings.dailyRevenueTarget.toFloat())
             ?.putString("staff_list", settings.staffList)
+            ?.putInt("auto_lock_minutes", settings.autoLockMinutes)
             ?.apply()
         _settingsFlow.value = settings
     }

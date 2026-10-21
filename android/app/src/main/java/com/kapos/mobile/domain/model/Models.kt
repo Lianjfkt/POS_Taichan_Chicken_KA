@@ -73,17 +73,22 @@ data class Product(
     val emoji: String = "🍢",
     val spiceLevel: String = "",
     val description: String = "",
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val isSoldOut: Boolean = false
 ) : Serializable
 
 data class CartItem(
     val product: Product,
     val quantity: Int = 1,
     val spiceLevel: String = "Sedang",
+    val selectedModifiers: List<ModifierOption> = emptyList(),
     val notes: String = ""
 ) : Serializable {
+    val unitPrice: Double
+        get() = product.price + selectedModifiers.sumOf { it.price }
+
     val subtotal: Double
-        get() = product.price * quantity
+        get() = unitPrice * quantity
 }
 
 data class Order(

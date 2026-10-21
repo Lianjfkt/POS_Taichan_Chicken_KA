@@ -23,7 +23,13 @@ data class SettingsUiState(
     val isTestingPrint: Boolean = false,
     val printTestStatusMessage: String? = null,
     val isPrintTestSuccess: Boolean? = null,
+    val hasBluetoothPermission: Boolean = true,
     val isSyncing: Boolean = false,
     val pendingSyncCount: Int = 0,
-    val staffList: List<String> = emptyList()
+    val staffList: List<String> = emptyList(),
+    val isExportingBackup: Boolean = false,
+    val backupExportPath: String? = null,
+    val backupStatusMessage: String? = null,
+    val isBackupSuccess: Boolean? = null,
+    val autoLockMinutes: Int = 2
 )

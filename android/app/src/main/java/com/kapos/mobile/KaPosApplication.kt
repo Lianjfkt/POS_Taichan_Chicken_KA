@@ -39,11 +39,19 @@ class KaPosApplication : Application() {
     lateinit var bluetoothPrinterService: com.kapos.mobile.core.printer.BluetoothPrinterService
         private set
 
+    lateinit var backupManager: com.kapos.mobile.core.data.backup.DatabaseBackupManager
+        private set
+
+    lateinit var promotionRepository: com.kapos.mobile.core.data.repository.PromotionRepository
+        private set
+
     override fun onCreate() {
         super.onCreate()
         instance = this
 
         database = AppDatabase.getInstance(this)
+        backupManager = com.kapos.mobile.core.data.backup.DatabaseBackupManager(database)
+        promotionRepository = com.kapos.mobile.core.data.repository.PromotionRepository()
         settingsRepository = SettingsRepository(this)
         customerRepository = com.kapos.mobile.core.data.repository.CustomerRepository(database = database)
         inventoryRepository = com.kapos.mobile.core.data.repository.InventoryRepository(database = database)
@@ -61,7 +69,8 @@ class KaPosApplication : Application() {
         posRepository = PosRepository(
             database = database,
             supabaseClient = supabaseClient,
-            inventoryRepository = inventoryRepository
+            inventoryRepository = inventoryRepository,
+            customerRepository = customerRepository
         )
 
         shiftRepository = ShiftRepository(database = database)

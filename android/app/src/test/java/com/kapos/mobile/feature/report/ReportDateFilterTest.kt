@@ -30,7 +30,10 @@ class ReportDateFilterTest {
 
     @Test
     fun testPeriodOrders_calculatedWithinDateRange() {
-        val cal = Calendar.getInstance().apply { set(2026, Calendar.OCTOBER, 19, 10, 0) }
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 10)
+            set(Calendar.MINUTE, 0)
+        }
         val order1 = createOrder("1", cal.timeInMillis, 50000.0)
 
         cal.add(Calendar.DAY_OF_YEAR, -5)

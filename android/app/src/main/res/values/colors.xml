@@ -4,4 +4,5 @@
     <color name="bg_top">#DCE9EE</color>
     <color name="bg_bottom">#C7DAE1</color>
     <color name="surface">#FFFFFF</color>
+    <color name="ic_launcher_background">#F5001A</color>
 </resources>

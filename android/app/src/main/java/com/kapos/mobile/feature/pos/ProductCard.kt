@@ -42,9 +42,10 @@ import com.kapos.mobile.domain.model.Product
 fun ProductCard(
     product: Product,
     onAddClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    categoryName: String? = null
 ) {
-    val categoryLabel = when (product.categoryId) {
+    val categoryLabel = categoryName?.uppercase() ?: when (product.categoryId) {
         "cat_taichan" -> "SATE TAICHAN"
         "cat_chicken" -> "AYAM GORENG"
         "cat_drinks" -> "MINUMAN"
@@ -52,19 +53,21 @@ fun ProductCard(
         else -> "MENU"
     }
 
+    val isSoldOut = product.isSoldOut
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(SurfaceWhite)
-            .border(1.dp, OutlineSoft, RoundedCornerShape(14.dp))
-            .clickable(onClick = onAddClick)
+            .background(if (isSoldOut) SurfaceTint.copy(alpha = 0.6f) else SurfaceWhite)
+            .border(1.dp, if (isSoldOut) OutlineSoft else OutlineSoft, RoundedCornerShape(14.dp))
+            .clickable(enabled = !isSoldOut, onClick = onAddClick)
             .padding(14.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Category Tag & Spice Indicator
+            // Category Tag & Spice / SoldOut Indicator
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -73,7 +76,7 @@ fun ProductCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(SurfaceTint)
+                        .background(if (isSoldOut) OutlineSoft else SurfaceTint)
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
@@ -81,12 +84,28 @@ fun ProductCard(
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Primary
+                            color = if (isSoldOut) TextSecondary else Primary
                         )
                     )
                 }
 
-                if (product.spiceLevel.isNotBlank()) {
+                if (isSoldOut) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(com.kapos.mobile.core.theme.Danger)
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "HABIS",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SurfaceWhite
+                            )
+                        )
+                    }
+                } else if (product.spiceLevel.isNotBlank()) {
                     Text(
                         text = "Level 0–5",
                         style = MaterialTheme.typography.labelSmall.copy(
@@ -106,7 +125,7 @@ fun ProductCard(
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = if (isSoldOut) TextSecondary else TextPrimary
                 ),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -115,7 +134,9 @@ fun ProductCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             // Description / Subtitle
-            val desc = if (product.description.isNotBlank()) {
+            val desc = if (isSoldOut) {
+                "Bahan baku sedang habis"
+            } else if (product.description.isNotBlank()) {
                 product.description
             } else if (product.spiceLevel.isNotBlank()) {
                 "Pilihan rasa pedas gurih"
@@ -143,7 +164,7 @@ fun ProductCard(
                 Text(
                     text = CurrencyFormatter.formatRupiah(product.price),
                     style = MaterialTheme.typography.titleMedium.copy(
-                        color = Primary,
+                        color = if (isSoldOut) TextSecondary else Primary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
@@ -153,8 +174,8 @@ fun ProductCard(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(Primary)
-                        .clickable(onClick = onAddClick),
+                        .background(if (isSoldOut) OutlineSoft else Primary)
+                        .clickable(enabled = !isSoldOut, onClick = onAddClick),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

@@ -41,6 +41,7 @@ data class SupabaseOrderPayload(
     val status: String = "completed",
     @SerialName("cashier_id") val cashierId: String? = "Kasir",
     val notes: String? = null,
+    @SerialName("void_reason") val voidReason: String? = null,
     @SerialName("paid_at") val paidAt: String? = null,
     @SerialName("created_at") val createdAt: String? = null
 )

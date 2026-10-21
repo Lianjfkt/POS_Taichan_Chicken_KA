@@ -58,6 +58,12 @@ interface OrderDao {
     @Query("UPDATE orders SET paymentStatus = 'VOID', voidReason = :reason, voidedAt = :timestamp, syncStatus = 'PENDING_SYNC' WHERE id = :orderId")
     suspend fun voidOrderWithReason(orderId: String, reason: String, timestamp: Long)
 
+    @Query("SELECT * FROM orders")
+    suspend fun getAll(): List<OrderEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(orders: List<OrderEntity>)
+
     @Query("SELECT * FROM order_items")
     suspend fun getAllOrderItems(): List<OrderItemEntity>
 

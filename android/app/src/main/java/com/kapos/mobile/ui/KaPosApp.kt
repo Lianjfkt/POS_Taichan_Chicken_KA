@@ -2,6 +2,9 @@ package com.kapos.mobile.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -13,6 +16,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.kapos.mobile.feature.splash.MotionSplashScreen
 import com.kapos.mobile.KaPosApplication
 import com.kapos.mobile.core.components.AppBottomNav
 import com.kapos.mobile.core.components.getBottomNavDestinations
@@ -56,18 +65,19 @@ fun KaPosApp(
         LoginViewModel(app.settingsRepository)
     }
     val posViewModel: PosViewModel = viewModel {
-        PosViewModel(app.posRepository, app.savedOrderRepository)
+        PosViewModel(app.posRepository, app.savedOrderRepository, app.inventoryRepository)
     }
     val checkoutViewModel: CheckoutViewModel = viewModel {
         CheckoutViewModel(
             app.posRepository,
             app.settingsRepository,
             app.bluetoothPrinterService,
-            app.customerRepository
+            app.customerRepository,
+            app.promotionRepository
         )
     }
     val customerViewModel: CustomerViewModel = viewModel {
-        CustomerViewModel(app.customerRepository)
+        CustomerViewModel(app.customerRepository, app.settingsRepository)
     }
     val menuManagementViewModel: MenuManagementViewModel = viewModel {
         MenuManagementViewModel(app.posRepository, app.inventoryRepository)
@@ -114,139 +124,185 @@ fun KaPosApp(
     val destinations = getBottomNavDestinations(currentSession.role)
     val isPrimaryTab = destinations.any { it.route == currentRoute }
 
-    if (!currentSession.isLoggedIn) {
-        LoginRoute(
-            viewModel = loginViewModel,
-            onLoginSuccess = {
-                navController.navigate("pos") {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        inclusive = true
-                    }
-                }
-            },
-            modifier = modifier.fillMaxSize()
-        )
-    } else {
-        Box(modifier = modifier.fillMaxSize()) {
-            NavHost(
-                navController = navController,
-                startDestination = "pos",
-                modifier = Modifier.fillMaxSize()
-            ) {
-                composable("pos") {
-                    PosRoute(
-                        viewModel = posViewModel,
-                        userRole = currentSession.role,
-                        onLockClick = {
-                            app.settingsRepository.updateSession(
-                                currentSession.copy(isLoggedIn = false)
-                            )
-                        },
-                        onLogoutClick = {
-                            app.settingsRepository.updateSession(
-                                AuthSession(isLoggedIn = false, role = UserRole.CASHIER, cashierName = "")
-                            )
-                        },
-                        onNavigateToCheckout = {
-                            val cartItems = posViewModel.uiState.value.cartItems
-                            checkoutViewModel.initCheckout(cartItems)
-                            navController.navigate("checkout")
-                        }
+    var showSplash by rememberSaveable { mutableStateOf(true) }
+    var lastInteractionTime by androidx.compose.runtime.remember { mutableStateOf(System.currentTimeMillis()) }
+
+    androidx.compose.runtime.LaunchedEffect(settings.autoLockMinutes, currentSession.isLoggedIn) {
+        if (currentSession.isLoggedIn && settings.autoLockMinutes > 0) {
+            val timeoutMillis = settings.autoLockMinutes * 60 * 1000L
+            while (true) {
+                kotlinx.coroutines.delay(5000L)
+                val elapsed = System.currentTimeMillis() - lastInteractionTime
+                if (elapsed >= timeoutMillis) {
+                    app.settingsRepository.updateSession(
+                        currentSession.copy(isLoggedIn = false)
                     )
-                }
-
-                composable("checkout") {
-                    ConfirmSaleRoute(
-                        viewModel = checkoutViewModel,
-                        onBack = { navController.popBackStack() },
-                        onSuccessFinish = {
-                            posViewModel.clearCart()
-                            navController.navigate("transactions") {
-                                popUpTo("pos")
-                            }
-                        }
-                    )
-                }
-
-                composable("transactions") {
-                    com.kapos.mobile.feature.transactions.TransactionsRoute(
-                        viewModel = transactionsViewModel
-                    )
-                }
-
-                composable("shift") {
-                    ShiftRoute(viewModel = shiftViewModel)
-                }
-
-                composable("stock") {
-                    StockRoute(viewModel = stockViewModel)
-                }
-
-                composable("analytics") {
-                    AnalyticsRoute(viewModel = analyticsViewModel)
-                }
-
-                composable("report") {
-                    ReportRoute(
-                        viewModel = reportViewModel
-                    )
-                }
-
-                composable("settings") {
-                    SettingsRoute(
-                        viewModel = settingsViewModel,
-                        onLockClick = {
-                            app.settingsRepository.updateSession(
-                                currentSession.copy(isLoggedIn = false)
-                            )
-                        },
-                        onLogoutClick = {
-                            app.settingsRepository.updateSession(
-                                AuthSession(isLoggedIn = false, role = UserRole.CASHIER, cashierName = "")
-                            )
-                        },
-                        onNavigateToMenuManagement = {
-                            navController.navigate("menu_management")
-                        },
-                        onNavigateToCustomers = {
-                            navController.navigate("customers")
-                        }
-                    )
-                }
-
-                composable("menu_management") {
-                    MenuManagementRoute(
-                        viewModel = menuManagementViewModel,
-                        onBack = { navController.popBackStack() }
-                    )
-                }
-
-                composable("customers") {
-                    CustomerRoute(
-                        viewModel = customerViewModel,
-                        onBack = { navController.popBackStack() }
-                    )
+                    break
                 }
             }
+        }
+    }
 
-            // Floating Bottom Navigation (only visible on the role's primary tabs)
-            if (isPrimaryTab) {
-                AppBottomNav(
-                    currentRoute = currentRoute,
-                    role = currentSession.role,
-                    onNavigate = { destinationRoute ->
-                        if (currentRoute != destinationRoute) {
-                            navController.navigate(destinationRoute) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+    Crossfade(
+        targetState = showSplash,
+        animationSpec = tween(durationMillis = 500),
+        label = "splash_crossfade"
+    ) { isSplash ->
+        if (isSplash) {
+            MotionSplashScreen(
+                onSplashFinished = { showSplash = false },
+                modifier = modifier.fillMaxSize()
+            )
+        } else {
+            if (!currentSession.isLoggedIn) {
+                LoginRoute(
+                    viewModel = loginViewModel,
+                    onLoginSuccess = {
+                        lastInteractionTime = System.currentTimeMillis()
+                        navController.navigate("pos") {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                inclusive = true
                             }
                         }
                     },
-                    modifier = Modifier.align(Alignment.BottomCenter)
+                    modifier = modifier.fillMaxSize()
                 )
+            } else {
+                Box(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            awaitEachGesture {
+                                awaitFirstDown(requireUnconsumed = false)
+                                lastInteractionTime = System.currentTimeMillis()
+                            }
+                        }
+                ) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = "pos",
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        composable("pos") {
+                            PosRoute(
+                                viewModel = posViewModel,
+                                userRole = currentSession.role,
+                                onLockClick = {
+                                    app.settingsRepository.updateSession(
+                                        currentSession.copy(isLoggedIn = false)
+                                    )
+                                },
+                                onLogoutClick = {
+                                    app.settingsRepository.updateSession(
+                                        AuthSession(isLoggedIn = false, role = UserRole.CASHIER, cashierName = "")
+                                    )
+                                },
+                                onNavigateToCheckout = {
+                                    val cartItems = posViewModel.uiState.value.cartItems
+                                    checkoutViewModel.initCheckout(cartItems)
+                                    navController.navigate("checkout")
+                                }
+                            )
+                        }
+
+                        composable("checkout") {
+                            ConfirmSaleRoute(
+                                viewModel = checkoutViewModel,
+                                onBack = { navController.popBackStack() },
+                                onSuccessFinish = {
+                                    posViewModel.clearCart()
+                                    navController.navigate("transactions") {
+                                        popUpTo("pos")
+                                    }
+                                }
+                            )
+                        }
+
+                        composable("transactions") {
+                            com.kapos.mobile.feature.transactions.TransactionsRoute(
+                                viewModel = transactionsViewModel
+                            )
+                        }
+
+                        composable("shift") {
+                            ShiftRoute(viewModel = shiftViewModel)
+                        }
+
+                        composable("stock") {
+                            StockRoute(viewModel = stockViewModel)
+                        }
+
+                        composable("analytics") {
+                            AnalyticsRoute(viewModel = analyticsViewModel)
+                        }
+
+                        composable("report") {
+                            ReportRoute(
+                                viewModel = reportViewModel,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("settings") {
+                            SettingsRoute(
+                                viewModel = settingsViewModel,
+                                onLockClick = {
+                                    app.settingsRepository.updateSession(
+                                        currentSession.copy(isLoggedIn = false)
+                                    )
+                                },
+                                onLogoutClick = {
+                                    app.settingsRepository.updateSession(
+                                        AuthSession(isLoggedIn = false, role = UserRole.CASHIER, cashierName = "")
+                                    )
+                                },
+                                onNavigateToMenuManagement = {
+                                    navController.navigate("menu_management")
+                                },
+                                onNavigateToCustomers = {
+                                    navController.navigate("customers")
+                                },
+                                onNavigateToReport = {
+                                    navController.navigate("report")
+                                }
+                            )
+                        }
+
+                        composable("menu_management") {
+                            MenuManagementRoute(
+                                viewModel = menuManagementViewModel,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("customers") {
+                            CustomerRoute(
+                                viewModel = customerViewModel,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+                    }
+
+                    // Floating Bottom Navigation (only visible on the role's primary tabs)
+                    if (isPrimaryTab) {
+                        AppBottomNav(
+                            currentRoute = currentRoute,
+                            role = currentSession.role,
+                            onNavigate = { destinationRoute ->
+                                if (currentRoute != destinationRoute) {
+                                    navController.navigate(destinationRoute) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.BottomCenter)
+                        )
+                    }
+                }
             }
         }
     }

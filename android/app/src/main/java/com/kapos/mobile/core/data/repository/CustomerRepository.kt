@@ -100,6 +100,21 @@ class CustomerRepository(
         )
     }
 
+    suspend fun reverseCustomerTransaction(
+        customerId: String,
+        totalSpent: Double,
+        pointsRedeemed: Int,
+        pointsEarned: Int
+    ) = withContext(Dispatchers.IO) {
+        val pointsDelta = pointsRedeemed - pointsEarned // restore redeemed, revoke earned
+        customerDao.updateStats(
+            id = customerId,
+            pointsDelta = pointsDelta,
+            spendDelta = -totalSpent,
+            orderDelta = -1
+        )
+    }
+
     private fun CustomerEntity.toDomain() = Customer(
         id = id,
         name = name,

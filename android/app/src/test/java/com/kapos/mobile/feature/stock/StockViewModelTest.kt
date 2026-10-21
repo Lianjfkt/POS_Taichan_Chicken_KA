@@ -97,5 +97,39 @@ class StockViewModelTest {
         Thread.sleep(50)
         val updatedBatch = viewModel.uiState.value.chickenBatches.find { it.id == pahaBatch.id }
         assertEquals(25, updatedBatch?.fried)
+
+        // Simulasikan penjualan 10 potong paha atas hari ini
+        viewModel.setChickenSoldTodayForTest(mapOf(ChickenPart.PAHA_ATAS to 10))
+        var attempts = 0
+        while ((viewModel.uiState.value.chickenSoldToday[ChickenPart.PAHA_ATAS] ?: 0) != 10 && attempts < 20) {
+            Thread.sleep(25)
+            attempts++
+        }
+
+        val summary = viewModel.uiState.value.chickenSummaries[ChickenPart.PAHA_ATAS]
+        assertEquals(40, summary?.totalRaw)
+        assertEquals(25, summary?.totalFried)
+        assertEquals(10, summary?.totalSold)
+        // Sisa siap saji: 25 fried - 10 sold = 15
+        assertEquals(15, summary?.remaining)
+    }
+
+    @Test
+    fun testStockTabAuditAndFilter() {
+        viewModel.onTabSelect(StockTab.AUDIT)
+        var attempts = 0
+        while (viewModel.uiState.value.activeTab != StockTab.AUDIT && attempts < 20) {
+            Thread.sleep(25)
+            attempts++
+        }
+        assertEquals(StockTab.AUDIT, viewModel.uiState.value.activeTab)
+
+        viewModel.onSelectMovementFilter(com.kapos.mobile.domain.model.StockMovementType.RESTOCK)
+        attempts = 0
+        while (viewModel.uiState.value.movementFilterType != com.kapos.mobile.domain.model.StockMovementType.RESTOCK && attempts < 20) {
+            Thread.sleep(25)
+            attempts++
+        }
+        assertEquals(com.kapos.mobile.domain.model.StockMovementType.RESTOCK, viewModel.uiState.value.movementFilterType)
     }
 }

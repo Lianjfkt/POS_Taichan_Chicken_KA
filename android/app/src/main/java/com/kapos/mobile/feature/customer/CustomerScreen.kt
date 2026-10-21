@@ -279,6 +279,7 @@ fun CustomerScreen(
                     items(uiState.filteredCustomers, key = { it.id }) { customer ->
                         CustomerCardItem(
                             customer = customer,
+                            isOwner = uiState.isOwner,
                             onEdit = { onOpenEditCustomer(customer) },
                             onDelete = { onOpenDeleteCustomer(customer) }
                         )
@@ -291,6 +292,7 @@ fun CustomerScreen(
         if (uiState.isAddEditCustomerOpen) {
             AddEditCustomerFullDialog(
                 customer = uiState.customerToEdit,
+                isOwner = uiState.isOwner,
                 onSave = onSaveCustomer,
                 onDismiss = onCloseAddEditDialog
             )
@@ -299,7 +301,7 @@ fun CustomerScreen(
         // Delete Customer Dialog
         if (uiState.customerToDelete != null) {
             DeleteCustomerConfirmDialog(
-                customer = uiState.customerToDelete,
+                customer = uiState.customerToDelete!!,
                 onConfirm = onConfirmDeleteCustomer,
                 onDismiss = onCloseDeleteDialog
             )
@@ -310,6 +312,7 @@ fun CustomerScreen(
 @Composable
 fun CustomerCardItem(
     customer: Customer,
+    isOwner: Boolean = true,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -369,11 +372,13 @@ fun CustomerCardItem(
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Primary, modifier = Modifier.size(18.dp))
                     }
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = Danger, modifier = Modifier.size(18.dp))
+                    if (isOwner) {
+                        IconButton(
+                            onClick = onDelete,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = Danger, modifier = Modifier.size(18.dp))
+                        }
                     }
                 }
             }
@@ -449,6 +454,7 @@ fun CustomerCardItem(
 @Composable
 fun AddEditCustomerFullDialog(
     customer: Customer?,
+    isOwner: Boolean = true,
     onSave: (name: String, phone: String, points: Int) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -523,15 +529,28 @@ fun AddEditCustomerFullDialog(
 
                 OutlinedTextField(
                     value = pointsStr,
-                    onValueChange = { pointsStr = it.filter { char -> char.isDigit() } },
+                    onValueChange = { if (isOwner) pointsStr = it.filter { char -> char.isDigit() } },
                     label = { Text("Saldo Poin Loyalty") },
                     placeholder = { Text("0") },
                     singleLine = true,
+                    enabled = isOwner,
+                    supportingText = {
+                        Text(
+                            text = if (isOwner) "Diubah manual oleh Owner gerai" else "🔒 Hanya Owner yang berhak mengubah saldo poin",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = if (isOwner) TextSecondary else Primary,
+                                fontSize = 11.sp
+                            )
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = AppShapes.Sm,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Primary,
-                        unfocusedBorderColor = OutlineSoft
+                        unfocusedBorderColor = OutlineSoft,
+                        disabledBorderColor = OutlineSoft.copy(alpha = 0.5f),
+                        disabledTextColor = TextPrimary,
+                        disabledLabelColor = TextSecondary
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )

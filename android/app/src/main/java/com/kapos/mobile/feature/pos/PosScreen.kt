@@ -18,6 +18,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Divider
+import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.filled.Pause
+import com.kapos.mobile.core.components.PrimaryButton
+import com.kapos.mobile.core.components.SecondaryButton
+import com.kapos.mobile.core.theme.Danger
+import com.kapos.mobile.core.theme.SurfaceTint
+import com.kapos.mobile.core.theme.AppShapes
+import com.kapos.mobile.domain.model.CartItem
+import com.kapos.mobile.feature.cart.CartItemRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -105,7 +120,7 @@ fun PosScreen(
     onSelectCategory: (String?) -> Unit,
     onProductClick: (com.kapos.mobile.domain.model.Product) -> Unit,
     onDismissModifier: () -> Unit,
-    onConfirmModifierAddToCart: (com.kapos.mobile.domain.model.Product, Int, String, String) -> Unit,
+    onConfirmModifierAddToCart: (com.kapos.mobile.domain.model.Product, Int, String, List<com.kapos.mobile.domain.model.ModifierOption>, String) -> Unit,
     onOpenCartSheet: () -> Unit,
     onCloseCartSheet: () -> Unit,
     onQuantityChange: (Int, Int) -> Unit,
@@ -124,94 +139,181 @@ fun PosScreen(
     onCheckoutClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .background(ScreenBackground)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            AppTopBar(
-                title = "KA POS",
-                subtitle = "Taichan & Chicken KA",
-                isOnline = uiState.isOnline,
-                isSyncing = uiState.isSyncing,
-                savedOrdersCount = uiState.savedOrders.size,
-                userRole = userRole,
-                onSavedOrdersClick = onOpenSavedOrders,
-                onSyncClick = onSyncClick,
-                onLockClick = onLockClick,
-                onLogoutClick = onLogoutClick
-            )
+        val isTabletOrLandscape = maxWidth >= 720.dp
 
-            // Search Field
-            SearchField(
-                query = uiState.searchQuery,
-                onQueryChange = onSearchQueryChange,
-                placeholder = "Cari sate taichan, ayam, minuman...",
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
+        if (isTabletOrLandscape) {
+            // Tablet / Landscape 2-Panel Layout
+            Row(modifier = Modifier.fillMaxSize()) {
+                // Left Panel (60%): Catalog & Search
+                Column(
+                    modifier = Modifier
+                        .weight(0.60f)
+                        .fillMaxHeight()
+                ) {
+                    AppTopBar(
+                        title = "KA POS",
+                        subtitle = "Taichan & Chicken KA",
+                        isOnline = uiState.isOnline,
+                        isSyncing = uiState.isSyncing,
+                        savedOrdersCount = uiState.savedOrders.size,
+                        userRole = userRole,
+                        onSavedOrdersClick = onOpenSavedOrders,
+                        onSyncClick = onSyncClick,
+                        onLockClick = onLockClick,
+                        onLogoutClick = onLogoutClick
+                    )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    SearchField(
+                        query = uiState.searchQuery,
+                        onQueryChange = onSearchQueryChange,
+                        placeholder = "Cari sate taichan, ayam, minuman...",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
 
-            // Category Chips
-            CategoryChips(
-                categories = uiState.categories,
-                selectedCategoryId = uiState.selectedCategoryId,
-                onCategorySelect = onSelectCategory
-            )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(10.dp))
+                    CategoryChips(
+                        categories = uiState.categories,
+                        selectedCategoryId = uiState.selectedCategoryId,
+                        onCategorySelect = onSelectCategory
+                    )
 
-            // Product Grid (2 columns)
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 4.dp,
-                    bottom = if (uiState.cartTotalCount > 0) 140.dp else 90.dp
-                ),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(uiState.filteredProducts, key = { it.id }) { product ->
-                    ProductCard(
-                        product = product,
-                        onAddClick = { onProductClick(product) }
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = 140.dp),
+                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(uiState.filteredProducts, key = { it.id }) { product ->
+                            val categoryName = uiState.categories.find { it.id == product.categoryId }?.name
+                            ProductCard(
+                                product = product,
+                                categoryName = categoryName,
+                                onAddClick = { onProductClick(product) }
+                            )
+                        }
+                    }
+                }
+
+                // Vertical Divider
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(OutlineSoft)
+                )
+
+                // Right Panel (40%): Sticky Cart Panel
+                Box(
+                    modifier = Modifier
+                        .weight(0.40f)
+                        .fillMaxHeight()
+                        .background(SurfaceWhite)
+                ) {
+                    TabletCartPanel(
+                        cartItems = uiState.cartItems,
+                        subtotal = uiState.cartSubtotal,
+                        onQuantityChange = onQuantityChange,
+                        onRemoveItem = onRemoveCartItem,
+                        onClearCart = onClearCart,
+                        onHoldOrderClick = onHoldOrderClick,
+                        onCheckoutClick = onCheckoutClick
                     )
                 }
             }
-        }
+        } else {
+            // Phone Portrait Single Column Layout
+            Column(modifier = Modifier.fillMaxSize()) {
+                AppTopBar(
+                    title = "KA POS",
+                    subtitle = "Taichan & Chicken KA",
+                    isOnline = uiState.isOnline,
+                    isSyncing = uiState.isSyncing,
+                    savedOrdersCount = uiState.savedOrders.size,
+                    userRole = userRole,
+                    onSavedOrdersClick = onOpenSavedOrders,
+                    onSyncClick = onSyncClick,
+                    onLockClick = onLockClick,
+                    onLogoutClick = onLogoutClick
+                )
 
-        // Floating Cart Summary Bar
-        AnimatedVisibility(
-            visible = uiState.cartTotalCount > 0,
-            enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it }),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 80.dp, start = 16.dp, end = 16.dp)
-        ) {
-            FloatingCartBar(
-                itemCount = uiState.cartTotalCount,
-                subtotal = uiState.cartSubtotal,
-                onViewCartClick = onOpenCartSheet
-            )
-        }
+                SearchField(
+                    query = uiState.searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                    placeholder = "Cari sate taichan, ayam, minuman...",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
 
-        // Cart Bottom Sheet
-        if (uiState.isCartSheetOpen) {
-            CartBottomSheet(
-                cartItems = uiState.cartItems,
-                subtotal = uiState.cartSubtotal,
-                onQuantityChange = onQuantityChange,
-                onRemoveItem = onRemoveCartItem,
-                onClearCart = onClearCart,
-                onHoldOrderClick = onHoldOrderClick,
-                onCheckoutClick = onCheckoutClick,
-                onDismiss = onCloseCartSheet
-            )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                CategoryChips(
+                    categories = uiState.categories,
+                    selectedCategoryId = uiState.selectedCategoryId,
+                    onCategorySelect = onSelectCategory
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 4.dp,
+                        bottom = if (uiState.cartTotalCount > 0) 140.dp else 90.dp
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(uiState.filteredProducts, key = { it.id }) { product ->
+                        val categoryName = uiState.categories.find { it.id == product.categoryId }?.name
+                        ProductCard(
+                            product = product,
+                            categoryName = categoryName,
+                            onAddClick = { onProductClick(product) }
+                        )
+                    }
+                }
+            }
+
+            // Floating Cart Summary Bar (Phone only)
+            AnimatedVisibility(
+                visible = uiState.cartTotalCount > 0,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it }),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 80.dp, start = 16.dp, end = 16.dp)
+            ) {
+                FloatingCartBar(
+                    itemCount = uiState.cartTotalCount,
+                    subtotal = uiState.cartSubtotal,
+                    onViewCartClick = onOpenCartSheet
+                )
+            }
+
+            // Cart Bottom Sheet (Phone only)
+            if (uiState.isCartSheetOpen) {
+                CartBottomSheet(
+                    cartItems = uiState.cartItems,
+                    subtotal = uiState.cartSubtotal,
+                    onQuantityChange = onQuantityChange,
+                    onRemoveItem = onRemoveCartItem,
+                    onClearCart = onClearCart,
+                    onHoldOrderClick = onHoldOrderClick,
+                    onCheckoutClick = onCheckoutClick,
+                    onDismiss = onCloseCartSheet
+                )
+            }
         }
 
         // Product Modifier / Spice Customization Dialog
@@ -328,6 +430,140 @@ fun FloatingCartBar(
                         modifier = Modifier.size(14.dp)
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun TabletCartPanel(
+    cartItems: List<CartItem>,
+    subtotal: Double,
+    onQuantityChange: (index: Int, delta: Int) -> Unit,
+    onRemoveItem: (index: Int) -> Unit,
+    onClearCart: () -> Unit,
+    onHoldOrderClick: () -> Unit,
+    onCheckoutClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Keranjang (${cartItems.sumOf { it.quantity }})",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            )
+            if (cartItems.isNotEmpty()) {
+                TextButton(onClick = onClearCart) {
+                    Text(
+                        text = "Kosongkan",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = Danger,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+        }
+
+        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+
+        if (cartItems.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "🛒",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Keranjang Kosong",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextSecondary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                    Text(
+                        text = "Sentuh menu di kiri untuk memesan",
+                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                itemsIndexed(cartItems) { index, item ->
+                    CartItemRow(
+                        item = item,
+                        onIncrease = { onQuantityChange(index, 1) },
+                        onDecrease = { onQuantityChange(index, -1) },
+                        onDelete = { onRemoveItem(index) }
+                    )
+                }
+            }
+        }
+
+        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Total Tagihan",
+                style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
+            )
+            Text(
+                text = CurrencyFormatter.formatRupiah(subtotal),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Primary
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(modifier = Modifier.weight(0.4f)) {
+                SecondaryButton(
+                    text = "Tahan",
+                    icon = Icons.Default.Pause,
+                    onClick = onHoldOrderClick,
+                    enabled = cartItems.isNotEmpty()
+                )
+            }
+            Box(modifier = Modifier.weight(0.6f)) {
+                PrimaryButton(
+                    text = "Bayar",
+                    icon = Icons.Default.ArrowForward,
+                    onClick = onCheckoutClick,
+                    enabled = cartItems.isNotEmpty()
+                )
             }
         }
     }

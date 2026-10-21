@@ -63,6 +63,28 @@ class InventoryRepository(
         }
     }
 
+    /**
+     * Identifies products whose required recipe materials are out of stock.
+     */
+    fun observeSoldOutProductIds(): Flow<Set<String>> {
+        return kotlinx.coroutines.flow.combine(
+            rawMaterialDao.observeAll(),
+            recipeDao.observeAll()
+        ) { materials, recipes ->
+            val stockMap = materials.associate { it.id to it.currentStock }
+            val soldOut = mutableSetOf<String>()
+            recipes.groupBy { it.productId }.forEach { (productId, ingredients) ->
+                val canMake = ingredients.all { ing ->
+                    (stockMap[ing.materialId] ?: 0.0) >= ing.quantityRequired
+                }
+                if (!canMake) {
+                    soldOut.add(productId)
+                }
+            }
+            soldOut
+        }
+    }
+
     fun observeRawMaterialsByCategory(category: RawMaterialCategory): Flow<List<RawMaterial>> {
         return rawMaterialDao.observeByCategory(category.name).map { list ->
             list.map { it.toDomain() }
@@ -253,6 +275,38 @@ class InventoryRepository(
                         quantity = -totalDeduction,
                         costTotal = 0.0,
                         notes = "Auto BOM: ${cart.quantity}x ${cart.product.name}",
+                        timestamp = now
+                    )
+                )
+            }
+        }
+
+        if (movementsToInsert.isNotEmpty()) {
+            stockMovementDao.insertAll(movementsToInsert)
+        }
+    }
+
+    /**
+     * Automatic BOM stock restoration when an order is voided.
+     */
+    suspend fun restoreStockForOrderItems(orderItems: List<com.kapos.mobile.domain.model.OrderItem>) = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
+        val allRecipes = recipeDao.getAll()
+        val movementsToInsert = mutableListOf<StockMovementEntity>()
+
+        for (item in orderItems) {
+            val recipesForProduct = allRecipes.filter { it.productId == item.productId }
+            for (recipe in recipesForProduct) {
+                val totalRestoration = recipe.quantityRequired * item.quantity
+                rawMaterialDao.adjustStock(recipe.materialId, totalRestoration, now)
+                movementsToInsert.add(
+                    StockMovementEntity(
+                        id = UUID.randomUUID().toString(),
+                        materialId = recipe.materialId,
+                        type = StockMovementType.ADJUSTMENT.name,
+                        quantity = totalRestoration,
+                        costTotal = 0.0,
+                        notes = "Void Order Restoration: ${item.quantity}x ${item.productName}",
                         timestamp = now
                     )
                 )

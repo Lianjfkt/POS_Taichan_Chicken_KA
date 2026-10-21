@@ -23,13 +23,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,7 +73,12 @@ import com.kapos.mobile.domain.model.ChickenPart
 import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RawMaterialCategory
 import com.kapos.mobile.domain.model.StockFreshness
+import com.kapos.mobile.domain.model.StockMovement
+import com.kapos.mobile.domain.model.StockMovementType
 import com.kapos.mobile.domain.model.TaichanBatch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun StockRoute(
@@ -104,6 +115,7 @@ fun StockRoute(
         onOpenOpnameMaterial = viewModel::openOpnameMaterial,
         onCloseOpnameMaterial = viewModel::closeOpnameMaterial,
         onConfirmOpnameMaterial = viewModel::confirmOpnameMaterial,
+        onMovementFilterSelect = viewModel::onSelectMovementFilter,
         modifier = modifier
     )
 }
@@ -137,6 +149,7 @@ fun StockScreen(
     onOpenOpnameMaterial: (RawMaterial) -> Unit,
     onCloseOpnameMaterial: () -> Unit,
     onConfirmOpnameMaterial: (materialId: String, newStock: Double, notes: String) -> Unit,
+    onMovementFilterSelect: (StockMovementType?) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -167,44 +180,51 @@ fun StockScreen(
                         )
                     )
                     Text(
-                        text = if (uiState.activeTab == StockTab.MATERIALS) "Stok bahan baku, resep BOM & opname" else "Kontrol stok harian, batch & penggorengan",
+                        text = when (uiState.activeTab) {
+                            StockTab.MATERIALS -> "Stok bahan baku, resep BOM & opname"
+                            StockTab.AUDIT -> "Riwayat mutasi & audit stok otomatis"
+                            else -> "Kontrol stok harian, batch & penggorengan"
+                        },
                         style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                     )
                 }
 
-                // Action Button in Header
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Primary)
-                        .clickable {
-                            if (uiState.activeTab == StockTab.MATERIALS) {
-                                onOpenAddMaterial()
-                            } else {
-                                onOpenRestock(uiState.restockChickenPart)
+                // Action Button in Header (only for Taichan, Chicken & Materials)
+                if (uiState.activeTab != StockTab.AUDIT) {
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Primary)
+                            .clickable {
+                                if (uiState.activeTab == StockTab.MATERIALS) {
+                                    onOpenAddMaterial()
+                                } else {
+                                    onOpenRestock(uiState.restockChickenPart)
+                                }
                             }
-                        }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah", tint = SurfaceWhite, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = if (uiState.activeTab == StockTab.MATERIALS) "Bahan Baru" else "Restock",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = SurfaceWhite
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah", tint = SurfaceWhite, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (uiState.activeTab == StockTab.MATERIALS) "Bahan Baru" else "Restock",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SurfaceWhite
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
 
-            // Tab Selector: 3 Tabs (Taichan, Ayam Potong, Bahan Baku BOM)
+            // Tab Selector: 4 Tabs (Taichan, Ayam Potong, Bahan Baku BOM, Audit Mutasi)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -212,12 +232,11 @@ fun StockScreen(
                     val isSelected = uiState.activeTab == tab
                     Box(
                         modifier = Modifier
-                            .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
                             .background(if (isSelected) Primary else SurfaceWhite)
                             .border(1.dp, if (isSelected) Primary else OutlineSoft, RoundedCornerShape(10.dp))
                             .clickable { onTabSelect(tab) }
-                            .padding(vertical = 10.dp),
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -225,6 +244,7 @@ fun StockScreen(
                                 StockTab.TAICHAN -> "Sate Taichan"
                                 StockTab.CHICKEN -> "Ayam Potong"
                                 StockTab.MATERIALS -> "Bahan (BOM)"
+                                StockTab.AUDIT -> "Audit Mutasi"
                             },
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
@@ -458,6 +478,17 @@ fun StockScreen(
                             }
                         }
                     }
+                }
+
+                StockTab.AUDIT -> {
+                    StockAuditTabContent(
+                        movements = uiState.filteredMovements,
+                        selectedFilter = uiState.movementFilterType,
+                        onFilterSelect = onMovementFilterSelect,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    )
                 }
             }
         }
@@ -974,6 +1005,251 @@ private fun EmptyStockView(tabName: String) {
                 text = "Klik tombol Restock di atas untuk mencatat batch masuk",
                 style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
             )
+        }
+    }
+}
+
+private data class MovementBadgeStyle(
+    val bgColor: Color,
+    val textColor: Color,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val deltaPrefix: String,
+    val deltaColor: Color
+)
+
+@Composable
+fun StockAuditTabContent(
+    movements: List<StockMovement>,
+    selectedFilter: StockMovementType?,
+    onFilterSelect: (StockMovementType?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val filterOptions = listOf(
+        null to "Semua",
+        StockMovementType.ORDER_DEDUCTION to "Potong BOM",
+        StockMovementType.RESTOCK to "Stok Masuk",
+        StockMovementType.ADJUSTMENT to "Opname",
+        StockMovementType.WASTE to "Rusak / Basi"
+    )
+
+    Column(modifier = modifier) {
+        // Horizontal filter chips
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            filterOptions.forEach { (type, label) ->
+                val isSelected = selectedFilter == type
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(if (isSelected) Primary else SurfaceWhite)
+                        .border(1.dp, if (isSelected) Primary else OutlineSoft, CircleShape)
+                        .clickable { onFilterSelect(type) }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) SurfaceWhite else TextPrimary
+                        )
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Total info bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${movements.size} Catatan Mutasi",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            )
+            Text(
+                text = "Log otomatis potong bahan & restock",
+                style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        if (movements.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.History,
+                        contentDescription = null,
+                        tint = OutlineSoft,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Belum ada riwayat mutasi stok",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(movements, key = { it.id }) { movement ->
+                    StockMovementCard(movement = movement)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StockMovementCard(
+    movement: StockMovement,
+    modifier: Modifier = Modifier
+) {
+    val dateFormat = remember { SimpleDateFormat("dd MMM, HH:mm", Locale("id", "ID")) }
+    val formattedDate = remember(movement.timestamp) { dateFormat.format(Date(movement.timestamp)) }
+
+    val style = when (movement.type) {
+        StockMovementType.RESTOCK -> {
+            MovementBadgeStyle(Color(0xFFDCFCE7), Color(0xFF15803D), Icons.Default.ArrowDownward, "+", Color(0xFF15803D))
+        }
+        StockMovementType.ORDER_DEDUCTION -> {
+            MovementBadgeStyle(PrimarySoft, Primary, Icons.Default.ArrowUpward, "-", Primary)
+        }
+        StockMovementType.ADJUSTMENT -> {
+            MovementBadgeStyle(Color(0xFFEFF6FF), Color(0xFF1D4ED8), Icons.Default.Tune, "±", Color(0xFF1D4ED8))
+        }
+        StockMovementType.WASTE -> {
+            MovementBadgeStyle(Color(0xFFFEE2E2), Color(0xFFDC2626), Icons.Default.DeleteSweep, "-", Color(0xFFDC2626))
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(AppShapes.Md)
+            .background(SurfaceWhite)
+            .border(1.dp, OutlineSoft, AppShapes.Md)
+            .padding(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Icon
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(style.bgColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = style.icon,
+                    contentDescription = null,
+                    tint = style.textColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Text Info
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = movement.materialName.ifBlank { "Bahan Baku" },
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(style.bgColor)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = movement.type.displayName,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = style.textColor,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+
+                if (movement.notes.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = movement.notes,
+                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary),
+                        maxLines = 1
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = formattedDate,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TextSecondary,
+                        fontSize = 10.sp
+                    )
+                )
+            }
+
+            // Delta Qty
+            Column(horizontalAlignment = Alignment.End) {
+                val formattedQty = if (movement.quantity % 1.0 == 0.0) {
+                    movement.quantity.toInt().toString()
+                } else {
+                    String.format(Locale.US, "%.1f", movement.quantity)
+                }
+                val deltaText: String = "${style.deltaPrefix}$formattedQty"
+                Text(
+                    text = deltaText,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = style.deltaColor
+                    )
+                )
+                if (movement.costTotal > 0) {
+                    Text(
+                        text = CurrencyFormatter.formatRupiah(movement.costTotal),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = TextSecondary,
+                            fontSize = 10.sp
+                        )
+                    )
+                }
+            }
         }
     }
 }

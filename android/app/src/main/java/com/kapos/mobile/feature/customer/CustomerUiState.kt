@@ -6,6 +6,8 @@ data class CustomerUiState(
     val customers: List<Customer> = emptyList(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
+    val isOwner: Boolean = true,
+    val errorMessage: String? = null,
     val isAddEditCustomerOpen: Boolean = false,
     val customerToEdit: Customer? = null,
     val customerToDelete: Customer? = null

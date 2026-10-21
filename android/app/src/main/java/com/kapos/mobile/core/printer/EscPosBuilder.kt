@@ -10,6 +10,7 @@ data class EscPosItem(
     val price: Double,
     val quantity: Int,
     val spiceLevel: String = "",
+    val modifiers: List<String> = emptyList(),
     val notes: String = "",
     val subtotal: Double
 )
@@ -39,7 +40,12 @@ class EscPosBuilder(private val paperWidth: Int = 58) {
         total: Double,
         paymentMethod: String,
         cashGiven: Double,
-        change: Double
+        change: Double,
+        isVoid: Boolean = false,
+        isSplit: Boolean = false,
+        splitCashAmount: Double = 0.0,
+        splitNonCashAmount: Double = 0.0,
+        splitNonCashMethod: String = ""
     ): ByteArray {
         val out = ByteArrayOutputStream()
 
@@ -71,6 +77,14 @@ class EscPosBuilder(private val paperWidth: Int = 58) {
         write(0x1B, 0x45, 0x00) // Bold OFF
         if (address.isNotBlank()) line(address)
         if (phone.isNotBlank()) line(phone)
+
+        if (isVoid) {
+            divider()
+            write(0x1B, 0x61, 0x01) // Center
+            write(0x1B, 0x45, 0x01) // Bold ON
+            line("*** BATAL / VOID ***")
+            write(0x1B, 0x45, 0x00) // Bold OFF
+        }
         divider()
 
         // Metadata (Left Align)
@@ -87,9 +101,10 @@ class EscPosBuilder(private val paperWidth: Int = 58) {
             line(item.name)
             val subDetails = mutableListOf<String>()
             if (item.spiceLevel.isNotBlank()) subDetails.add(item.spiceLevel)
+            item.modifiers.forEach { subDetails.add(it) }
             if (item.notes.isNotBlank()) subDetails.add(item.notes)
             if (subDetails.isNotEmpty()) {
-                line("  • " + subDetails.joinToString(" - "))
+                line("  - " + subDetails.joinToString(" - "))
             }
             val qtyPrice = "${item.quantity}x @ ${formatRp(item.price)}"
             val subtotalStr = formatRp(item.subtotal)
@@ -105,10 +120,19 @@ class EscPosBuilder(private val paperWidth: Int = 58) {
         write(0x1B, 0x45, 0x01) // Bold
         line(twoCols("TOTAL", formatRp(total)))
         write(0x1B, 0x45, 0x00)
-        line(twoCols("Metode Bayar", paymentMethod))
-        if (paymentMethod.equals("Tunai", ignoreCase = true) || paymentMethod.equals("CASH", ignoreCase = true)) {
-            line(twoCols("Bayar Tunai", formatRp(cashGiven)))
-            line(twoCols("Kembalian", formatRp(change)))
+        if (isSplit) {
+            line(twoCols("Metode Bayar", "Split Payment"))
+            line(twoCols("  - Tunai", formatRp(splitCashAmount)))
+            line(twoCols("  - $splitNonCashMethod", formatRp(splitNonCashAmount)))
+            if (change > 0) {
+                line(twoCols("Kembalian Tunai", formatRp(change)))
+            }
+        } else {
+            line(twoCols("Metode Bayar", paymentMethod))
+            if (paymentMethod.equals("Tunai", ignoreCase = true) || paymentMethod.equals("CASH", ignoreCase = true)) {
+                line(twoCols("Bayar Tunai", formatRp(cashGiven)))
+                line(twoCols("Kembalian", formatRp(change)))
+            }
         }
         divider()
 

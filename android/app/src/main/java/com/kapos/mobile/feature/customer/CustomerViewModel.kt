@@ -12,13 +12,26 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 class CustomerViewModel(
-    private val customerRepository: CustomerRepository
+    private val customerRepository: CustomerRepository,
+    private val settingsRepository: com.kapos.mobile.core.data.repository.SettingsRepository? = null
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CustomerUiState(isLoading = true))
+    private val _uiState = MutableStateFlow(
+        CustomerUiState(
+            isLoading = true,
+            isOwner = settingsRepository?.settingsFlow?.value?.currentSession?.role == com.kapos.mobile.domain.model.UserRole.OWNER
+        )
+    )
     val uiState: StateFlow<CustomerUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            settingsRepository?.settingsFlow?.collect { settings ->
+                val owner = settings.currentSession.role == com.kapos.mobile.domain.model.UserRole.OWNER
+                _uiState.update { it.copy(isOwner = owner) }
+            }
+        }
+
         viewModelScope.launch {
             customerRepository.observeCustomers().collect { list ->
                 _uiState.update {
@@ -67,20 +80,29 @@ class CustomerViewModel(
         val trimmedPhone = phone.trim()
         if (trimmedName.isBlank()) return
 
+        val isOwner = _uiState.value.isOwner
         val currentEdit = _uiState.value.customerToEdit
+
+        // Non-owner cannot change existing points directly (preserve current points or 0 for new)
+        val validPoints = if (isOwner) {
+            points.coerceAtLeast(0)
+        } else {
+            currentEdit?.points ?: 0
+        }
+
         viewModelScope.launch {
             val customer = if (currentEdit != null) {
                 currentEdit.copy(
                     name = trimmedName,
                     phone = trimmedPhone,
-                    points = points.coerceAtLeast(0)
+                    points = validPoints
                 )
             } else {
                 Customer(
                     id = UUID.randomUUID().toString(),
                     name = trimmedName,
                     phone = trimmedPhone,
-                    points = points.coerceAtLeast(0),
+                    points = validPoints,
                     totalSpend = 0.0,
                     orderCount = 0,
                     createdAt = System.currentTimeMillis()
@@ -92,14 +114,26 @@ class CustomerViewModel(
     }
 
     fun openDeleteDialog(customer: Customer) {
-        _uiState.update { it.copy(customerToDelete = customer) }
+        if (!_uiState.value.isOwner) {
+            _uiState.update { it.copy(errorMessage = "Hanya Owner yang berhak menghapus data pelanggan.") }
+            return
+        }
+        _uiState.update { it.copy(customerToDelete = customer, errorMessage = null) }
     }
 
     fun closeDeleteDialog() {
         _uiState.update { it.copy(customerToDelete = null) }
     }
 
+    fun clearErrorMessage() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
     fun confirmDeleteCustomer() {
+        if (!_uiState.value.isOwner) {
+            _uiState.update { it.copy(customerToDelete = null, errorMessage = "Hanya Owner yang berhak menghapus data pelanggan.") }
+            return
+        }
         val toDelete = _uiState.value.customerToDelete ?: return
         viewModelScope.launch {
             customerRepository.deleteCustomer(toDelete.id)

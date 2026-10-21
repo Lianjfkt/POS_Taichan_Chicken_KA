@@ -27,12 +27,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.kapos.mobile.core.data.repository.CustomerRepository
 import java.util.UUID
 
 class PosRepository(
     private val database: AppDatabase,
     private val supabaseClient: SupabaseClient,
     private val inventoryRepository: InventoryRepository? = null,
+    private val customerRepository: CustomerRepository? = null,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
     private val categoryDao = database.categoryDao()
@@ -345,8 +347,14 @@ class PosRepository(
 
         _isSyncing.value = true
         try {
+            val isoFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
             for (order in pending) {
                 val items = orderDao.getItemsForOrder(order.id)
+                val createdAtIso = isoFormat.format(java.util.Date(order.createdAt))
+                val paidAtIso = order.paidAt?.let { isoFormat.format(java.util.Date(it)) } ?: createdAtIso
+
                 val orderPayload = SupabaseOrderPayload(
                     id = order.id,
                     orderNo = order.orderNo,
@@ -360,7 +368,10 @@ class PosRepository(
                     paymentMethod = order.paymentMethod.lowercase(),
                     status = if (order.paymentStatus == "VOID") "void" else "completed",
                     cashierId = order.cashierName,
-                    notes = order.notes
+                    notes = order.notes,
+                    voidReason = order.voidReason,
+                    createdAt = createdAtIso,
+                    paidAt = paidAtIso
                 )
                 val itemsPayload = items.map {
                     SupabaseOrderItemPayload(
@@ -393,7 +404,46 @@ class PosRepository(
 
     suspend fun voidOrder(orderId: String, reason: String = "Dibatalkan Kasir") = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
+        val orderEntity = orderDao.getOrderById(orderId)
+
+        // 1. Restore BOM stock for order items
+        val itemEntities = orderDao.getItemsForOrder(orderId)
+        val domainItems = itemEntities.map {
+            OrderItem(
+                id = it.id,
+                orderId = it.orderId,
+                productId = it.productId,
+                productName = it.productName,
+                price = it.price,
+                quantity = it.quantity,
+                spiceLevel = it.spiceLevel,
+                notes = it.notes,
+                subtotal = it.subtotal
+            )
+        }
+        inventoryRepository?.restoreStockForOrderItems(domainItems)
+
+        // 2. Reverse customer loyalty points and spend if member order
+        if (orderEntity != null) {
+            val phone = orderEntity.customerPhone
+            if (!phone.isNullOrBlank()) {
+                val customer = customerRepository?.getCustomerByPhone(phone)
+                if (customer != null) {
+                    val pointsEarned = (orderEntity.total / 10000.0).toInt().coerceAtLeast(0)
+                    customerRepository?.reverseCustomerTransaction(
+                        customerId = customer.id,
+                        totalSpent = orderEntity.total,
+                        pointsRedeemed = 0,
+                        pointsEarned = pointsEarned
+                    )
+                }
+            }
+        }
+
+        // 3. Mark order as VOID in local DB
         orderDao.voidOrderWithReason(orderId, reason, now)
+
+        // 4. Trigger cloud push to sync VOID status to Supabase
         scope.launch { syncPendingOrders() }
     }
 }

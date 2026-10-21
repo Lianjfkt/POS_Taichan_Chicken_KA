@@ -30,7 +30,10 @@ class TransactionsDateFilterTest {
 
     @Test
     fun testFilteredOrders_filtersByDateRange() {
-        val cal = Calendar.getInstance().apply { set(2026, Calendar.OCTOBER, 19, 10, 0) }
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 10)
+            set(Calendar.MINUTE, 0)
+        }
         val todayMillis = cal.timeInMillis
         val yesterdayMillis = cal.apply { add(Calendar.DAY_OF_YEAR, -1) }.timeInMillis
 
@@ -49,7 +52,10 @@ class TransactionsDateFilterTest {
 
     @Test
     fun testFilteredOrders_combinedWithStatusAndSearch() {
-        val cal = Calendar.getInstance().apply { set(2026, Calendar.OCTOBER, 19, 10, 0) }
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 10)
+            set(Calendar.MINUTE, 0)
+        }
         val todayMillis = cal.timeInMillis
 
         val orderPaidToday = createOrder("1", todayMillis, PaymentStatus.PAID, "ORD-PAID-01")

@@ -63,4 +63,13 @@ class CustomerUiStateTest {
         assertEquals(1, state.filteredCustomers.size)
         assertEquals("Siti Aminah", state.filteredCustomers.first().name)
     }
+
+    @Test
+    fun testCustomerOwnerPermissionFlag() {
+        val ownerState = CustomerUiState(isOwner = true)
+        val cashierState = CustomerUiState(isOwner = false)
+
+        assertEquals(true, ownerState.isOwner)
+        assertEquals(false, cashierState.isOwner)
+    }
 }

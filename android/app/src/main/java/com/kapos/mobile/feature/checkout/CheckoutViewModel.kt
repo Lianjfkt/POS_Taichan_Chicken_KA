@@ -30,13 +30,15 @@ class CheckoutViewModel(
     private val repository: PosRepository,
     private val settingsRepository: SettingsRepository,
     private val bluetoothPrinterService: BluetoothPrinterService,
-    private val customerRepository: CustomerRepository? = null
+    private val customerRepository: CustomerRepository? = null,
+    private val promotionRepository: com.kapos.mobile.core.data.repository.PromotionRepository = com.kapos.mobile.core.data.repository.PromotionRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckoutUiState())
     val uiState: StateFlow<CheckoutUiState> = _uiState.asStateFlow()
 
     init {
+        _uiState.update { it.copy(availablePromotions = promotionRepository.getActivePromotions()) }
         customerRepository?.let { repo ->
             viewModelScope.launch {
                 repo.observeCustomers().collect { customers ->
@@ -56,8 +58,7 @@ class CheckoutViewModel(
     }
 
     fun initCheckout(items: List<CartItem>) {
-        val dateFormat = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault())
-        val generatedOrderNo = "KA-${dateFormat.format(Date())}"
+        val generatedOrderNo = generateOrderNo()
         val total = items.sumOf { it.subtotal }
 
         _uiState.update {
@@ -71,6 +72,11 @@ class CheckoutViewModel(
                 customerPhone = "",
                 isRedeemingPoints = false,
                 pointsToRedeem = 0,
+                isSplitPayment = false,
+                splitCashPortion = (total / 2.0).toInt().toDouble(),
+                splitCashGiven = (total / 2.0).toInt().toDouble(),
+                splitNonCashMethod = PaymentMethod.QRIS,
+                selectedPromotion = null,
                 isCompleted = false,
                 isSubmitting = false
             )
@@ -194,6 +200,33 @@ class CheckoutViewModel(
         _uiState.update { it.copy(notes = notes) }
     }
 
+    fun onToggleSplitPayment(isSplit: Boolean) {
+        _uiState.update { state ->
+            val cashPortion = if (isSplit) (state.total / 2.0).toInt().toDouble() else 0.0
+            state.copy(
+                isSplitPayment = isSplit,
+                splitCashPortion = cashPortion,
+                splitCashGiven = cashPortion
+            )
+        }
+    }
+
+    fun onSplitCashPortionChange(amount: Double) {
+        _uiState.update { it.copy(splitCashPortion = amount) }
+    }
+
+    fun onSplitCashGivenChange(amount: Double) {
+        _uiState.update { it.copy(splitCashGiven = amount) }
+    }
+
+    fun onSplitNonCashMethodChange(method: PaymentMethod) {
+        _uiState.update { it.copy(splitNonCashMethod = method) }
+    }
+
+    fun onSelectPromotion(promotion: com.kapos.mobile.domain.model.Promotion?) {
+        _uiState.update { it.copy(selectedPromotion = promotion) }
+    }
+
     fun submitOrder(onSuccess: (Order) -> Unit) {
         val state = _uiState.value
         if (state.cartItems.isEmpty() || !state.isCashSufficient) return
@@ -210,6 +243,13 @@ class CheckoutViewModel(
                 state.selectedCustomer?.phone
             }?.ifBlank { null }
 
+            val orderNotes = if (state.isSplitPayment) {
+                val splitInfo = "[Split: Tunai Rp ${state.splitCashPortion.toLong()} + ${state.splitNonCashMethod.displayName} Rp ${state.splitNonCashAmount.toLong()}]"
+                if (state.notes.isNotBlank()) "${state.notes} - $splitInfo" else splitInfo
+            } else {
+                state.notes.ifBlank { null }
+            }
+
             val order = Order(
                 id = UUID.randomUUID().toString(),
                 orderNo = state.orderNo,
@@ -220,10 +260,10 @@ class CheckoutViewModel(
                 subtotal = state.subtotal,
                 discount = state.discount,
                 total = state.total,
-                paymentMethod = state.paymentMethod,
+                paymentMethod = if (state.isSplitPayment) PaymentMethod.CASH else state.paymentMethod,
                 paymentStatus = PaymentStatus.PAID,
                 cashierName = cashier,
-                notes = state.notes.ifBlank { null },
+                notes = orderNotes,
                 createdAt = System.currentTimeMillis(),
                 paidAt = System.currentTimeMillis(),
                 syncStatus = SyncStatus.PENDING_SYNC
@@ -250,9 +290,10 @@ class CheckoutViewModel(
                     val escPosItems = state.cartItems.map {
                         EscPosItem(
                             name = it.product.name,
-                            price = it.product.price,
+                            price = it.unitPrice,
                             quantity = it.quantity,
                             spiceLevel = it.spiceLevel,
+                            modifiers = it.selectedModifiers.map { m -> m.name },
                             notes = it.notes,
                             subtotal = it.subtotal
                         )
@@ -273,12 +314,21 @@ class CheckoutViewModel(
                         subtotal = order.subtotal,
                         discount = order.discount,
                         total = order.total,
-                        paymentMethod = order.paymentMethod.displayName,
-                        cashGiven = state.cashGiven,
-                        change = state.changeDue
+                        paymentMethod = if (state.isSplitPayment) "Split Payment" else order.paymentMethod.displayName,
+                        cashGiven = if (state.isSplitPayment) state.splitCashGiven else state.cashGiven,
+                        change = state.changeDue,
+                        isSplit = state.isSplitPayment,
+                        splitCashAmount = state.splitCashPortion,
+                        splitNonCashAmount = state.splitNonCashAmount,
+                        splitNonCashMethod = state.splitNonCashMethod.displayName
                     )
-                    bluetoothPrinterService.printBytes(settings.printerMacAddress, receiptBytes)
-                } catch (_: Exception) {}
+                    val printResult = bluetoothPrinterService.printBytes(settings.printerMacAddress, receiptBytes)
+                    if (printResult.isFailure) {
+                        _uiState.update { it.copy(printerErrorMessage = printResult.exceptionOrNull()?.message) }
+                    }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(printerErrorMessage = e.message) }
+                }
             }
 
             _uiState.update { it.copy(isSubmitting = false, isCompleted = true) }
@@ -286,3 +336,10 @@ class CheckoutViewModel(
         }
     }
 }
+
+fun generateOrderNo(date: Date = Date()): String {
+    val dateFormat = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault())
+    val randomSuffix = (100..999).random()
+    return "KA-${dateFormat.format(date)}-$randomSuffix"
+}
+

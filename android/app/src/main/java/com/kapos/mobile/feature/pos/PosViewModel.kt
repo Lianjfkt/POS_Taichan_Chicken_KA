@@ -13,7 +13,8 @@ import kotlinx.coroutines.launch
 
 class PosViewModel(
     private val repository: PosRepository,
-    private val savedOrderRepository: com.kapos.mobile.core.data.repository.SavedOrderRepository
+    private val savedOrderRepository: com.kapos.mobile.core.data.repository.SavedOrderRepository,
+    private val inventoryRepository: com.kapos.mobile.core.data.repository.InventoryRepository? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PosUiState())
@@ -25,9 +26,17 @@ class PosViewModel(
                 _uiState.update { it.copy(categories = categories) }
             }
         }
+        val soldOutFlow = inventoryRepository?.observeSoldOutProductIds() ?: kotlinx.coroutines.flow.flowOf(emptySet())
         viewModelScope.launch {
-            repository.observeProducts().collect { products ->
-                _uiState.update { it.copy(products = products) }
+            kotlinx.coroutines.flow.combine(
+                repository.observeProducts(),
+                soldOutFlow
+            ) { products, soldOutIds ->
+                products.map { product ->
+                    product.copy(isSoldOut = soldOutIds.contains(product.id))
+                }
+            }.collect { mappedProducts ->
+                _uiState.update { it.copy(products = mappedProducts) }
             }
         }
         viewModelScope.launch {
@@ -56,38 +65,61 @@ class PosViewModel(
     }
 
     fun onProductClick(product: Product) {
-        val requiresModifier = product.spiceLevel.isNotBlank() ||
-                product.name.contains("Taichan", ignoreCase = true) ||
-                product.name.contains("Chicken", ignoreCase = true) ||
-                product.name.contains("Pedas", ignoreCase = true)
-
-        if (requiresModifier) {
-            _uiState.update { it.copy(selectedProductForModifier = product) }
-        } else {
-            addToCart(product, quantity = 1, spiceLevel = "", notes = "")
-        }
+        if (product.isSoldOut) return
+        // Open modifier customization dialog for all products so cashier can add sambal, gloves, straw, extra toppings, etc.
+        _uiState.update { it.copy(selectedProductForModifier = product) }
     }
 
     fun dismissModifier() {
         _uiState.update { it.copy(selectedProductForModifier = null) }
     }
 
-    fun confirmModifierAddToCart(product: Product, quantity: Int, spiceLevel: String, notes: String) {
-        addToCart(product, quantity = quantity, spiceLevel = spiceLevel, notes = notes)
+    fun confirmModifierAddToCart(
+        product: Product,
+        quantity: Int,
+        spiceLevel: String,
+        selectedModifiers: List<com.kapos.mobile.domain.model.ModifierOption> = emptyList(),
+        notes: String
+    ) {
+        addToCart(
+            product = product,
+            quantity = quantity,
+            spiceLevel = spiceLevel,
+            selectedModifiers = selectedModifiers,
+            notes = notes
+        )
         dismissModifier()
     }
 
-    fun addToCart(product: Product, quantity: Int = 1, spiceLevel: String = "", notes: String = "") {
+    fun addToCart(
+        product: Product,
+        quantity: Int = 1,
+        spiceLevel: String = "",
+        selectedModifiers: List<com.kapos.mobile.domain.model.ModifierOption> = emptyList(),
+        notes: String = ""
+    ) {
         _uiState.update { state ->
+            val sortedMods = selectedModifiers.sortedBy { it.id }
             val existingIndex = state.cartItems.indexOfFirst {
-                it.product.id == product.id && it.spiceLevel == spiceLevel && it.notes == notes
+                it.product.id == product.id &&
+                    it.spiceLevel == spiceLevel &&
+                    it.notes == notes &&
+                    it.selectedModifiers.sortedBy { m -> m.id } == sortedMods
             }
             val updated = state.cartItems.toMutableList()
             if (existingIndex >= 0) {
                 val existing = updated[existingIndex]
                 updated[existingIndex] = existing.copy(quantity = existing.quantity + quantity)
             } else {
-                updated.add(CartItem(product = product, quantity = quantity, spiceLevel = spiceLevel, notes = notes))
+                updated.add(
+                    CartItem(
+                        product = product,
+                        quantity = quantity,
+                        spiceLevel = spiceLevel,
+                        selectedModifiers = selectedModifiers,
+                        notes = notes
+                    )
+                )
             }
             state.copy(cartItems = updated)
         }

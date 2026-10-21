@@ -6,10 +6,14 @@ import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RawMaterialCategory
 import com.kapos.mobile.domain.model.TaichanBatch
 
+import com.kapos.mobile.domain.model.StockMovement
+import com.kapos.mobile.domain.model.StockMovementType
+
 enum class StockTab(val displayName: String) {
-    TAICHAN("Sate Taichan (Tusuk)"),
+    TAICHAN("Sate Taichan"),
     CHICKEN("Ayam Potong"),
-    MATERIALS("Bahan Baku (BOM)")
+    MATERIALS("Bahan Baku (BOM)"),
+    AUDIT("Audit Mutasi")
 }
 
 data class ChickenPartSummary(
@@ -25,6 +29,7 @@ data class StockUiState(
     val taichanBatches: List<TaichanBatch> = emptyList(),
     val chickenBatches: List<ChickenBatch> = emptyList(),
     val taichanSoldToday: Int = 0,
+    val chickenSoldToday: Map<ChickenPart, Int> = emptyMap(),
     val isRestockDialogOpen: Boolean = false,
     val restockChickenPart: ChickenPart = ChickenPart.SAYAP,
     // Raw materials BOM state
@@ -36,7 +41,10 @@ data class StockUiState(
     val materialToEdit: RawMaterial? = null,
     val isRestockMaterialOpen: Boolean = false,
     val isWasteMaterialOpen: Boolean = false,
-    val isOpnameMaterialOpen: Boolean = false
+    val isOpnameMaterialOpen: Boolean = false,
+    // Stock Movements Audit Log
+    val stockMovements: List<StockMovement> = emptyList(),
+    val movementFilterType: StockMovementType? = null
 ) {
     val taichanTotalRaw: Int
         get() = taichanBatches.sumOf { it.raw }
@@ -53,13 +61,25 @@ data class StockUiState(
                 val batches = chickenBatches.filter { it.part == part }
                 val raw = batches.sumOf { it.raw }
                 val fried = batches.sumOf { it.fried }
+                val sold = chickenSoldToday[part] ?: 0
+                val remaining = (fried - sold).coerceAtLeast(0)
                 ChickenPartSummary(
                     part = part,
                     totalRaw = raw,
                     totalFried = fried,
-                    totalSold = 0,
-                    remaining = fried
+                    totalSold = sold,
+                    remaining = remaining
                 )
+            }
+        }
+
+    val filteredMovements: List<StockMovement>
+        get() {
+            val list = stockMovements
+            return if (movementFilterType != null) {
+                list.filter { it.type == movementFilterType }
+            } else {
+                list
             }
         }
 

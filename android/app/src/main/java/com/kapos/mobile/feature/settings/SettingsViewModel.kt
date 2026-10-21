@@ -44,7 +44,8 @@ class SettingsViewModel(
                         ownerPin = settings.ownerPin,
                         dailyFixedCost = settings.dailyFixedCost,
                         dailyRevenueTarget = settings.dailyRevenueTarget,
-                        staffList = settingsRepository.getStaffNames()
+                        staffList = settingsRepository.getStaffNames(),
+                        autoLockMinutes = settings.autoLockMinutes
                     )
                 }
             }
@@ -63,8 +64,9 @@ class SettingsViewModel(
     }
 
     fun loadPairedPrinters() {
-        val paired = bluetoothPrinterService.getPairedDevices()
-        _uiState.update { it.copy(pairedDevices = paired) }
+        val hasPerm = bluetoothPrinterService.hasBluetoothPermission()
+        val paired = if (hasPerm) bluetoothPrinterService.getPairedDevices() else emptyList()
+        _uiState.update { it.copy(pairedDevices = paired, hasBluetoothPermission = hasPerm) }
     }
 
     fun onSelectPrinter(name: String, address: String) {
@@ -144,7 +146,8 @@ class SettingsViewModel(
                 cashierPin = state.cashierPin,
                 ownerPin = state.ownerPin,
                 dailyFixedCost = state.dailyFixedCost,
-                dailyRevenueTarget = state.dailyRevenueTarget
+                dailyRevenueTarget = state.dailyRevenueTarget,
+                autoLockMinutes = state.autoLockMinutes
             )
         )
     }
@@ -245,5 +248,62 @@ class SettingsViewModel(
     fun onAddStaff(staffName: String) {
         settingsRepository.addStaffName(staffName)
         _uiState.update { it.copy(staffList = settingsRepository.getStaffNames()) }
+    }
+
+    private val backupManager = com.kapos.mobile.core.data.backup.DatabaseBackupManager(database)
+
+    fun onAutoLockMinutesChange(minutes: Int) {
+        _uiState.update { it.copy(autoLockMinutes = minutes) }
+        saveSettings()
+    }
+
+    fun exportDatabaseBackup(context: android.content.Context) {
+        _uiState.update { it.copy(isExportingBackup = true, backupStatusMessage = null) }
+        viewModelScope.launch {
+            try {
+                val file = backupManager.exportToJson(context)
+                _uiState.update {
+                    it.copy(
+                        isExportingBackup = false,
+                        isBackupSuccess = true,
+                        backupExportPath = file.absolutePath,
+                        backupStatusMessage = "Cadangan tersimpan: ${file.name} (${file.length() / 1024} KB)"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isExportingBackup = false,
+                        isBackupSuccess = false,
+                        backupStatusMessage = "Gagal ekspor: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun importDatabaseBackup(jsonString: String) {
+        _uiState.update { it.copy(isExportingBackup = true, backupStatusMessage = null) }
+        viewModelScope.launch {
+            val result = backupManager.importFromJson(jsonString)
+            if (result.isSuccess) {
+                val count = result.getOrDefault(0)
+                _uiState.update {
+                    it.copy(
+                        isExportingBackup = false,
+                        isBackupSuccess = true,
+                        backupStatusMessage = "Berhasil memulihkan $count data dari cadangan!"
+                    )
+                }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isExportingBackup = false,
+                        isBackupSuccess = false,
+                        backupStatusMessage = "Gagal impor: ${result.exceptionOrNull()?.message}"
+                    )
+                }
+            }
+        }
     }
 }

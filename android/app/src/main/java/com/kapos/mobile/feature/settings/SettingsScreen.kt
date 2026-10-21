@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Cloud
@@ -75,8 +76,16 @@ fun SettingsRoute(
     onLogoutClick: () -> Unit = {},
     onNavigateToMenuManagement: () -> Unit = {},
     onNavigateToCustomers: () -> Unit = {},
+    onNavigateToReport: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        viewModel.loadPairedPrinters()
+    }
+
     val uiState by viewModel.uiState.collectAsState()
 
     SettingsScreen(
@@ -85,6 +94,7 @@ fun SettingsRoute(
         onLogoutClick = onLogoutClick,
         onNavigateToMenuManagement = onNavigateToMenuManagement,
         onNavigateToCustomers = onNavigateToCustomers,
+        onNavigateToReport = onNavigateToReport,
         onUrlChange = viewModel::onUrlChange,
         onAnonKeyChange = viewModel::onAnonKeyChange,
         onStoreNameChange = viewModel::onStoreNameChange,
@@ -97,6 +107,16 @@ fun SettingsRoute(
         onDailyFixedCostChange = viewModel::onDailyFixedCostChange,
         onDailyRevenueTargetChange = viewModel::onDailyRevenueTargetChange,
         onRefreshPrinters = viewModel::loadPairedPrinters,
+        onRequestBluetoothPermission = {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                permissionLauncher.launch(
+                    arrayOf(
+                        android.Manifest.permission.BLUETOOTH_CONNECT,
+                        android.Manifest.permission.BLUETOOTH_SCAN
+                    )
+                )
+            }
+        },
         onSelectPrinter = viewModel::onSelectPrinter,
         onPaperWidthChange = viewModel::onPaperWidthChange,
         onAutoPrintChange = viewModel::onAutoPrintChange,
@@ -106,6 +126,9 @@ fun SettingsRoute(
         onSyncNow = viewModel::syncNow,
         onSelectActiveStaff = viewModel::onSelectActiveStaff,
         onAddStaff = viewModel::onAddStaff,
+        onAutoLockMinutesChange = viewModel::onAutoLockMinutesChange,
+        onExportBackup = { viewModel.exportDatabaseBackup(context) },
+        onImportBackup = viewModel::importDatabaseBackup,
         modifier = modifier
     )
 }
@@ -118,6 +141,7 @@ fun SettingsScreen(
     onLogoutClick: () -> Unit = {},
     onNavigateToMenuManagement: () -> Unit = {},
     onNavigateToCustomers: () -> Unit = {},
+    onNavigateToReport: () -> Unit = {},
     onUrlChange: (String) -> Unit,
     onAnonKeyChange: (String) -> Unit,
     onStoreNameChange: (String) -> Unit,
@@ -130,6 +154,7 @@ fun SettingsScreen(
     onDailyFixedCostChange: (Double) -> Unit,
     onDailyRevenueTargetChange: (Double) -> Unit,
     onRefreshPrinters: () -> Unit,
+    onRequestBluetoothPermission: () -> Unit = {},
     onSelectPrinter: (name: String, address: String) -> Unit,
     onPaperWidthChange: (Int) -> Unit,
     onAutoPrintChange: (Boolean) -> Unit,
@@ -139,8 +164,24 @@ fun SettingsScreen(
     onSyncNow: () -> Unit,
     onSelectActiveStaff: (String) -> Unit = {},
     onAddStaff: (String) -> Unit = {},
+    onAutoLockMinutesChange: (Int) -> Unit = {},
+    onExportBackup: () -> Unit = {},
+    onImportBackup: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val filePickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            try {
+                context.contentResolver.openInputStream(it)?.bufferedReader()?.use { reader ->
+                    val content = reader.readText()
+                    onImportBackup(content)
+                }
+            } catch (_: Exception) {}
+        }
+    }
     val scrollState = rememberScrollState()
 
     Box(
@@ -332,6 +373,58 @@ fun SettingsScreen(
                                     )
                                     Text(
                                         text = "Database member, riwayat belanja & loyalty points",
+                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                    )
+                                }
+                            }
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = TextSecondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Sales Report & Summary Tile
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(SurfaceTint)
+                                .border(1.dp, OutlineSoft, AppShapes.Sm)
+                                .clickable(onClick = onNavigateToReport)
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(PrimarySoft),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.Assessment,
+                                        contentDescription = null,
+                                        tint = Primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "Laporan & Rekap Penjualan",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary
+                                        )
+                                    )
+                                    Text(
+                                        text = "Cetak rekap harian, shift, laba kotor & export",
                                         style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                                     )
                                 }
@@ -652,6 +745,45 @@ fun SettingsScreen(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Auto-lock Inactivity setting
+                        Text(
+                            text = "Kunci Otomatis (Inactivity Timer)",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(
+                                0 to "Nonaktif",
+                                1 to "1 Menit",
+                                2 to "2 Menit",
+                                5 to "5 Menit"
+                            ).forEach { (mins, label) ->
+                                val isSelected = uiState.autoLockMinutes == mins
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(AppShapes.Sm)
+                                        .background(if (isSelected) Primary else SurfaceTint)
+                                        .clickable { onAutoLockMinutesChange(mins) }
+                                        .padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = if (isSelected) SurfaceWhite else TextPrimary,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -784,6 +916,38 @@ fun SettingsScreen(
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
+
+                        if (!uiState.hasBluetoothPermission) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(Warning.copy(alpha = 0.12f))
+                                    .border(1.dp, Warning.copy(alpha = 0.4f), AppShapes.Sm)
+                                    .padding(12.dp)
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Izin Perangkat Sekitar Diperlukan",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary
+                                        )
+                                    )
+                                    Text(
+                                        text = "Android 12+ memerlukan izin koneksi Bluetooth untuk mendeteksi dan menghubungkan printer thermal.",
+                                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    PrimaryButton(
+                                        text = "Beri Izin Bluetooth",
+                                        onClick = onRequestBluetoothPermission,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
 
                         Text(
                             text = "Pilih Printer yang Terpasang (Paired):",
@@ -980,6 +1144,91 @@ fun SettingsScreen(
                     }
                 }
 
+                // Section: Cadangan & Pemulihan Data (Backup & Restore JSON)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Md)
+                        .background(SurfaceWhite)
+                        .border(1.dp, OutlineSoft, AppShapes.Md)
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimarySoft),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Cloud,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Cadangan & Pemulihan Data",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(
+                                    text = "Simpan data offline ke file JSON atau pulihkan cadangan",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                )
+                            }
+                        }
+
+                        if (uiState.backupStatusMessage != null) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(if (uiState.isBackupSuccess == true) Color(0xFFE8F7EE) else Color(0xFFFDE4E5))
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = uiState.backupStatusMessage,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (uiState.isBackupSuccess == true) Success else Danger,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                SecondaryButton(
+                                    text = if (uiState.isExportingBackup) "Mengekspor..." else "Ekspor JSON",
+                                    icon = Icons.Default.Cloud,
+                                    onClick = onExportBackup,
+                                    enabled = !uiState.isExportingBackup
+                                )
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                SecondaryButton(
+                                    text = "Pulihkan JSON",
+                                    icon = Icons.Default.Refresh,
+                                    onClick = {
+                                        filePickerLauncher.launch("*/*")
+                                    },
+                                    enabled = !uiState.isExportingBackup
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(6.dp))
 
                 // Save CTA
@@ -987,6 +1236,17 @@ fun SettingsScreen(
                     text = "Simpan Pengaturan",
                     icon = Icons.Default.Save,
                     onClick = onSave
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "KA POS Mobile v1.2.0 (Build 3) • Taichan & Chicken KA",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TextSecondary,
+                        fontSize = 11.sp
+                    ),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
         }

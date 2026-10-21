@@ -72,4 +72,31 @@ class EscPosBuilderTest {
         assertTrue(content.contains("Kasir Budi"))
         assertTrue(content.contains("1.230.000") || content.contains("1230000"))
     }
+
+    @Test
+    fun testVoidReceiptContainsVoidHeader() {
+        val builder = EscPosBuilder(paperWidth = 58)
+        val bytes = builder.buildReceipt(
+            storeName = "Taichan & Chicken KA",
+            address = "Bandar Lampung",
+            phone = "081234567890",
+            receiptFooter = "Terima kasih!",
+            orderNo = "KA-20261019-001",
+            dateStr = "19 Okt 2026, 12:00",
+            orderType = "Dine-In",
+            tableNo = "01",
+            cashierName = "Kasir Utama",
+            customerName = null,
+            items = emptyList(),
+            subtotal = 50000.0,
+            discount = 0.0,
+            total = 50000.0,
+            paymentMethod = "Tunai",
+            cashGiven = 50000.0,
+            change = 0.0,
+            isVoid = true
+        )
+        val receiptText = String(bytes, Charsets.ISO_8859_1)
+        assertTrue(receiptText.contains("BATAL / VOID"))
+    }
 }
