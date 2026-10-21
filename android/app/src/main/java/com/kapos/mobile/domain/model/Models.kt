@@ -75,7 +75,13 @@ data class Product(
     val description: String = "",
     val isActive: Boolean = true,
     val isSoldOut: Boolean = false
-) : Serializable
+) : Serializable {
+    fun calculateProfitMargin(): Double = (price - costPrice).coerceAtLeast(0.0)
+    fun calculateMarginPercentage(): Double {
+        if (price <= 0.0) return 0.0
+        return ((price - costPrice) / price * 100.0).coerceAtLeast(0.0)
+    }
+}
 
 data class CartItem(
     val product: Product,
@@ -162,7 +168,9 @@ data class RawMaterial(
     val currentStock: Double = 0.0,
     val minStock: Double = 100.0,
     val costPerUnit: Double = 0.0,
-    val lastRestockedAt: Long = System.currentTimeMillis()
+    val lastRestockedAt: Long = System.currentTimeMillis(),
+    val earliestExpiryDate: Long? = null,
+    val hasExpiredBatch: Boolean = false
 ) : Serializable {
     val isLowStock: Boolean
         get() = currentStock <= minStock
