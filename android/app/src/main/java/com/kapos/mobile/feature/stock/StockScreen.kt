@@ -181,7 +181,7 @@ fun StockScreen(
                     )
                     Text(
                         text = when (uiState.activeTab) {
-                            StockTab.MATERIALS -> "Stok bahan baku, resep BOM & opname"
+                            StockTab.INVENTORY, StockTab.MATERIALS -> "Stok bahan baku, resep BOM & opname"
                             StockTab.AUDIT -> "Riwayat mutasi & audit stok otomatis"
                             else -> "Kontrol stok harian, batch & penggorengan"
                         },
@@ -196,7 +196,7 @@ fun StockScreen(
                             .clip(CircleShape)
                             .background(Primary)
                             .clickable {
-                                if (uiState.activeTab == StockTab.MATERIALS) {
+                                if (uiState.activeTab == StockTab.INVENTORY || uiState.activeTab == StockTab.MATERIALS) {
                                     onOpenAddMaterial()
                                 } else {
                                     onOpenRestock(uiState.restockChickenPart)
@@ -209,7 +209,7 @@ fun StockScreen(
                             Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah", tint = SurfaceWhite, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = if (uiState.activeTab == StockTab.MATERIALS) "Bahan Baru" else "Restock",
+                                text = if (uiState.activeTab == StockTab.INVENTORY || uiState.activeTab == StockTab.MATERIALS) "Bahan Baru" else "Restock",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = SurfaceWhite
@@ -220,7 +220,7 @@ fun StockScreen(
                 }
             }
 
-            // Tab Selector: 4 Tabs (Taichan, Ayam Potong, Bahan Baku BOM, Audit Mutasi)
+            // Tab Selector
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -240,12 +240,7 @@ fun StockScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = when (tab) {
-                                StockTab.TAICHAN -> "Sate Taichan"
-                                StockTab.CHICKEN -> "Ayam Potong"
-                                StockTab.MATERIALS -> "Bahan (BOM)"
-                                StockTab.AUDIT -> "Audit Mutasi"
-                            },
+                            text = tab.displayName,
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) SurfaceWhite else TextPrimary
@@ -373,7 +368,7 @@ fun StockScreen(
                     }
                 }
 
-                StockTab.MATERIALS -> {
+                StockTab.INVENTORY, StockTab.MATERIALS -> {
                     // Low Stock Alert Warning Banner
                     if (uiState.lowStockCount > 0) {
                         Box(
