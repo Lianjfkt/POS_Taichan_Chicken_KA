@@ -523,7 +523,7 @@ fun VoidPinDialog(
                 // PIN Input
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "PIN Owner (6 Digit):",
+                        text = "PIN Owner (Default: 1234):",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
@@ -534,7 +534,7 @@ fun VoidPinDialog(
                         value = pin,
                         onValueChange = onPinChange,
                         singleLine = true,
-                        placeholder = { Text("••••••", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+                        placeholder = { Text("••••", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                         textStyle = MaterialTheme.typography.titleLarge.copy(
@@ -574,7 +574,7 @@ fun VoidPinDialog(
                         text = "VOID Nota",
                         onClick = onConfirm,
                         isLoading = isLoading,
-                        enabled = pin.length == 6 && !isLoading,
+                        enabled = pin.length >= 4 && !isLoading,
                         modifier = Modifier.weight(1f)
                     )
                 }
