@@ -58,6 +58,7 @@ import com.kapos.mobile.core.theme.SurfaceTint
 import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
+import com.kapos.mobile.core.utils.CurrencyFormatter
 import com.kapos.mobile.domain.model.Product
 import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RecipeItem
@@ -147,6 +148,11 @@ fun RecipeBomDialog(
                         )
                     }
                 } else {
+                    val totalBop = recipes.sumOf { r ->
+                        val mat = allMaterials.find { it.id == r.materialId }
+                        r.quantityRequired * (mat?.costPerUnit ?: 0.0)
+                    }
+
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -154,6 +160,9 @@ fun RecipeBomDialog(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         items(recipes, key = { it.id }) { item ->
+                            val mat = allMaterials.find { it.id == item.materialId }
+                            val lineCost = item.quantityRequired * (mat?.costPerUnit ?: 0.0)
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -171,10 +180,18 @@ fun RecipeBomDialog(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = item.materialName,
-                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold)
-                                    )
+                                    Column {
+                                        Text(
+                                            text = item.materialName,
+                                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold)
+                                        )
+                                        if (lineCost > 0) {
+                                            Text(
+                                                text = "≈ ${CurrencyFormatter.formatRupiah(lineCost)}",
+                                                style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 10.sp)
+                                            )
+                                        }
+                                    }
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     val formattedQty = if (item.quantityRequired % 1.0 == 0.0) {
@@ -194,6 +211,33 @@ fun RecipeBomDialog(
                                         Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = Danger, modifier = Modifier.size(16.dp))
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    if (totalBop > 0) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(Color(0xFFDCFCE7))
+                                .border(1.dp, Color(0xFF86EFAC), AppShapes.Sm)
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Total Estimasi BOP / Porsi:",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = Color(0xFF166534))
+                                )
+                                Text(
+                                    text = CurrencyFormatter.formatRupiah(totalBop),
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFF166534))
+                                )
                             }
                         }
                     }

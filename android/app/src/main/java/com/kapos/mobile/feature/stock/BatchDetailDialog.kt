@@ -111,7 +111,7 @@ fun BatchDetailDialog(
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
-                                text = "Total Stok: ${material.currentStock} ${material.unit} • Biaya: ${CurrencyFormatter.format(material.costPerUnit)}/${material.unit}",
+                                text = "Total Stok: ${material.currentStock} ${material.unit} • Biaya: ${CurrencyFormatter.formatRupiah(material.costPerUnit)}/${material.unit}",
                                 style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                             )
                         }
@@ -210,7 +210,7 @@ fun BatchDetailDialog(
                                                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold)
                                             )
                                             Text(
-                                                text = "Harga Beli: ${CurrencyFormatter.format(batch.costPerUnit)}/${material.unit}",
+                                                text = "Harga Beli: ${CurrencyFormatter.formatRupiah(batch.costPerUnit)}/${material.unit}",
                                                 style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                                             )
                                         }
@@ -349,7 +349,7 @@ fun WasteBatchDialog(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Sisa stok di batch ini: ${batch.remainingQuantity} ${material.unit} (Harga: ${CurrencyFormatter.format(batch.costPerUnit)}/${material.unit})",
+                    text = "Sisa stok di batch ini: ${batch.remainingQuantity} ${material.unit} (Harga: ${CurrencyFormatter.formatRupiah(batch.costPerUnit)}/${material.unit})",
                     style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
                 )
 
@@ -393,7 +393,7 @@ fun WasteBatchDialog(
                             .padding(10.dp)
                     ) {
                         Text(
-                            text = "Estimasi Nilai Kerugian: ${CurrencyFormatter.format(estimatedLoss)}",
+                            text = "Estimasi Nilai Kerugian: ${CurrencyFormatter.formatRupiah(estimatedLoss)}",
                             style = MaterialTheme.typography.labelMedium.copy(color = Danger, fontWeight = FontWeight.Bold)
                         )
                     }

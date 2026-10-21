@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -327,7 +328,7 @@ fun RestockMaterialDialog(
                 if (unitCostPreview != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "≈ ${CurrencyFormatter.format(unitCostPreview)} / ${material.unit}",
+                        text = "≈ ${CurrencyFormatter.formatRupiah(unitCostPreview)} / ${material.unit}",
                         style = MaterialTheme.typography.labelSmall.copy(color = Primary, fontWeight = FontWeight.Bold)
                     )
                 }
