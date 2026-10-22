@@ -73,6 +73,8 @@ import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
 import com.kapos.mobile.core.utils.CurrencyFormatter
 import com.kapos.mobile.domain.model.Category
+import com.kapos.mobile.domain.model.ModifierCategory
+import com.kapos.mobile.domain.model.ModifierOption
 import com.kapos.mobile.domain.model.Product
 
 @Composable
@@ -109,6 +111,15 @@ fun MenuManagementRoute(
         onCloseRecipe = viewModel::closeRecipeDialog,
         onAddRecipeItem = viewModel::addOrUpdateRecipeItem,
         onDeleteRecipeItem = viewModel::deleteRecipeItem,
+        onModifierFilterChange = viewModel::onSelectModifierFilter,
+        onOpenAddModifier = viewModel::openAddModifier,
+        onOpenEditModifier = viewModel::openEditModifier,
+        onCloseAddEditModifier = viewModel::closeAddEditModifierDialog,
+        onSaveModifier = viewModel::saveModifier,
+        onToggleModifierActive = viewModel::toggleModifierActive,
+        onOpenDeleteModifier = viewModel::openDeleteModifierDialog,
+        onCloseDeleteModifier = viewModel::closeDeleteModifierDialog,
+        onConfirmDeleteModifier = viewModel::confirmDeleteModifier,
         modifier = modifier
     )
 }
@@ -140,6 +151,15 @@ fun MenuManagementScreen(
     onCloseRecipe: () -> Unit = {},
     onAddRecipeItem: (productId: String, materialId: String, quantity: Double) -> Unit = { _, _, _ -> },
     onDeleteRecipeItem: (recipeId: String) -> Unit = {},
+    onModifierFilterChange: (ModifierCategory?) -> Unit = {},
+    onOpenAddModifier: () -> Unit = {},
+    onOpenEditModifier: (ModifierOption) -> Unit = {},
+    onCloseAddEditModifier: () -> Unit = {},
+    onSaveModifier: (name: String, price: Double, category: ModifierCategory, isDefault: Boolean) -> Unit = { _, _, _, _ -> },
+    onToggleModifierActive: (id: String, isActive: Boolean) -> Unit = { _, _ -> },
+    onOpenDeleteModifier: (ModifierOption) -> Unit = {},
+    onCloseDeleteModifier: () -> Unit = {},
+    onConfirmDeleteModifier: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -189,10 +209,10 @@ fun MenuManagementScreen(
                         .clip(CircleShape)
                         .background(Primary)
                         .clickable {
-                            if (uiState.selectedTab == MenuTab.PRODUCTS) {
-                                onOpenAddProduct()
-                            } else {
-                                onOpenAddCategory()
+                            when (uiState.selectedTab) {
+                                MenuTab.PRODUCTS -> onOpenAddProduct()
+                                MenuTab.CATEGORIES -> onOpenAddCategory()
+                                MenuTab.MODIFIERS -> onOpenAddModifier()
                             }
                         }
                         .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -202,7 +222,11 @@ fun MenuManagementScreen(
                         Icon(Icons.Default.Add, contentDescription = null, tint = SurfaceWhite, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (uiState.selectedTab == MenuTab.PRODUCTS) "Tambah Produk" else "Tambah Kategori",
+                            text = when (uiState.selectedTab) {
+                                MenuTab.PRODUCTS -> "Tambah Produk"
+                                MenuTab.CATEGORIES -> "Tambah Kategori"
+                                MenuTab.MODIFIERS -> "Tambah Varian"
+                            },
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = SurfaceWhite,
                                 fontWeight = FontWeight.Bold
@@ -212,23 +236,29 @@ fun MenuManagementScreen(
                 }
             }
 
-            // Tabs Selector: Daftar Produk vs Kategori
+            // Tabs Selector: Produk | Kategori | Modifier
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 MenuTabItem(
-                    label = "Daftar Produk (${uiState.products.size})",
+                    label = "Produk (${uiState.products.size})",
                     isSelected = uiState.selectedTab == MenuTab.PRODUCTS,
                     onClick = { onTabSelected(MenuTab.PRODUCTS) },
                     modifier = Modifier.weight(1f)
                 )
                 MenuTabItem(
-                    label = "Kategori Menu (${uiState.categories.size})",
+                    label = "Kategori (${uiState.categories.size})",
                     isSelected = uiState.selectedTab == MenuTab.CATEGORIES,
                     onClick = { onTabSelected(MenuTab.CATEGORIES) },
+                    modifier = Modifier.weight(1f)
+                )
+                MenuTabItem(
+                    label = "Varian (${uiState.modifiers.size})",
+                    isSelected = uiState.selectedTab == MenuTab.MODIFIERS,
+                    onClick = { onTabSelected(MenuTab.MODIFIERS) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -322,7 +352,7 @@ fun MenuManagementScreen(
                         }
                     }
                 }
-            } else {
+            } else if (uiState.selectedTab == MenuTab.CATEGORIES) {
                 // Categories Tab UI
                 if (uiState.isLoading) {
                     Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
@@ -348,6 +378,59 @@ fun MenuManagementScreen(
                                 onToggleActive = { active -> onToggleCategoryActive(category, active) },
                                 onEdit = { onOpenEditCategory(category) },
                                 onDelete = { onOpenDeleteCategory(category) }
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Modifiers Tab UI
+                val modFilterScroll = rememberScrollState()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(modFilterScroll)
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    CategoryChip(
+                        name = "Semua (${uiState.modifiers.size})",
+                        isSelected = uiState.selectedModifierCategoryFilter == null,
+                        onClick = { onModifierFilterChange(null) }
+                    )
+                    ModifierCategory.values().forEach { cat ->
+                        val count = uiState.modifiers.count { it.category == cat }
+                        CategoryChip(
+                            name = "${cat.displayName} ($count)",
+                            isSelected = uiState.selectedModifierCategoryFilter == cat,
+                            onClick = { onModifierFilterChange(cat) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (uiState.isLoading) {
+                    Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Primary)
+                    }
+                } else if (uiState.filteredModifiers.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                        Text("Belum ada varian / modifier", style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary))
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(uiState.filteredModifiers, key = { it.id }) { modifier ->
+                            ModifierItemCard(
+                                modifier = modifier,
+                                onToggleActive = { active -> onToggleModifierActive(modifier.id, active) },
+                                onEdit = { onOpenEditModifier(modifier) },
+                                onDelete = { onOpenDeleteModifier(modifier) }
                             )
                         }
                     }
@@ -403,6 +486,25 @@ fun MenuManagementScreen(
                 onAddRecipeItem = { matId, qty -> onAddRecipeItem(prod.id, matId, qty) },
                 onDeleteRecipeItem = onDeleteRecipeItem,
                 onDismiss = onCloseRecipe
+            )
+        }
+
+        // Modifier Dialogs
+        if (uiState.isAddEditModifierOpen) {
+            AddEditModifierDialog(
+                modifier = uiState.modifierToEdit,
+                onSave = onSaveModifier,
+                onDismiss = onCloseAddEditModifier
+            )
+        }
+
+        if (uiState.modifierToDelete != null) {
+            val toDelete = uiState.modifierToDelete
+            DeleteConfirmDialog(
+                title = "Hapus Varian/Modifier?",
+                message = "Apakah Anda yakin ingin menghapus '${toDelete.name}'?",
+                onConfirm = onConfirmDeleteModifier,
+                onDismiss = onCloseDeleteModifier
             )
         }
     }
@@ -1163,3 +1265,286 @@ fun DeleteConfirmDialog(
         }
     }
 }
+
+@Composable
+fun ModifierItemCard(
+    modifier: ModifierOption,
+    onToggleActive: (Boolean) -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val categoryColor = when (modifier.category) {
+        ModifierCategory.SPICE_LEVEL -> Color(0xFFE53935)
+        ModifierCategory.SAMBAL -> Color(0xFFFF7043)
+        ModifierCategory.COMPLIMENTARY -> Color(0xFF43A047)
+        ModifierCategory.EXTRA -> Color(0xFF1E88E5)
+        ModifierCategory.PACKAGING -> Color(0xFF8E24AA)
+    }
+    val categoryEmoji = when (modifier.category) {
+        ModifierCategory.SPICE_LEVEL -> "🌶️"
+        ModifierCategory.SAMBAL -> "🥫"
+        ModifierCategory.COMPLIMENTARY -> "🍽️"
+        ModifierCategory.EXTRA -> "➕"
+        ModifierCategory.PACKAGING -> "📦"
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(AppShapes.Md)
+            .background(SurfaceWhite)
+            .border(1.dp, OutlineSoft, AppShapes.Md)
+            .padding(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(AppShapes.Sm)
+                        .background(categoryColor.copy(alpha = 0.12f))
+                        .border(1.dp, categoryColor.copy(alpha = 0.3f), AppShapes.Sm),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = categoryEmoji, fontSize = 18.sp)
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = modifier.name,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = if (modifier.isActive) TextPrimary else TextSecondary
+                        )
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(categoryColor.copy(alpha = 0.12f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = modifier.category.displayName,
+                                style = MaterialTheme.typography.labelSmall.copy(color = categoryColor, fontWeight = FontWeight.Bold)
+                            )
+                        }
+                        if (modifier.price > 0) {
+                            Text(
+                                text = "+${CurrencyFormatter.formatRupiah(modifier.price)}",
+                                style = MaterialTheme.typography.labelSmall.copy(color = Success, fontWeight = FontWeight.Bold)
+                            )
+                        } else {
+                            Text(
+                                text = "Gratis",
+                                style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                            )
+                        }
+                        if (modifier.isDefault) {
+                            Text(
+                                text = "• Default",
+                                style = MaterialTheme.typography.labelSmall.copy(color = Primary, fontWeight = FontWeight.Bold)
+                            )
+                        }
+                    }
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Switch(
+                    checked = modifier.isActive,
+                    onCheckedChange = onToggleActive,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = SurfaceWhite,
+                        checkedTrackColor = Primary
+                    )
+                )
+                IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Primary, modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = Danger, modifier = Modifier.size(18.dp))
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddEditModifierDialog(
+    modifier: ModifierOption?,
+    onSave: (name: String, price: Double, category: ModifierCategory, isDefault: Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var name by remember { mutableStateOf(modifier?.name ?: "") }
+    var priceStr by remember { mutableStateOf(if (modifier != null && modifier.price > 0) modifier.price.toLong().toString() else "") }
+    var selectedCategory by remember { mutableStateOf(modifier?.category ?: ModifierCategory.SPICE_LEVEL) }
+    var isDefault by remember { mutableStateOf(modifier?.isDefault ?: false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val categoryMeta = listOf(
+        Triple(ModifierCategory.SPICE_LEVEL, "🌶️", "Tingkat kepedasan menu"),
+        Triple(ModifierCategory.SAMBAL, "🥫", "Pilihan jenis sambal"),
+        Triple(ModifierCategory.COMPLIMENTARY, "🍽️", "Alat makan & pelengkap gratis"),
+        Triple(ModifierCategory.EXTRA, "➕", "Topping & tambahan berbayar"),
+        Triple(ModifierCategory.PACKAGING, "📦", "Pilihan kemasan & wadah")
+    )
+    val categoryColors = mapOf(
+        ModifierCategory.SPICE_LEVEL to Color(0xFFE53935),
+        ModifierCategory.SAMBAL to Color(0xFFFF7043),
+        ModifierCategory.COMPLIMENTARY to Color(0xFF43A047),
+        ModifierCategory.EXTRA to Color(0xFF1E88E5),
+        ModifierCategory.PACKAGING to Color(0xFF8E24AA)
+    )
+
+    BasicAlertDialog(onDismissRequest = onDismiss) {
+        val scrollState = rememberScrollState()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(AppShapes.Lg)
+                .background(SurfaceWhite)
+                .border(1.dp, OutlineSoft, AppShapes.Lg)
+                .padding(20.dp)
+        ) {
+            Column(modifier = Modifier.verticalScroll(scrollState)) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (modifier == null) "Tambah Varian / Modifier" else "Edit Varian",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Tutup", tint = TextSecondary)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Nama
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it; errorMessage = null },
+                    label = { Text("Nama Varian *") },
+                    placeholder = { Text("Contoh: Lv. 3 (Ekstra Pedas)") },
+                    singleLine = true,
+                    shape = AppShapes.Sm,
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = OutlineSoft),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Harga Tambahan
+                OutlinedTextField(
+                    value = priceStr,
+                    onValueChange = { priceStr = it.filter { c -> c.isDigit() } },
+                    label = { Text("Harga Tambahan (Rp, kosongkan jika gratis)") },
+                    placeholder = { Text("0") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = AppShapes.Sm,
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = OutlineSoft),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Kelompok Varian
+                Text(
+                    text = "Kelompok Varian",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = TextSecondary)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    categoryMeta.forEach { (cat, emoji, desc) ->
+                        val color = categoryColors[cat] ?: Primary
+                        val isSelected = selectedCategory == cat
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(if (isSelected) color.copy(alpha = 0.10f) else SurfaceTint)
+                                .border(1.5.dp, if (isSelected) color else OutlineSoft, AppShapes.Sm)
+                                .clickable { selectedCategory = cat }
+                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = emoji, fontSize = 16.sp)
+                                Column {
+                                    Text(
+                                        text = cat.displayName,
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) color else TextPrimary
+                                        )
+                                    )
+                                    Text(
+                                        text = desc,
+                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Default toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(text = "Jadikan Pilihan Default", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
+                        Text(text = "Dipilih otomatis saat order", style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary))
+                    }
+                    Switch(
+                        checked = isDefault,
+                        onCheckedChange = { isDefault = it },
+                        colors = SwitchDefaults.colors(checkedThumbColor = SurfaceWhite, checkedTrackColor = Primary)
+                    )
+                }
+
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(text = errorMessage!!, style = MaterialTheme.typography.bodySmall.copy(color = Danger))
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SecondaryButton(text = "Batal", onClick = onDismiss, modifier = Modifier.weight(1f))
+                    PrimaryButton(
+                        text = "Simpan",
+                        onClick = {
+                            if (name.isBlank()) {
+                                errorMessage = "Nama varian wajib diisi!"
+                            } else {
+                                onSave(name, priceStr.toDoubleOrNull() ?: 0.0, selectedCategory, isDefault)
+                            }
+                        },
+                        modifier = Modifier.weight(1.3f)
+                    )
+                }
+            }
+        }
+    }
+}
+
