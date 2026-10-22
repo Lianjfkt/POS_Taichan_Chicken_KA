@@ -25,7 +25,7 @@ class StockViewModel(
     private val scope: kotlinx.coroutines.CoroutineScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
 ) : ViewModel() {
 
-    private val _activeTab = MutableStateFlow(StockTab.TAICHAN)
+    private val _activeTab = MutableStateFlow(StockTab.INVENTORY)
     private val _isRestockDialogOpen = MutableStateFlow(false)
     private val _restockChickenPart = MutableStateFlow(ChickenPart.SAYAP)
     private val _taichanSoldToday = MutableStateFlow(0)

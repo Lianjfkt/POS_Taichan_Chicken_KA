@@ -45,7 +45,8 @@ class SettingsViewModel(
                         dailyFixedCost = settings.dailyFixedCost,
                         dailyRevenueTarget = settings.dailyRevenueTarget,
                         staffList = settingsRepository.getStaffNames(),
-                        autoLockMinutes = settings.autoLockMinutes
+                        autoLockMinutes = settings.autoLockMinutes,
+                        autoSyncIntervalMinutes = settings.autoSyncIntervalMinutes
                     )
                 }
             }
@@ -58,6 +59,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             posRepository.isSyncing.collect { syncing ->
                 _uiState.update { it.copy(isSyncing = syncing) }
+            }
+        }
+        viewModelScope.launch {
+            posRepository.lastSyncTime.collect { ts ->
+                _uiState.update { it.copy(lastSyncTime = ts) }
             }
         }
         loadPairedPrinters()
@@ -147,7 +153,8 @@ class SettingsViewModel(
                 ownerPin = state.ownerPin,
                 dailyFixedCost = state.dailyFixedCost,
                 dailyRevenueTarget = state.dailyRevenueTarget,
-                autoLockMinutes = state.autoLockMinutes
+                autoLockMinutes = state.autoLockMinutes,
+                autoSyncIntervalMinutes = state.autoSyncIntervalMinutes
             )
         )
     }
@@ -235,8 +242,18 @@ class SettingsViewModel(
 
     fun syncNow() {
         saveSettings()
+        _uiState.update { it.copy(syncResultMessage = null, isSyncSuccess = null) }
         viewModelScope.launch {
-            posRepository.refreshFromSupabase()
+            val success = posRepository.syncAll()
+            _uiState.update {
+                it.copy(
+                    isSyncSuccess = success,
+                    syncResultMessage = if (success)
+                        "Sinkronisasi berhasil! Data lokal & cloud sudah sinkron."
+                    else
+                        "Sinkronisasi gagal. Cek koneksi internet atau konfigurasi Supabase."
+                )
+            }
         }
     }
 
@@ -254,6 +271,11 @@ class SettingsViewModel(
 
     fun onAutoLockMinutesChange(minutes: Int) {
         _uiState.update { it.copy(autoLockMinutes = minutes) }
+        saveSettings()
+    }
+
+    fun onAutoSyncIntervalChange(minutes: Int) {
+        _uiState.update { it.copy(autoSyncIntervalMinutes = minutes) }
         saveSettings()
     }
 

@@ -244,7 +244,8 @@ fun StockScreen(
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StockTab.values().forEach { tab ->
+                val visibleTabs = StockTab.values().filter { !it.isLegacy || it == uiState.activeTab }
+                visibleTabs.forEach { tab ->
                     val isSelected = uiState.activeTab == tab
                     Box(
                         modifier = Modifier
@@ -1139,6 +1140,7 @@ fun StockAuditTabContent(
         StockMovementType.ORDER_DEDUCTION to "Potong BOM",
         StockMovementType.RESTOCK to "Stok Masuk",
         StockMovementType.ADJUSTMENT to "Opname",
+        StockMovementType.VOID_RESTORATION to "Void Restore",
         StockMovementType.WASTE to "Rusak / Basi"
     )
 
@@ -1252,6 +1254,9 @@ fun StockMovementCard(
         }
         StockMovementType.ADJUSTMENT -> {
             MovementBadgeStyle(Color(0xFFEFF6FF), Color(0xFF1D4ED8), Icons.Default.Tune, "±", Color(0xFF1D4ED8))
+        }
+        StockMovementType.VOID_RESTORATION -> {
+            MovementBadgeStyle(Color(0xFFFEF3C7), Color(0xFFD97706), Icons.Default.History, "+", Color(0xFFD97706))
         }
         StockMovementType.WASTE -> {
             MovementBadgeStyle(Color(0xFFFEE2E2), Color(0xFFDC2626), Icons.Default.DeleteSweep, "-", Color(0xFFDC2626))

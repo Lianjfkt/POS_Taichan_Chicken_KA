@@ -519,7 +519,7 @@ class InventoryRepository(
                     StockMovementEntity(
                         id = UUID.randomUUID().toString(),
                         materialId = recipe.materialId,
-                        type = StockMovementType.ADJUSTMENT.name,
+                        type = StockMovementType.VOID_RESTORATION.name,
                         quantity = totalRestoration,
                         costTotal = 0.0,
                         notes = "Void Order Restoration: ${item.quantity}x ${item.productName}",

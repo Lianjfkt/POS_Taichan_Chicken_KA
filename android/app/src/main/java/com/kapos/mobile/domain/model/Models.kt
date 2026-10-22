@@ -119,6 +119,36 @@ data class Order(
     val items: List<OrderItem> = emptyList()
 ) : Serializable
 
+data class PaymentSplit(
+    val cashTotal: Double = 0.0,
+    val qrisTotal: Double = 0.0,
+    val transferTotal: Double = 0.0,
+    val totalRevenue: Double = 0.0
+) {
+    val nonCashTotal: Double get() = qrisTotal + transferTotal
+}
+
+fun Iterable<Order>.calculatePaymentSplit(): PaymentSplit {
+    var cash = 0.0
+    var qris = 0.0
+    var transfer = 0.0
+    for (order in this) {
+        if (order.paymentStatus == PaymentStatus.PAID) {
+            when (order.paymentMethod) {
+                PaymentMethod.CASH -> cash += order.total
+                PaymentMethod.QRIS -> qris += order.total
+                PaymentMethod.TRANSFER -> transfer += order.total
+            }
+        }
+    }
+    return PaymentSplit(
+        cashTotal = cash,
+        qrisTotal = qris,
+        transferTotal = transfer,
+        totalRevenue = cash + qris + transfer
+    )
+}
+
 data class OrderItem(
     val id: String,
     val orderId: String,
@@ -189,7 +219,8 @@ enum class StockMovementType(val displayName: String) {
     RESTOCK("Stok Masuk / Pembelian"),
     ORDER_DEDUCTION("Potong Otomatis (BOM)"),
     WASTE("Stok Rusak / Terbuang"),
-    ADJUSTMENT("Penyesuaian Opname")
+    ADJUSTMENT("Penyesuaian Opname"),
+    VOID_RESTORATION("Pengembalian Void")
 }
 
 data class StockMovement(

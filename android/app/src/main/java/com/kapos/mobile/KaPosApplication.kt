@@ -6,6 +6,7 @@ import com.kapos.mobile.core.data.remote.SupabaseClient
 import com.kapos.mobile.core.data.repository.PosRepository
 import com.kapos.mobile.core.data.repository.SettingsRepository
 import com.kapos.mobile.core.data.repository.ShiftRepository
+import kotlinx.coroutines.launch
 
 class KaPosApplication : Application() {
 
@@ -70,10 +71,18 @@ class KaPosApplication : Application() {
             database = database,
             supabaseClient = supabaseClient,
             inventoryRepository = inventoryRepository,
-            customerRepository = customerRepository
+            customerRepository = customerRepository,
+            settingsRepository = settingsRepository
         )
 
         shiftRepository = ShiftRepository(database = database)
+
+        // Keep SupabaseClient credentials in sync with Settings
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            settingsRepository.settingsFlow.collect { s ->
+                supabaseClient.updateConfig(s.supabaseUrl, s.supabaseAnonKey)
+            }
+        }
     }
 
     companion object {

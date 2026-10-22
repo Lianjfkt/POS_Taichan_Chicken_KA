@@ -127,6 +127,7 @@ fun SettingsRoute(
         onSelectActiveStaff = viewModel::onSelectActiveStaff,
         onAddStaff = viewModel::onAddStaff,
         onAutoLockMinutesChange = viewModel::onAutoLockMinutesChange,
+        onAutoSyncIntervalChange = viewModel::onAutoSyncIntervalChange,
         onExportBackup = { viewModel.exportDatabaseBackup(context) },
         onImportBackup = viewModel::importDatabaseBackup,
         modifier = modifier
@@ -165,6 +166,7 @@ fun SettingsScreen(
     onSelectActiveStaff: (String) -> Unit = {},
     onAddStaff: (String) -> Unit = {},
     onAutoLockMinutesChange: (Int) -> Unit = {},
+    onAutoSyncIntervalChange: (Int) -> Unit = {},
     onExportBackup: () -> Unit = {},
     onImportBackup: (String) -> Unit = {},
     modifier: Modifier = Modifier
@@ -1115,6 +1117,14 @@ fun SettingsScreen(
                                     text = "${uiState.pendingSyncCount} transaksi menunggu sinkronisasi",
                                     style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                                 )
+                                val lastSyncStr = uiState.lastSyncTime?.let {
+                                    val sdf = java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", java.util.Locale("id", "ID"))
+                                    "Terakhir sinkron: ${sdf.format(java.util.Date(it))}"
+                                } ?: "Belum pernah disinkronkan"
+                                Text(
+                                    text = lastSyncStr,
+                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                )
                             }
 
                             Box(
@@ -1133,6 +1143,26 @@ fun SettingsScreen(
                             }
                         }
 
+                        if (uiState.syncResultMessage != null) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            val isSuccess = uiState.isSyncSuccess == true
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(if (isSuccess) Color(0xFFE8F7EE) else Color(0xFFFDE4E5))
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = uiState.syncResultMessage,
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        color = if (isSuccess) Success else Danger,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(12.dp))
 
                         SecondaryButton(
@@ -1141,6 +1171,51 @@ fun SettingsScreen(
                             onClick = onSyncNow,
                             enabled = !uiState.isSyncing
                         )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Interval Sinkronisasi Otomatis
+                        Text(
+                            text = "Sinkronisasi Otomatis (Auto-Sync):",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Text(
+                            text = "Data pesanan dikirim otomatis ke cloud sesuai interval yang dipilih",
+                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(
+                                0 to "Nonaktif",
+                                2 to "2 Mnt",
+                                5 to "5 Mnt",
+                                15 to "15 Mnt",
+                                30 to "30 Mnt"
+                            ).forEach { (mins, label) ->
+                                val isSelected = uiState.autoSyncIntervalMinutes == mins
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(AppShapes.Sm)
+                                        .background(if (isSelected) Primary else SurfaceTint)
+                                        .border(1.dp, if (isSelected) Primary else OutlineSoft, AppShapes.Sm)
+                                        .clickable { onAutoSyncIntervalChange(mins) }
+                                        .padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = if (isSelected) SurfaceWhite else TextPrimary,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
