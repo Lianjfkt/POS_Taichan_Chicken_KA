@@ -31,6 +31,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.kapos.mobile.core.data.local.entity.ModifierEntity
+import com.kapos.mobile.domain.model.ModifierOption
+import com.kapos.mobile.domain.model.PresetModifiers
 import com.kapos.mobile.core.data.repository.CustomerRepository
 import java.util.UUID
 
@@ -45,6 +48,7 @@ class PosRepository(
     private val categoryDao = database?.categoryDao()
     private val productDao = database?.productDao()
     private val orderDao = database?.orderDao()
+    private val modifierDao = database?.modifierDao()
 
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
@@ -115,10 +119,22 @@ class PosRepository(
                     emoji = it.emoji,
                     spiceLevel = it.spiceLevel,
                     description = it.description,
-                    isActive = it.isActive
+                    isActive = it.isActive,
+                    allowSpiceLevel = it.allowSpiceLevel,
+                    allowSambal = it.allowSambal,
+                    allowComplimentary = it.allowComplimentary,
+                    allowToppings = it.allowToppings
                 )
             }
             productDao.upsertAll(prodEntities)
+        }
+
+        val existingMods = modifierDao?.getAll() ?: return@withContext
+        if (existingMods.isEmpty()) {
+            val modEntities = PresetModifiers.allOptions.map {
+                ModifierEntity.fromDomain(it)
+            }
+            modifierDao.upsertAll(modEntities)
         }
     }
 
@@ -181,7 +197,11 @@ class PosRepository(
                 emoji = product.emoji.ifBlank { "🍢" },
                 spiceLevel = product.spiceLevel,
                 description = product.description.trim(),
-                isActive = product.isActive
+                isActive = product.isActive,
+                allowSpiceLevel = product.allowSpiceLevel,
+                allowSambal = product.allowSambal,
+                allowComplimentary = product.allowComplimentary,
+                allowToppings = product.allowToppings
             )
         )
         scope.launch { syncMenu() }
@@ -195,6 +215,27 @@ class PosRepository(
     suspend fun toggleProductActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
         productDao?.toggleActive(id, isActive)
         scope.launch { syncMenu() }
+    }
+
+    fun observeAllModifiers(): Flow<List<ModifierOption>> {
+        return modifierDao?.observeAll()?.map { list -> list.map { it.toDomain() } } ?: flowOf(emptyList())
+    }
+
+    fun observeActiveModifiers(): Flow<List<ModifierOption>> {
+        return modifierDao?.observeActive()?.map { list -> list.map { it.toDomain() } } ?: flowOf(emptyList())
+    }
+
+    suspend fun saveModifier(modifier: ModifierOption) = withContext(Dispatchers.IO) {
+        val id = if (modifier.id.isBlank()) UUID.randomUUID().toString() else modifier.id
+        modifierDao?.upsert(ModifierEntity.fromDomain(modifier.copy(id = id)))
+    }
+
+    suspend fun deleteModifier(id: String) = withContext(Dispatchers.IO) {
+        modifierDao?.deleteById(id)
+    }
+
+    suspend fun toggleModifierActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
+        modifierDao?.toggleActive(id, isActive)
     }
 
     private fun CategoryEntity.toDomain() = Category(
@@ -215,7 +256,11 @@ class PosRepository(
         emoji = emoji,
         spiceLevel = spiceLevel,
         description = description,
-        isActive = isActive
+        isActive = isActive,
+        allowSpiceLevel = allowSpiceLevel,
+        allowSambal = allowSambal,
+        allowComplimentary = allowComplimentary,
+        allowToppings = allowToppings
     )
 
     fun observeOrders(): Flow<List<Order>> {
@@ -426,7 +471,11 @@ class PosRepository(
                     emoji = it.emoji ?: "🍢",
                     spiceLevel = it.spiceLevel ?: "",
                     description = it.description ?: "",
-                    isActive = it.isActive ?: true
+                    isActive = it.isActive ?: true,
+                    allowSpiceLevel = it.allowSpiceLevel ?: false,
+                    allowSambal = it.allowSambal ?: false,
+                    allowComplimentary = it.allowComplimentary ?: false,
+                    allowToppings = it.allowToppings ?: false
                 )
             })
         }
@@ -443,7 +492,11 @@ class PosRepository(
                     emoji = it.emoji,
                     spiceLevel = it.spiceLevel,
                     description = it.description,
-                    isActive = it.isActive
+                    isActive = it.isActive,
+                    allowSpiceLevel = it.allowSpiceLevel,
+                    allowSambal = it.allowSambal,
+                    allowComplimentary = it.allowComplimentary,
+                    allowToppings = it.allowToppings
                 )
             })
         }

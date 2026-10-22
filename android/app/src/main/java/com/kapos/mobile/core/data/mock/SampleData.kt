@@ -20,7 +20,11 @@ object SampleData {
             costPrice = 14000.0,
             emoji = "🍢",
             spiceLevel = "Pedas",
-            description = "Daging ayam fillet empuk gurih dengan perasan jeruk nipis & sambal rawit khas KA."
+            description = "Daging ayam fillet empuk gurih dengan perasan jeruk nipis & sambal rawit khas KA.",
+            allowSpiceLevel = true,
+            allowSambal = true,
+            allowComplimentary = true,
+            allowToppings = true
         ),
         Product(
             id = "prod_tc_kulit",
@@ -30,7 +34,11 @@ object SampleData {
             costPrice = 11000.0,
             emoji = "🍢",
             spiceLevel = "Pedas",
-            description = "Kulit ayam renyah di luar kenyal di dalam, dibakar dengan bumbu gurih."
+            description = "Kulit ayam renyah di luar kenyal di dalam, dibakar dengan bumbu gurih.",
+            allowSpiceLevel = true,
+            allowSambal = true,
+            allowComplimentary = true,
+            allowToppings = true
         ),
         Product(
             id = "prod_tc_campur",
@@ -40,7 +48,11 @@ object SampleData {
             costPrice = 13000.0,
             emoji = "🍢",
             spiceLevel = "Pedas",
-            description = "Kombinasi 5 tusuk daging fillet dan 5 tusuk kulit renyah."
+            description = "Kombinasi 5 tusuk daging fillet dan 5 tusuk kulit renyah.",
+            allowSpiceLevel = true,
+            allowSambal = true,
+            allowComplimentary = true,
+            allowToppings = true
         ),
         Product(
             id = "prod_tc_paha",
@@ -50,7 +62,11 @@ object SampleData {
             costPrice = 15000.0,
             emoji = "🍢",
             spiceLevel = "Pedas",
-            description = "Daging paha ayam pilihan ekstra juicy berlumur kaldu gurih."
+            description = "Daging paha ayam pilihan ekstra juicy berlumur kaldu gurih.",
+            allowSpiceLevel = true,
+            allowSambal = true,
+            allowComplimentary = true,
+            allowToppings = true
         ),
         Product(
             id = "prod_ay_geprek",
@@ -60,7 +76,11 @@ object SampleData {
             costPrice = 11000.0,
             emoji = "🍗",
             spiceLevel = "Ekstra Pedas",
-            description = "Potongan ayam goreng tepung renyah disiram sambal taichan pedas segar."
+            description = "Potongan ayam goreng tepung renyah disiram sambal taichan pedas segar.",
+            allowSpiceLevel = true,
+            allowSambal = true,
+            allowComplimentary = true,
+            allowToppings = true
         ),
         Product(
             id = "prod_ay_bakar",
@@ -70,7 +90,11 @@ object SampleData {
             costPrice = 12000.0,
             emoji = "🍗",
             spiceLevel = "Sedang",
-            description = "Ayam ungkep bumbu rempah dengan olesan madu bakar aroma asap."
+            description = "Ayam ungkep bumbu rempah dengan olesan madu bakar aroma asap.",
+            allowSpiceLevel = true,
+            allowSambal = true,
+            allowComplimentary = true,
+            allowToppings = true
         ),
         Product(
             id = "prod_nasi",
@@ -79,7 +103,11 @@ object SampleData {
             price = 5000.0,
             costPrice = 2500.0,
             emoji = "🍚",
-            description = "Nasi hangat ditaburi bawang goreng harum."
+            description = "Nasi hangat ditaburi bawang goreng harum.",
+            allowSpiceLevel = false,
+            allowSambal = false,
+            allowComplimentary = false,
+            allowToppings = false
         ),
         Product(
             id = "prod_lontong",
@@ -88,7 +116,11 @@ object SampleData {
             price = 4000.0,
             costPrice = 2000.0,
             emoji = "🍙",
-            description = "Lontong daun lembut pendamping sempurna sate taichan."
+            description = "Lontong daun lembut pendamping sempurna sate taichan.",
+            allowSpiceLevel = false,
+            allowSambal = false,
+            allowComplimentary = false,
+            allowToppings = false
         ),
         Product(
             id = "prod_sambal_xtra",
@@ -97,7 +129,11 @@ object SampleData {
             price = 3000.0,
             costPrice = 1000.0,
             emoji = "🌶️",
-            description = "Cup sambal rawit merah pedas segar + kaldu jamur gurih."
+            description = "Cup sambal rawit merah pedas segar + kaldu jamur gurih.",
+            allowSpiceLevel = false,
+            allowSambal = false,
+            allowComplimentary = false,
+            allowToppings = false
         ),
         Product(
             id = "prod_teh_manis",
@@ -106,7 +142,11 @@ object SampleData {
             price = 5000.0,
             costPrice = 1500.0,
             emoji = "🥤",
-            description = "Teh melati wangi dingin segar pelepas dahaga pedas."
+            description = "Teh melati wangi dingin segar pelepas dahaga pedas.",
+            allowSpiceLevel = false,
+            allowSambal = false,
+            allowComplimentary = false,
+            allowToppings = false
         ),
         Product(
             id = "prod_jeruk_hangat",
@@ -115,7 +155,11 @@ object SampleData {
             price = 8000.0,
             costPrice = 3500.0,
             emoji = "🍊",
-            description = "Perasan jeruk peras asli dengan es batu segar."
+            description = "Perasan jeruk peras asli dengan es batu segar.",
+            allowSpiceLevel = false,
+            allowSambal = false,
+            allowComplimentary = false,
+            allowToppings = false
         ),
         Product(
             id = "prod_mineral",
@@ -124,7 +168,11 @@ object SampleData {
             price = 4000.0,
             costPrice = 2200.0,
             emoji = "💧",
-            description = "Air mineral dingin/biasa."
+            description = "Air mineral dingin/biasa.",
+            allowSpiceLevel = false,
+            allowSambal = false,
+            allowComplimentary = false,
+            allowToppings = false
         )
     )
 

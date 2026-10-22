@@ -52,10 +52,31 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS spice_level TEXT DEFAULT ''
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
-ALTER TABLE public.products ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_spice_level BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_sambal BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_complimentary BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_toppings BOOLEAN DEFAULT FALSE;
 
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_active ON public.products(is_active);
+
+-- Modifiers Table (Level Pedas, Sambal, Complimentary, Extra Toppings, Packaging)
+CREATE TABLE IF NOT EXISTS public.modifiers (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    price DOUBLE PRECISION DEFAULT 0.0,
+    category TEXT NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
+);
+
+ALTER TABLE public.modifiers ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for modifiers" ON public.modifiers;
+CREATE POLICY "Allow all for modifiers" ON public.modifiers
+    FOR ALL USING (TRUE) WITH CHECK (TRUE);
 
 -- ==============================================================================
 -- 3. TRANSACTIONS & SALES TABLES (Orders & Order Items)

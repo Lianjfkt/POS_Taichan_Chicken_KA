@@ -74,8 +74,15 @@ data class Product(
     val spiceLevel: String = "",
     val description: String = "",
     val isActive: Boolean = true,
-    val isSoldOut: Boolean = false
+    val isSoldOut: Boolean = false,
+    val allowSpiceLevel: Boolean = false,
+    val allowSambal: Boolean = false,
+    val allowComplimentary: Boolean = false,
+    val allowToppings: Boolean = false
 ) : Serializable {
+    val hasModifiers: Boolean
+        get() = allowSpiceLevel || allowSambal || allowComplimentary || allowToppings
+
     fun calculateProfitMargin(): Double = (price - costPrice).coerceAtLeast(0.0)
     fun calculateMarginPercentage(): Double {
         if (price <= 0.0) return 0.0
