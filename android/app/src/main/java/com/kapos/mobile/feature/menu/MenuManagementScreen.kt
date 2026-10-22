@@ -134,7 +134,7 @@ fun MenuManagementScreen(
     onOpenAddProduct: () -> Unit,
     onOpenEditProduct: (Product) -> Unit,
     onCloseAddEditProduct: () -> Unit,
-    onSaveProduct: (name: String, categoryId: String?, price: Double, costPrice: Double, emoji: String, spiceLevel: String, description: String, isActive: Boolean) -> Unit,
+    onSaveProduct: (name: String, categoryId: String?, price: Double, costPrice: Double, emoji: String, spiceLevel: String, description: String, isActive: Boolean, allowSpiceLevel: Boolean, allowSambal: Boolean, allowComplimentary: Boolean, allowToppings: Boolean) -> Unit,
     onToggleProductActive: (Product, Boolean) -> Unit,
     onOpenDeleteProduct: (Product) -> Unit,
     onCloseDeleteProduct: () -> Unit,
@@ -824,7 +824,7 @@ fun CategoryItemCard(
 fun AddEditProductDialog(
     product: Product?,
     categories: List<Category>,
-    onSave: (name: String, categoryId: String?, price: Double, costPrice: Double, emoji: String, spiceLevel: String, description: String, isActive: Boolean) -> Unit,
+    onSave: (name: String, categoryId: String?, price: Double, costPrice: Double, emoji: String, spiceLevel: String, description: String, isActive: Boolean, allowSpiceLevel: Boolean, allowSambal: Boolean, allowComplimentary: Boolean, allowToppings: Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     var name by remember { mutableStateOf(product?.name ?: "") }
@@ -835,6 +835,10 @@ fun AddEditProductDialog(
     var spiceLevel by remember { mutableStateOf(product?.spiceLevel ?: "Sedang") }
     var description by remember { mutableStateOf(product?.description ?: "") }
     var isActive by remember { mutableStateOf(product?.isActive ?: true) }
+    var allowSpiceLevel by remember { mutableStateOf(product?.allowSpiceLevel ?: false) }
+    var allowSambal by remember { mutableStateOf(product?.allowSambal ?: false) }
+    var allowComplimentary by remember { mutableStateOf(product?.allowComplimentary ?: false) }
+    var allowToppings by remember { mutableStateOf(product?.allowToppings ?: false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val emojiOptions = listOf("🍢", "🍗", "🍚", "🌶️", "🥤", "🥟", "🍟", "🥩", "🍜", "🧃", "☕", "🥣")
@@ -1016,6 +1020,49 @@ fun AddEditProductDialog(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
+                // Opsi Modifier Tersedia untuk Menu Ini
+                Text(
+                    text = "Opsi Customisasi (tampil saat order)",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = TextSecondary)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf(
+                        Triple("🌶️", "Level Pedas", Triple(allowSpiceLevel, { v: Boolean -> allowSpiceLevel = v }, "Pilih tingkat kepedasan")),
+                        Triple("🥫", "Pilihan Sambal", Triple(allowSambal, { v: Boolean -> allowSambal = v }, "Jenis sambal yang diinginkan")),
+                        Triple("🍽️", "Pelengkap & Alat Makan", Triple(allowComplimentary, { v: Boolean -> allowComplimentary = v }, "Sarung tangan, sendok, tisu")),
+                        Triple("➕", "Ekstra Topping & Kemasan", Triple(allowToppings, { v: Boolean -> allowToppings = v }, "Topping berbayar & kotak"))
+                    ).forEach { (emoji, label, stateTriple) ->
+                        val (checked, onCheck, desc) = stateTriple
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(if (checked) PrimarySoft else SurfaceTint)
+                                .border(1.dp, if (checked) Primary else OutlineSoft, AppShapes.Sm)
+                                .clickable { onCheck(!checked) }
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(text = emoji, fontSize = 14.sp)
+                                Column {
+                                    Text(text = label, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, color = if (checked) Primary else TextPrimary))
+                                    Text(text = desc, style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary))
+                                }
+                            }
+                            Switch(
+                                checked = checked,
+                                onCheckedChange = onCheck,
+                                colors = SwitchDefaults.colors(checkedThumbColor = SurfaceWhite, checkedTrackColor = Primary)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -1042,12 +1089,13 @@ fun AddEditProductDialog(
                             } else if (price <= 0) {
                                 errorMessage = "Harga jual harus lebih dari 0!"
                             } else {
-                                onSave(name, selectedCategoryId, price, costPrice, emoji, spiceLevel, description, isActive)
+                                onSave(name, selectedCategoryId, price, costPrice, emoji, spiceLevel, description, isActive, allowSpiceLevel, allowSambal, allowComplimentary, allowToppings)
                             }
                         },
                         modifier = Modifier.weight(1.3f)
                     )
                 }
+
             }
         }
     }
