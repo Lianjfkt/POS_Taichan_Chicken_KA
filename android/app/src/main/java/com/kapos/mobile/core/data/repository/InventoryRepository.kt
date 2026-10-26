@@ -4,7 +4,6 @@ import com.kapos.mobile.core.data.local.AppDatabase
 import com.kapos.mobile.core.data.local.entity.RawMaterialEntity
 import com.kapos.mobile.core.data.local.entity.RecipeItemEntity
 import com.kapos.mobile.core.data.local.entity.StockMovementEntity
-import com.kapos.mobile.core.data.mock.SampleData
 import com.kapos.mobile.domain.model.CartItem
 import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RawMaterialCategory
@@ -33,63 +32,6 @@ class InventoryRepository(
     private val stockMovementDao = database.stockMovementDao()
     private val materialBatchDao = database.materialBatchDao()
     private val productDao = database.productDao()
-
-    init {
-        scope.launch {
-            seedInitialDataIfEmpty()
-        }
-    }
-
-    private suspend fun seedInitialDataIfEmpty() = withContext(Dispatchers.IO) {
-        val existingMaterials = rawMaterialDao.getAll()
-        val now = System.currentTimeMillis()
-        if (existingMaterials.isEmpty()) {
-            val entities = SampleData.rawMaterials.map {
-                RawMaterialEntity(
-                    id = it.id,
-                    name = it.name,
-                    category = it.category.name,
-                    unit = it.unit,
-                    currentStock = it.currentStock,
-                    minStock = it.minStock,
-                    costPerUnit = it.costPerUnit,
-                    lastRestockedAt = it.lastRestockedAt,
-                    earliestExpiryDate = now + (7L * 24 * 60 * 60 * 1000), // Default 7 days
-                    hasExpiredBatch = false
-                )
-            }
-            rawMaterialDao.upsertAll(entities)
-
-            // Seed initial batches for each material
-            val initialBatches = entities.map { mat ->
-                MaterialBatchEntity(
-                    id = UUID.randomUUID().toString(),
-                    materialId = mat.id,
-                    batchNumber = "B-INIT-${mat.name.take(3).uppercase()}",
-                    initialQuantity = mat.currentStock,
-                    remainingQuantity = mat.currentStock,
-                    costTotal = mat.currentStock * mat.costPerUnit,
-                    costPerUnit = mat.costPerUnit,
-                    receivedDate = now,
-                    expiryDate = now + (7L * 24 * 60 * 60 * 1000),
-                    isUsable = true,
-                    notes = "Stok Awal Sistem"
-                )
-            }
-            materialBatchDao.upsertAll(initialBatches)
-        }
-
-        val existingRecipes = recipeDao.getAll()
-        if (existingRecipes.isEmpty()) {
-            recipeDao.upsertAll(SampleData.recipeItems)
-        }
-        
-        // Recalculate BOP for all products
-        val allProducts = productDao.getAll()
-        for (prod in allProducts) {
-            recalculateProductBop(prod.id)
-        }
-    }
 
     fun observeRawMaterials(): Flow<List<RawMaterial>> {
         return rawMaterialDao.observeAll().map { list ->

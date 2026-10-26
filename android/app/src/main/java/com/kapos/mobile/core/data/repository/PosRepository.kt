@@ -5,7 +5,6 @@ import com.kapos.mobile.core.data.local.entity.CategoryEntity
 import com.kapos.mobile.core.data.local.entity.OrderEntity
 import com.kapos.mobile.core.data.local.entity.OrderItemEntity
 import com.kapos.mobile.core.data.local.entity.ProductEntity
-import com.kapos.mobile.core.data.mock.SampleData
 import com.kapos.mobile.core.data.remote.SupabaseClient
 import com.kapos.mobile.core.data.remote.dto.SupabaseCategoryDto
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderItemPayload
@@ -33,7 +32,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.kapos.mobile.core.data.local.entity.ModifierEntity
 import com.kapos.mobile.domain.model.ModifierOption
-import com.kapos.mobile.domain.model.PresetModifiers
 import com.kapos.mobile.core.data.repository.CustomerRepository
 import java.util.UUID
 
@@ -60,9 +58,7 @@ class PosRepository(
     val lastSyncTime: StateFlow<Long?> = _lastSyncTime.asStateFlow()
 
     init {
-        // Seed default sample data if local database is empty
         scope.launch {
-            seedInitialDataIfEmpty()
             syncAll()
         }
         // Auto-sync periodik selama app aktif
@@ -88,53 +84,6 @@ class PosRepository(
                 // Jika nonaktif, cukup periksa setiap 1 menit apakah diaktifkan kembali
                 delay(60 * 1000L)
             }
-        }
-    }
-
-    private suspend fun seedInitialDataIfEmpty() = withContext(Dispatchers.IO) {
-        val existingCats = categoryDao?.getAll() ?: return@withContext
-        if (existingCats.isEmpty()) {
-            val catEntities = SampleData.categories.map {
-                CategoryEntity(
-                    id = it.id,
-                    name = it.name,
-                    emoji = it.emoji,
-                    color = it.color,
-                    sortOrder = it.sortOrder,
-                    isActive = it.isActive
-                )
-            }
-            categoryDao.upsertAll(catEntities)
-        }
-
-        val existingProds = productDao?.getAll() ?: return@withContext
-        if (existingProds.isEmpty()) {
-            val prodEntities = SampleData.products.map {
-                ProductEntity(
-                    id = it.id,
-                    categoryId = it.categoryId,
-                    name = it.name,
-                    price = it.price,
-                    costPrice = it.costPrice,
-                    emoji = it.emoji,
-                    spiceLevel = it.spiceLevel,
-                    description = it.description,
-                    isActive = it.isActive,
-                    allowSpiceLevel = it.allowSpiceLevel,
-                    allowSambal = it.allowSambal,
-                    allowComplimentary = it.allowComplimentary,
-                    allowToppings = it.allowToppings
-                )
-            }
-            productDao.upsertAll(prodEntities)
-        }
-
-        val existingMods = modifierDao?.getAll() ?: return@withContext
-        if (existingMods.isEmpty()) {
-            val modEntities = PresetModifiers.allOptions.map {
-                ModifierEntity.fromDomain(it)
-            }
-            modifierDao.upsertAll(modEntities)
         }
     }
 
