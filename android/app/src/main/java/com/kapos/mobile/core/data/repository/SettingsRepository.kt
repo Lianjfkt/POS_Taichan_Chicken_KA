@@ -2,6 +2,7 @@ package com.kapos.mobile.core.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.kapos.mobile.core.config.AppConfig
 import com.kapos.mobile.domain.model.AuthSession
 import com.kapos.mobile.domain.model.UserRole
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,8 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class AppSettings(
-    val supabaseUrl: String = "",
-    val supabaseAnonKey: String = "",
+    val supabaseUrl: String = AppConfig.DEFAULT_SUPABASE_URL,
+    val supabaseAnonKey: String = AppConfig.DEFAULT_SUPABASE_ANON_KEY,
     val storeName: String = "Taichan & Chicken KA",
     val storeAddress: String = "Bandar Lampung",
     val storePhone: String = "081234567890",
@@ -26,6 +27,7 @@ data class AppSettings(
     val dailyRevenueTarget: Double = 1500000.0,
     val staffList: String = "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
     val autoLockMinutes: Int = 2,
+    val autoSyncIntervalMinutes: Int = 5,
     val currentSession: AuthSession = AuthSession(
         isLoggedIn = false,
         role = UserRole.CASHIER,
@@ -48,9 +50,14 @@ class SettingsRepository(context: Context? = null) {
         val sessionRole = try { UserRole.valueOf(sessionRoleStr) } catch (e: Exception) { UserRole.CASHIER }
         val sessionCashierName = prefs.getString("session_cashier_name", "Kasir Utama") ?: "Kasir Utama"
 
+        val storedUrl = prefs.getString("supabase_url", null)
+        val storedKey = prefs.getString("supabase_anon_key", null)
+        val finalUrl = if (storedUrl.isNullOrBlank()) AppConfig.DEFAULT_SUPABASE_URL else storedUrl
+        val finalKey = if (storedKey.isNullOrBlank()) AppConfig.DEFAULT_SUPABASE_ANON_KEY else storedKey
+
         return AppSettings(
-            supabaseUrl = prefs.getString("supabase_url", "") ?: "",
-            supabaseAnonKey = prefs.getString("supabase_anon_key", "") ?: "",
+            supabaseUrl = finalUrl,
+            supabaseAnonKey = finalKey,
             storeName = prefs.getString("store_name", "Taichan & Chicken KA") ?: "Taichan & Chicken KA",
             storeAddress = prefs.getString("store_address", "Bandar Lampung") ?: "Bandar Lampung",
             storePhone = prefs.getString("store_phone", "081234567890") ?: "081234567890",
@@ -66,6 +73,7 @@ class SettingsRepository(context: Context? = null) {
             dailyRevenueTarget = prefs.getFloat("daily_revenue_target", 1500000f).toDouble(),
             staffList = prefs.getString("staff_list", "Kasir Utama,Kasir Pagi,Kasir Malam,Manager") ?: "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
             autoLockMinutes = prefs.getInt("auto_lock_minutes", 2),
+            autoSyncIntervalMinutes = prefs.getInt("auto_sync_interval_minutes", 5),
             currentSession = AuthSession(
                 isLoggedIn = isSessionActive,
                 role = sessionRole,
@@ -93,6 +101,7 @@ class SettingsRepository(context: Context? = null) {
             ?.putFloat("daily_revenue_target", settings.dailyRevenueTarget.toFloat())
             ?.putString("staff_list", settings.staffList)
             ?.putInt("auto_lock_minutes", settings.autoLockMinutes)
+            ?.putInt("auto_sync_interval_minutes", settings.autoSyncIntervalMinutes)
             ?.apply()
         _settingsFlow.value = settings
     }

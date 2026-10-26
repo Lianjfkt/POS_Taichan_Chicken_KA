@@ -12,6 +12,7 @@ import com.kapos.mobile.domain.model.CashMovementType
 import com.kapos.mobile.domain.model.Order
 import com.kapos.mobile.domain.model.PaymentMethod
 import com.kapos.mobile.domain.model.PaymentStatus
+import com.kapos.mobile.domain.model.calculatePaymentSplit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -90,13 +91,12 @@ class ShiftViewModel(
         val shiftOrders = allOrders.filter {
             it.createdAt >= shift.openedAt && it.paymentStatus == PaymentStatus.PAID
         }
-        val cash = shiftOrders.filter { it.paymentMethod == PaymentMethod.CASH }.sumOf { it.total }
-        val nonCash = shiftOrders.filter { it.paymentMethod != PaymentMethod.CASH }.sumOf { it.total }
+        val split = shiftOrders.calculatePaymentSplit()
 
         _uiState.update {
             it.copy(
-                cashSales = cash,
-                nonCashSales = nonCash
+                cashSales = split.cashTotal,
+                nonCashSales = split.nonCashTotal
             )
         }
     }

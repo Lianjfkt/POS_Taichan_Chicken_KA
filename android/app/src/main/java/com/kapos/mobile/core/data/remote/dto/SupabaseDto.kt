@@ -23,7 +23,11 @@ data class SupabaseProductDto(
     val emoji: String? = "🍢",
     @SerialName("spice_level") val spiceLevel: String? = "",
     val description: String? = "",
-    @SerialName("is_active") val isActive: Boolean? = true
+    @SerialName("is_active") val isActive: Boolean? = true,
+    @SerialName("allow_spice_level") val allowSpiceLevel: Boolean? = false,
+    @SerialName("allow_sambal") val allowSambal: Boolean? = false,
+    @SerialName("allow_complimentary") val allowComplimentary: Boolean? = false,
+    @SerialName("allow_toppings") val allowToppings: Boolean? = false
 )
 
 @Serializable

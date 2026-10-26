@@ -10,6 +10,9 @@ import com.kapos.mobile.domain.model.FinancialSummary
 import com.kapos.mobile.domain.model.Order
 import com.kapos.mobile.domain.model.PaymentMethod
 import com.kapos.mobile.domain.model.PaymentStatus
+import com.kapos.mobile.domain.model.OrderItem
+import com.kapos.mobile.domain.model.Product
+import com.kapos.mobile.domain.model.calculatePaymentSplit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +30,8 @@ class AnalyticsViewModel(
     val uiState: StateFlow<AnalyticsUiState> = _uiState.asStateFlow()
 
     private var allOrders: List<Order> = emptyList()
+    private var allOrderItems: List<OrderItem> = emptyList()
+    private var allProducts: List<Product> = emptyList()
 
     init {
         posRepository?.let { repo ->
@@ -36,15 +41,23 @@ class AnalyticsViewModel(
                     recalculateMetrics()
                 }
             }
+            scope.launch {
+                repo.observeAllOrderItems().collect { items ->
+                    allOrderItems = items
+                    recalculateMetrics()
+                }
+            }
+            scope.launch {
+                repo.observeAllProducts(includeInactive = true).collect { prods ->
+                    allProducts = prods
+                    recalculateMetrics()
+                }
+            }
         }
     }
 
     fun onPeriodChange(period: AnalyticsPeriod) {
-        val preset = when (period) {
-            AnalyticsPeriod.TODAY -> DateFilterPreset.TODAY
-            AnalyticsPeriod.WEEK -> DateFilterPreset.LAST_7_DAYS
-            AnalyticsPeriod.MONTH -> DateFilterPreset.THIS_MONTH
-        }
+        val preset = period.toDateFilterPreset()
         _uiState.value = _uiState.value.copy(
             selectedPeriod = period,
             dateFilter = _uiState.value.dateFilter.copy(preset = preset)
@@ -53,12 +66,7 @@ class AnalyticsViewModel(
     }
 
     fun onDatePresetChange(preset: DateFilterPreset) {
-        val period = when (preset) {
-            DateFilterPreset.TODAY -> AnalyticsPeriod.TODAY
-            DateFilterPreset.LAST_7_DAYS -> AnalyticsPeriod.WEEK
-            DateFilterPreset.THIS_MONTH -> AnalyticsPeriod.MONTH
-            else -> _uiState.value.selectedPeriod
-        }
+        val period = AnalyticsPeriod.fromDateFilterPreset(preset) ?: _uiState.value.selectedPeriod
         _uiState.value = _uiState.value.copy(
             selectedPeriod = period,
             dateFilter = _uiState.value.dateFilter.copy(preset = preset)
@@ -106,17 +114,29 @@ class AnalyticsViewModel(
         val grossRev = periodOrders.sumOf { it.total }
         val settings = settingsRepository.settingsFlow.value
 
-        // Estimasi HPP bahan: 55% dari Omzet jika detail BOM belum diinput kasir
-        val estimatedCogs = grossRev * 0.55
+        // Kalkulasi HPP: Gunakan data riil costPrice dari Room database jika tersedia
+        val productCostMap = allProducts.associate { it.id to it.costPrice }
+        val periodOrderIds = periodOrders.map { it.id }.toSet()
+        val periodItems = allOrderItems.filter { it.orderId in periodOrderIds }
+
+        val actualCogs = if (periodItems.isNotEmpty()) {
+            periodItems.sumOf { item ->
+                val unitCost = productCostMap[item.productId] ?: (item.price * 0.55)
+                unitCost * item.quantity
+            }
+        } else {
+            // Estimasi HPP bahan fallback: 55% jika order items belum tercatat atau mode test
+            grossRev * 0.55
+        }
+
         val fixedCost = settings.dailyFixedCost * days
         val bepTarget = settings.dailyRevenueTarget * days
 
-        val cash = periodOrders.filter { it.paymentMethod == PaymentMethod.CASH }.sumOf { it.total }
-        val nonCash = periodOrders.filter { it.paymentMethod != PaymentMethod.CASH }.sumOf { it.total }
+        val paymentSplit = periodOrders.calculatePaymentSplit()
 
         val summary = FinancialSummary(
             grossRevenue = grossRev,
-            totalCogs = estimatedCogs,
+            totalCogs = actualCogs,
             fixedCost = fixedCost,
             bepRevenueTarget = bepTarget,
             transactionCount = periodOrders.size
@@ -124,8 +144,8 @@ class AnalyticsViewModel(
 
         _uiState.value = _uiState.value.copy(
             summary = summary,
-            cashTotal = cash,
-            nonCashTotal = nonCash
+            cashTotal = paymentSplit.cashTotal,
+            nonCashTotal = paymentSplit.nonCashTotal
         )
     }
 }

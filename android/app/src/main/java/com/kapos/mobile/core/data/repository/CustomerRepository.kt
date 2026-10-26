@@ -2,7 +2,6 @@ package com.kapos.mobile.core.data.repository
 
 import com.kapos.mobile.core.data.local.AppDatabase
 import com.kapos.mobile.core.data.local.entity.CustomerEntity
-import com.kapos.mobile.core.data.mock.SampleData
 import com.kapos.mobile.domain.model.Customer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,30 +16,6 @@ class CustomerRepository(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
     private val customerDao = database.customerDao()
-
-    init {
-        scope.launch {
-            seedInitialDataIfEmpty()
-        }
-    }
-
-    private suspend fun seedInitialDataIfEmpty() = withContext(Dispatchers.IO) {
-        val existing = customerDao.getAll()
-        if (existing.isEmpty()) {
-            val entities = SampleData.customers.map {
-                CustomerEntity(
-                    id = it.id,
-                    name = it.name,
-                    phone = it.phone,
-                    points = it.points,
-                    totalSpend = it.totalSpend,
-                    orderCount = it.orderCount,
-                    createdAt = it.createdAt
-                )
-            }
-            customerDao.upsertAll(entities)
-        }
-    }
 
     fun observeCustomers(): Flow<List<Customer>> {
         return customerDao.observeAll().map { list ->

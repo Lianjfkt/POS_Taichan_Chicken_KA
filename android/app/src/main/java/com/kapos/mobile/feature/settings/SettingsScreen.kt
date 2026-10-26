@@ -1,5 +1,9 @@
 package com.kapos.mobile.feature.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -22,9 +26,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Print
@@ -33,9 +39,10 @@ import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material3.Divider
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,10 +53,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,8 +78,196 @@ import com.kapos.mobile.core.theme.SurfaceTint
 import com.kapos.mobile.core.theme.SurfaceWhite
 import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
-import androidx.compose.material.icons.filled.Logout
 import com.kapos.mobile.core.theme.Warning
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ExpandableSection: Accordion card — header selalu tampil, konten collapsible
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun ExpandableSection(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    initialExpanded: Boolean = false,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    var expanded by remember { mutableStateOf(initialExpanded) }
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "chevron"
+    )
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(AppShapes.Md)
+            .background(SurfaceWhite)
+            .border(1.dp, OutlineSoft, AppShapes.Md)
+    ) {
+        // ── Header row (always visible, tap to expand/collapse) ───────────
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(if (expanded) Primary else PrimarySoft),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = if (expanded) SurfaceWhite else Primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (expanded) Primary else TextPrimary
+                        )
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                    )
+                }
+            }
+            Icon(
+                imageVector = Icons.Default.ExpandMore,
+                contentDescription = null,
+                tint = if (expanded) Primary else TextSecondary,
+                modifier = Modifier
+                    .size(22.dp)
+                    .rotate(chevronRotation)
+            )
+        }
+
+        // ── Collapsible content ───────────────────────────────────────────
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column {
+                HorizontalDivider(color = OutlineSoft, thickness = 0.8.dp)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    content()
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NavTile: baris navigasi tap-able dengan chevron ke kanan
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun NavTile(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(AppShapes.Sm)
+            .background(SurfaceTint)
+            .border(1.dp, OutlineSoft, AppShapes.Sm)
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(PrimarySoft),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                )
+            }
+        }
+        Icon(
+            Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = TextSecondary,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SettingsTextField helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        singleLine = true,
+        shape = AppShapes.Sm,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Primary,
+            unfocusedBorderColor = OutlineSoft
+        ),
+        modifier = modifier.fillMaxWidth()
+    )
+}
+
+// =============================================================================
+// Route
+// =============================================================================
 
 @Composable
 fun SettingsRoute(
@@ -77,6 +277,7 @@ fun SettingsRoute(
     onNavigateToMenuManagement: () -> Unit = {},
     onNavigateToCustomers: () -> Unit = {},
     onNavigateToReport: () -> Unit = {},
+    onNavigateToAnalytics: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -85,7 +286,6 @@ fun SettingsRoute(
     ) {
         viewModel.loadPairedPrinters()
     }
-
     val uiState by viewModel.uiState.collectAsState()
 
     SettingsScreen(
@@ -95,6 +295,7 @@ fun SettingsRoute(
         onNavigateToMenuManagement = onNavigateToMenuManagement,
         onNavigateToCustomers = onNavigateToCustomers,
         onNavigateToReport = onNavigateToReport,
+        onNavigateToAnalytics = onNavigateToAnalytics,
         onUrlChange = viewModel::onUrlChange,
         onAnonKeyChange = viewModel::onAnonKeyChange,
         onStoreNameChange = viewModel::onStoreNameChange,
@@ -125,13 +326,18 @@ fun SettingsRoute(
         onTestConnection = viewModel::testConnection,
         onSyncNow = viewModel::syncNow,
         onSelectActiveStaff = viewModel::onSelectActiveStaff,
-        onAddStaff = viewModel::onAddStaff,
         onAutoLockMinutesChange = viewModel::onAutoLockMinutesChange,
+        onAutoSyncIntervalChange = viewModel::onAutoSyncIntervalChange,
         onExportBackup = { viewModel.exportDatabaseBackup(context) },
         onImportBackup = viewModel::importDatabaseBackup,
+        onResetDatabase = viewModel::resetDatabase,
         modifier = modifier
     )
 }
+
+// =============================================================================
+// Main Screen
+// =============================================================================
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,6 +348,7 @@ fun SettingsScreen(
     onNavigateToMenuManagement: () -> Unit = {},
     onNavigateToCustomers: () -> Unit = {},
     onNavigateToReport: () -> Unit = {},
+    onNavigateToAnalytics: () -> Unit = {},
     onUrlChange: (String) -> Unit,
     onAnonKeyChange: (String) -> Unit,
     onStoreNameChange: (String) -> Unit,
@@ -163,10 +370,11 @@ fun SettingsScreen(
     onTestConnection: () -> Unit,
     onSyncNow: () -> Unit,
     onSelectActiveStaff: (String) -> Unit = {},
-    onAddStaff: (String) -> Unit = {},
     onAutoLockMinutesChange: (Int) -> Unit = {},
+    onAutoSyncIntervalChange: (Int) -> Unit = {},
     onExportBackup: () -> Unit = {},
     onImportBackup: (String) -> Unit = {},
+    onResetDatabase: (String, (Boolean) -> Unit) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -176,13 +384,14 @@ fun SettingsScreen(
         uri?.let {
             try {
                 context.contentResolver.openInputStream(it)?.bufferedReader()?.use { reader ->
-                    val content = reader.readText()
-                    onImportBackup(content)
+                    onImportBackup(reader.readText())
                 }
             } catch (_: Exception) {}
         }
     }
     val scrollState = rememberScrollState()
+    var showResetDialog by remember { mutableStateOf(false) }
+    var resetPinInput by remember { mutableStateOf("") }
 
     Box(
         modifier = modifier
@@ -197,7 +406,8 @@ fun SettingsScreen(
                 .verticalScroll(scrollState)
                 .padding(bottom = 100.dp)
         ) {
-            // Header
+
+            // ── Top Bar ───────────────────────────────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -214,11 +424,10 @@ fun SettingsScreen(
                         )
                     )
                     Text(
-                        text = "Koneksi Supabase, Profil Gerai & Akses",
+                        text = "Pilih kategori untuk mengatur",
                         style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                     )
                 }
-
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(
                         modifier = Modifier
@@ -236,7 +445,6 @@ fun SettingsScreen(
                             modifier = Modifier.size(16.dp)
                         )
                     }
-
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -247,7 +455,7 @@ fun SettingsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Logout,
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
                             contentDescription = "Logout",
                             tint = Danger,
                             modifier = Modifier.size(16.dp)
@@ -256,365 +464,82 @@ fun SettingsScreen(
                 }
             }
 
+            // ── Accordion Sections ────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Section 0: Hub Kelola Menu & Pelanggan
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Md)
-                        .background(SurfaceWhite)
-                        .border(1.dp, OutlineSoft, AppShapes.Md)
-                        .padding(16.dp)
+
+                // ── 1. OPERASIONAL ────────────────────────────────────────────
+                ExpandableSection(
+                    icon = Icons.Default.RestaurantMenu,
+                    title = "Operasional",
+                    subtitle = "Menu, pelanggan & laporan penjualan"
                 ) {
-                    Column {
-                        Text(
-                            text = "Kelola Bisnis & Operasional",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NavTile(
+                            icon = Icons.Default.RestaurantMenu,
+                            title = "Kelola Menu & Kategori",
+                            subtitle = "Tambah produk, atur harga, HPP modal & kategori",
+                            onClick = onNavigateToMenuManagement
                         )
-                        Text(
-                            text = "Akses cepat manajemen master menu dan data member",
-                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        NavTile(
+                            icon = Icons.Default.People,
+                            title = "Kelola Pelanggan (CRM) & Poin",
+                            subtitle = "Database member, riwayat belanja & loyalty points",
+                            onClick = onNavigateToCustomers
                         )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Menu Management Tile
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(AppShapes.Sm)
-                                .background(SurfaceTint)
-                                .border(1.dp, OutlineSoft, AppShapes.Sm)
-                                .clickable(onClick = onNavigateToMenuManagement)
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                        .background(PrimarySoft),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.RestaurantMenu,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = "Kelola Menu & Kategori",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary
-                                        )
-                                    )
-                                    Text(
-                                        text = "Tambah produk, atur harga, HPP modal & kategori",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                                    )
-                                }
-                            }
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                contentDescription = null,
-                                tint = TextSecondary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Customer Management Tile
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(AppShapes.Sm)
-                                .background(SurfaceTint)
-                                .border(1.dp, OutlineSoft, AppShapes.Sm)
-                                .clickable(onClick = onNavigateToCustomers)
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                        .background(PrimarySoft),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.People,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = "Kelola Pelanggan (CRM) & Poin",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary
-                                        )
-                                    )
-                                    Text(
-                                        text = "Database member, riwayat belanja & loyalty points",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                                    )
-                                }
-                            }
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                contentDescription = null,
-                                tint = TextSecondary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Sales Report & Summary Tile
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(AppShapes.Sm)
-                                .background(SurfaceTint)
-                                .border(1.dp, OutlineSoft, AppShapes.Sm)
-                                .clickable(onClick = onNavigateToReport)
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                        .background(PrimarySoft),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.Assessment,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = "Laporan & Rekap Penjualan",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary
-                                        )
-                                    )
-                                    Text(
-                                        text = "Cetak rekap harian, shift, laba kotor & export",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                                    )
-                                }
-                            }
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                contentDescription = null,
-                                tint = TextSecondary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                }
-
-                // Section 1: Supabase Configuration
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Md)
-                        .background(SurfaceWhite)
-                        .border(1.dp, OutlineSoft, AppShapes.Md)
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimarySoft),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Cloud,
-                                    contentDescription = null,
-                                    tint = Primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = "Koneksi Cloud Supabase",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = uiState.supabaseUrl,
-                            onValueChange = onUrlChange,
-                            label = { Text("Supabase URL (https://xxx.supabase.co)") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                        NavTile(
+                            icon = Icons.Default.Assessment,
+                            title = "Laporan & Rekap Penjualan",
+                            subtitle = "Cetak rekap harian, shift, laba kotor & export",
+                            onClick = onNavigateToReport
                         )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        OutlinedTextField(
-                            value = uiState.supabaseAnonKey,
-                            onValueChange = onAnonKeyChange,
-                            label = { Text("Supabase Anon Public Key") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        if (uiState.connectionStatusMessage != null) {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            val isSuccess = uiState.isConnectionSuccess == true
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(AppShapes.Sm)
-                                    .background(if (isSuccess) Color(0xFFE8F7EE) else Color(0xFFFDE4E5))
-                                    .padding(10.dp)
-                            ) {
-                                Text(
-                                    text = uiState.connectionStatusMessage,
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        color = if (isSuccess) Success else Danger,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        SecondaryButton(
-                            text = if (uiState.isTestingConnection) "Menguji Koneksi..." else "Tes Koneksi Cloud",
-                            onClick = onTestConnection,
-                            enabled = !uiState.isTestingConnection
+                        NavTile(
+                            icon = Icons.Default.BarChart,
+                            title = "Analisa Keuangan",
+                            subtitle = "Grafik revenue, BEP, HPP & tren penjualan",
+                            onClick = onNavigateToAnalytics
                         )
                     }
                 }
 
-                // Section 2: Store Information
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Md)
-                        .background(SurfaceWhite)
-                        .border(1.dp, OutlineSoft, AppShapes.Md)
-                        .padding(16.dp)
+                // ── 2. PROFIL GERAI ───────────────────────────────────────────
+                ExpandableSection(
+                    icon = Icons.Default.Store,
+                    title = "Profil Gerai & Kasir",
+                    subtitle = "Nama toko, alamat, footer struk & kasir aktif"
                 ) {
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimarySoft),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Store,
-                                    contentDescription = null,
-                                    tint = Primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = "Profil Gerai & Kasir",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = uiState.storeName,
-                            onValueChange = onStoreNameChange,
-                            label = { Text("Nama Toko / Gerai") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
+                        SettingsTextField(uiState.storeName, onStoreNameChange, "Nama Toko / Gerai")
                         Spacer(modifier = Modifier.height(10.dp))
-
-                        OutlinedTextField(
-                            value = uiState.storeAddress,
-                            onValueChange = onStoreAddressChange,
-                            label = { Text("Alamat Toko") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
+                        SettingsTextField(uiState.storeAddress, onStoreAddressChange, "Alamat Toko")
                         Spacer(modifier = Modifier.height(10.dp))
+                        SettingsTextField(uiState.storePhone, onStorePhoneChange, "Nomor Telepon Toko")
+                        Spacer(modifier = Modifier.height(10.dp))
+                        SettingsTextField(uiState.receiptFooter, onReceiptFooterChange, "Pesan Kaki Struk (Footer)")
 
-                        OutlinedTextField(
-                            value = uiState.cashierName,
-                            onValueChange = onCashierNameChange,
-                            label = { Text("Nama Kasir Aktif") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = OutlineSoft)
+
+                        Text(
+                            text = "Kasir Aktif",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        SettingsTextField(uiState.cashierName, onCashierNameChange, "Nama Kasir Aktif")
 
                         if (uiState.staffList.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Pilih Kasir Bertugas:",
-                                style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontWeight = FontWeight.SemiBold)
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = TextSecondary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -642,79 +567,16 @@ fun SettingsScreen(
                                 }
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        OutlinedTextField(
-                            value = uiState.storePhone,
-                            onValueChange = onStorePhoneChange,
-                            label = { Text("Nomor Telepon Toko") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        OutlinedTextField(
-                            value = uiState.receiptFooter,
-                            onValueChange = onReceiptFooterChange,
-                            label = { Text("Pesan Kaki Struk (Footer)") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
                     }
                 }
 
-                // Section 2C: Keamanan & Otorisasi PIN
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Md)
-                        .background(SurfaceWhite)
-                        .border(1.dp, OutlineSoft, AppShapes.Md)
-                        .padding(16.dp)
+                // ── 3. KEAMANAN ───────────────────────────────────────────────
+                ExpandableSection(
+                    icon = Icons.Default.Lock,
+                    title = "Keamanan & PIN Akses",
+                    subtitle = "PIN Kasir, PIN Owner & kunci otomatis"
                 ) {
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimarySoft),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = null,
-                                    tint = Primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = "Keamanan & PIN Akses",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                                )
-                                Text(
-                                    text = "PIN keypad 4-digit untuk Kasir dan Owner",
-                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -731,7 +593,6 @@ fun SettingsScreen(
                                 ),
                                 modifier = Modifier.weight(1f)
                             )
-
                             OutlinedTextField(
                                 value = uiState.ownerPin,
                                 onValueChange = onOwnerPinChange,
@@ -746,131 +607,75 @@ fun SettingsScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = OutlineSoft)
 
-                        // Auto-lock Inactivity setting
                         Text(
                             text = "Kunci Otomatis (Inactivity Timer)",
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            listOf(
-                                0 to "Nonaktif",
-                                1 to "1 Menit",
-                                2 to "2 Menit",
-                                5 to "5 Menit"
-                            ).forEach { (mins, label) ->
-                                val isSelected = uiState.autoLockMinutes == mins
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(AppShapes.Sm)
-                                        .background(if (isSelected) Primary else SurfaceTint)
-                                        .clickable { onAutoLockMinutesChange(mins) }
-                                        .padding(vertical = 8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = label,
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            color = if (isSelected) SurfaceWhite else TextPrimary,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            listOf(0 to "Nonaktif", 1 to "1 Mnt", 2 to "2 Mnt", 5 to "5 Mnt")
+                                .forEach { (mins, label) ->
+                                    val isSelected = uiState.autoLockMinutes == mins
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(AppShapes.Sm)
+                                            .background(if (isSelected) Primary else SurfaceTint)
+                                            .border(1.dp, if (isSelected) Primary else OutlineSoft, AppShapes.Sm)
+                                            .clickable { onAutoLockMinutesChange(mins) }
+                                            .padding(vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                color = if (isSelected) SurfaceWhite else TextPrimary,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            )
                                         )
-                                    )
+                                    }
                                 }
-                            }
                         }
                     }
                 }
 
-                // Section 2D: Target Finansial & Titik Impas (BEP)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Md)
-                        .background(SurfaceWhite)
-                        .border(1.dp, OutlineSoft, AppShapes.Md)
-                        .padding(16.dp)
+                // ── 4. FINANSIAL ──────────────────────────────────────────────
+                ExpandableSection(
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                    title = "Target Finansial & BEP",
+                    subtitle = "Omzet harian & titik impas (break-even point)"
                 ) {
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimarySoft),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.TrendingUp,
-                                    contentDescription = null,
-                                    tint = Primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = "Target Finansial & Titik Impas (BEP)",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                                )
-                                Text(
-                                    text = "Parameter kalkulasi progres BEP harian",
-                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        OutlinedTextField(
+                        SettingsTextField(
                             value = "%.0f".format(uiState.dailyRevenueTarget),
                             onValueChange = { str ->
                                 val clean = str.filter { it.isDigit() }
                                 onDailyRevenueTargetChange(clean.toDoubleOrNull() ?: 0.0)
                             },
-                            label = { Text("Target Omzet Harian (Rp)") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                            label = "Target Omzet Harian (Rp)"
                         )
-
                         Spacer(modifier = Modifier.height(10.dp))
-
-                        OutlinedTextField(
+                        SettingsTextField(
                             value = "%.0f".format(uiState.dailyFixedCost),
                             onValueChange = { str ->
                                 val clean = str.filter { it.isDigit() }
                                 onDailyFixedCostChange(clean.toDoubleOrNull() ?: 0.0)
                             },
-                            label = { Text("Beban Tetap Harian (Sewa, Listrik, Gaji) (Rp)") },
-                            singleLine = true,
-                            shape = AppShapes.Sm,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                            label = "Beban Tetap Harian (Sewa, Listrik, Gaji) (Rp)"
                         )
                     }
                 }
 
-                // Section 2B: Pengaturan Printer Thermal (Bluetooth)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Md)
-                        .background(SurfaceWhite)
-                        .border(1.dp, OutlineSoft, AppShapes.Md)
-                        .padding(16.dp)
+                // ── 5. PRINTER ────────────────────────────────────────────────
+                ExpandableSection(
+                    icon = Icons.Default.Print,
+                    title = "Printer Thermal",
+                    subtitle = "Bluetooth ESC/POS, ukuran kertas & cetak otomatis"
                 ) {
                     Column {
                         Row(
@@ -878,46 +683,17 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                        .background(PrimarySoft),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Print,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(
-                                        text = "Printer Thermal (Bluetooth)",
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                                    )
-                                    Text(
-                                        text = "ESC/POS Struk Kasir 58mm / 80mm",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                                    )
-                                }
-                            }
-
+                            Text(
+                                text = "Pilih Printer (Paired):",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                            )
                             IconButton(onClick = onRefreshPrinters) {
-                                Icon(
-                                    imageVector = Icons.Default.Refresh,
-                                    contentDescription = "Refresh",
-                                    tint = Primary
-                                )
+                                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Primary)
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
                         if (!uiState.hasBluetoothPermission) {
+                            Spacer(modifier = Modifier.height(8.dp))
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -928,14 +704,13 @@ fun SettingsScreen(
                             ) {
                                 Column {
                                     Text(
-                                        text = "Izin Perangkat Sekitar Diperlukan",
+                                        text = "Izin Bluetooth Diperlukan",
                                         style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary
+                                            fontWeight = FontWeight.Bold, color = TextPrimary
                                         )
                                     )
                                     Text(
-                                        text = "Android 12+ memerlukan izin koneksi Bluetooth untuk mendeteksi dan menghubungkan printer thermal.",
+                                        text = "Android 12+ memerlukan izin Bluetooth untuk mendeteksi printer.",
                                         style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -946,22 +721,14 @@ fun SettingsScreen(
                                     )
                                 }
                             }
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
-
-                        Text(
-                            text = "Pilih Printer yang Terpasang (Paired):",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        if (uiState.pairedDevices.isEmpty()) {
+                        } else if (uiState.pairedDevices.isEmpty()) {
+                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "Tidak ada printer Bluetooth ter-pairing. Buka pengaturan Bluetooth ponsel/tablet dan hubungkan printer Anda terlebih dahulu.",
+                                text = "Tidak ada printer ter-pairing. Buka pengaturan Bluetooth dan hubungkan printer terlebih dahulu.",
                                 style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
                             )
                         } else {
+                            Spacer(modifier = Modifier.height(6.dp))
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 uiState.pairedDevices.forEach { device ->
                                     val isSelected = uiState.printerMacAddress == device.address
@@ -971,9 +738,7 @@ fun SettingsScreen(
                                             .clip(AppShapes.Sm)
                                             .background(if (isSelected) PrimarySoft else SurfaceTint)
                                             .border(1.dp, if (isSelected) Primary else OutlineSoft, AppShapes.Sm)
-                                            .clickable {
-                                                onSelectPrinter(device.name, device.address)
-                                            }
+                                            .clickable { onSelectPrinter(device.name, device.address) }
                                             .padding(10.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
@@ -991,13 +756,10 @@ fun SettingsScreen(
                                                 style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                                             )
                                         }
-
                                         if (isSelected) {
                                             Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = "Selected",
-                                                tint = Primary,
-                                                modifier = Modifier.size(18.dp)
+                                                Icons.Default.Check, contentDescription = "Selected",
+                                                tint = Primary, modifier = Modifier.size(18.dp)
                                             )
                                         }
                                     }
@@ -1005,11 +767,10 @@ fun SettingsScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = OutlineSoft)
 
-                        // Lebar Kertas
                         Text(
-                            text = "Ukuran Kertas Thermal:",
+                            text = "Ukuran Kertas:",
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
                         Spacer(modifier = Modifier.height(6.dp))
@@ -1035,9 +796,8 @@ fun SettingsScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = OutlineSoft)
 
-                        // Auto-print Toggle
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1049,21 +809,16 @@ fun SettingsScreen(
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
                                 )
                                 Text(
-                                    text = "Langsung kirim nota ke printer begitu kasir menyelesaikan transaksi",
+                                    text = "Kirim nota ke printer otomatis setelah transaksi",
                                     style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                                 )
                             }
-                            Switch(
-                                checked = uiState.autoPrintCheckout,
-                                onCheckedChange = onAutoPrintChange
-                            )
+                            Switch(checked = uiState.autoPrintCheckout, onCheckedChange = onAutoPrintChange)
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // Test Print Button
+                        Spacer(modifier = Modifier.height(12.dp))
                         SecondaryButton(
-                            text = if (uiState.isTestingPrint) "Mengirim Tes Struk..." else "Tes Cetak Struk Fisik",
+                            text = if (uiState.isTestingPrint) "Mengirim Tes Struk..." else "Tes Cetak Struk",
                             icon = Icons.Default.Print,
                             onClick = onTestPrint,
                             enabled = !uiState.isTestingPrint && uiState.printerMacAddress.isNotBlank()
@@ -1091,32 +846,82 @@ fun SettingsScreen(
                     }
                 }
 
-                // Section 3: Offline Queue & Sync
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Md)
-                        .background(SurfaceWhite)
-                        .border(1.dp, OutlineSoft, AppShapes.Md)
-                        .padding(16.dp)
+                // ── 6. CLOUD & SINKRONISASI ───────────────────────────────────
+                ExpandableSection(
+                    icon = Icons.Default.Cloud,
+                    title = "Cloud & Sinkronisasi",
+                    subtitle = "Supabase, status sync & interval otomatis"
                 ) {
                     Column {
+                        Text(
+                            text = "Koneksi Supabase",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        SettingsTextField(
+                            value = uiState.supabaseUrl,
+                            onValueChange = onUrlChange,
+                            label = "Supabase URL (https://xxx.supabase.co)"
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        SettingsTextField(
+                            value = uiState.supabaseAnonKey,
+                            onValueChange = onAnonKeyChange,
+                            label = "Supabase Anon Public Key"
+                        )
+
+                        if (uiState.connectionStatusMessage != null) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            val isSuccess = uiState.isConnectionSuccess == true
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(if (isSuccess) Color(0xFFE8F7EE) else Color(0xFFFDE4E5))
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = uiState.connectionStatusMessage,
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        color = if (isSuccess) Success else Danger,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SecondaryButton(
+                            text = if (uiState.isTestingConnection) "Menguji..." else "Tes Koneksi Cloud",
+                            onClick = onTestConnection,
+                            enabled = !uiState.isTestingConnection
+                        )
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = OutlineSoft)
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Status Sinkronisasi Offline",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
                                 )
                                 Text(
-                                    text = "${uiState.pendingSyncCount} transaksi menunggu sinkronisasi",
+                                    text = "${uiState.pendingSyncCount} transaksi pending",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                                )
+                                val lastSyncStr = uiState.lastSyncTime?.let {
+                                    val sdf = java.text.SimpleDateFormat("dd MMM, HH:mm", java.util.Locale("id", "ID"))
+                                    "Terakhir: ${sdf.format(java.util.Date(it))}"
+                                } ?: "Belum pernah disinkronkan"
+                                Text(
+                                    text = lastSyncStr,
                                     style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                                 )
                             }
-
                             Box(
                                 modifier = Modifier
                                     .clip(AppShapes.Xs)
@@ -1133,62 +938,91 @@ fun SettingsScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        if (uiState.syncResultMessage != null) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            val isSuccess = uiState.isSyncSuccess == true
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(if (isSuccess) Color(0xFFE8F7EE) else Color(0xFFFDE4E5))
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = uiState.syncResultMessage,
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        color = if (isSuccess) Success else Danger,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                            }
+                        }
 
+                        Spacer(modifier = Modifier.height(12.dp))
                         SecondaryButton(
                             text = if (uiState.isSyncing) "Menyinkronkan..." else "Sinkronkan Sekarang",
                             icon = Icons.Default.Sync,
                             onClick = onSyncNow,
                             enabled = !uiState.isSyncing
                         )
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = OutlineSoft)
+
+                        Text(
+                            text = "Auto-Sync Interval:",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Text(
+                            text = "Data dikirim otomatis ke cloud sesuai interval",
+                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(0 to "Nonaktif", 2 to "2 Mnt", 5 to "5 Mnt", 15 to "15 Mnt", 30 to "30 Mnt")
+                                .forEach { (mins, label) ->
+                                    val isSelected = uiState.autoSyncIntervalMinutes == mins
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(AppShapes.Sm)
+                                            .background(if (isSelected) Primary else SurfaceTint)
+                                            .border(1.dp, if (isSelected) Primary else OutlineSoft, AppShapes.Sm)
+                                            .clickable { onAutoSyncIntervalChange(mins) }
+                                            .padding(vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                color = if (isSelected) SurfaceWhite else TextPrimary,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                        )
+                                    }
+                                }
+                        }
                     }
                 }
 
-                // Section: Cadangan & Pemulihan Data (Backup & Restore JSON)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(AppShapes.Md)
-                        .background(SurfaceWhite)
-                        .border(1.dp, OutlineSoft, AppShapes.Md)
-                        .padding(16.dp)
+                // ── 7. DATA & CADANGAN ────────────────────────────────────────
+                ExpandableSection(
+                    icon = Icons.Default.Save,
+                    title = "Data & Cadangan",
+                    subtitle = "Ekspor & pulihkan data offline (JSON)"
                 ) {
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimarySoft),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Cloud,
-                                    contentDescription = null,
-                                    tint = Primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = "Cadangan & Pemulihan Data",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                                )
-                                Text(
-                                    text = "Simpan data offline ke file JSON atau pulihkan cadangan",
-                                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                                )
-                            }
-                        }
-
                         if (uiState.backupStatusMessage != null) {
-                            Spacer(modifier = Modifier.height(10.dp))
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(AppShapes.Sm)
-                                    .background(if (uiState.isBackupSuccess == true) Color(0xFFE8F7EE) else Color(0xFFFDE4E5))
+                                    .background(
+                                        if (uiState.isBackupSuccess == true) Color(0xFFE8F7EE)
+                                        else Color(0xFFFDE4E5)
+                                    )
                                     .padding(10.dp)
                             ) {
                                 Text(
@@ -1199,10 +1033,8 @@ fun SettingsScreen(
                                     )
                                 )
                             }
+                            Spacer(modifier = Modifier.height(12.dp))
                         }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1219,26 +1051,85 @@ fun SettingsScreen(
                                 SecondaryButton(
                                     text = "Pulihkan JSON",
                                     icon = Icons.Default.Refresh,
-                                    onClick = {
-                                        filePickerLauncher.launch("*/*")
-                                    },
+                                    onClick = { filePickerLauncher.launch("*/*") },
                                     enabled = !uiState.isExportingBackup
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = OutlineSoft)
+
+                        // ── Factory Reset ─────────────────────────────────────
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(Color(0xFFFFF0F0))
+                                .border(1.dp, Danger.copy(alpha = 0.35f), AppShapes.Sm)
+                                .padding(12.dp)
+                        ) {
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = null,
+                                        tint = Danger,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Reset Seluruh Data (Factory Reset)",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Danger
+                                        )
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Mengosongkan total seluruh transaksi, shift, menu produk, bahan baku, dan riwayat pelanggan di perangkat ini untuk memulai operasional bersih dari nol.",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                PrimaryButton(
+                                    text = if (uiState.isResettingDatabase) "Mereset Database..." else "Reset Seluruh Data",
+                                    containerColor = Danger,
+                                    onClick = { showResetDialog = true },
+                                    enabled = !uiState.isResettingDatabase,
+                                    isLoading = uiState.isResettingDatabase
+                                )
+                            }
+                        }
+
+                        if (uiState.resetDatabaseStatusMessage != null) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            val isSuccess = uiState.isResetSuccess == true
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(AppShapes.Sm)
+                                    .background(if (isSuccess) Color(0xFFE8F7EE) else Color(0xFFFDE4E5))
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = uiState.resetDatabaseStatusMessage,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (isSuccess) Success else Danger,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 )
                             }
                         }
                     }
                 }
 
+                // ── Save CTA ─────────────────────────────────────────────────
                 Spacer(modifier = Modifier.height(6.dp))
-
-                // Save CTA
                 PrimaryButton(
                     text = "Simpan Pengaturan",
                     icon = Icons.Default.Save,
                     onClick = onSave
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "KA POS Mobile v1.2.0 (Build 3) • Taichan & Chicken KA",
@@ -1246,9 +1137,73 @@ fun SettingsScreen(
                         color = TextSecondary,
                         fontSize = 11.sp
                     ),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 8.dp)
                 )
             }
+        }
+
+        if (showResetDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = {
+                    showResetDialog = false
+                    resetPinInput = ""
+                },
+                title = {
+                    Text(
+                        text = "Konfirmasi Reset Database",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Danger)
+                    )
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = "Tindakan ini TIDAK DAPAT DIBATALKAN. Seluruh data transaksi, menu produk, inventaris, dan pelanggan akan dihapus total.\n\nMasukkan PIN Owner untuk melanjutkan:",
+                            style = MaterialTheme.typography.bodyMedium.copy(color = TextPrimary)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = resetPinInput,
+                            onValueChange = { resetPinInput = it },
+                            label = { Text("PIN Owner") },
+                            singleLine = true,
+                            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword
+                            ),
+                            shape = AppShapes.Sm,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    androidx.compose.material3.Button(
+                        onClick = {
+                            onResetDatabase(resetPinInput) { success ->
+                                if (success) {
+                                    showResetDialog = false
+                                    resetPinInput = ""
+                                }
+                            }
+                        },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Danger),
+                        enabled = !uiState.isResettingDatabase && resetPinInput.isNotBlank()
+                    ) {
+                        Text("Hapus Permanen", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            showResetDialog = false
+                            resetPinInput = ""
+                        }
+                    ) {
+                        Text("Batal")
+                    }
+                }
+            )
         }
     }
 }

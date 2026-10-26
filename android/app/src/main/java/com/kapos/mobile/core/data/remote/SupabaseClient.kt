@@ -124,4 +124,83 @@ class SupabaseClient(
             false
         }
     }
+
+    suspend fun upsertCategories(categories: List<SupabaseCategoryDto>): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured() || categories.isEmpty()) return@withContext false
+        try {
+            val jsonBody = json.encodeToString(categories)
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/categories")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Prefer", "resolution=merge-duplicates")
+                .post(jsonBody.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun upsertProducts(products: List<SupabaseProductDto>): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured() || products.isEmpty()) return@withContext false
+        try {
+            val jsonBody = json.encodeToString(products)
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/products")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Prefer", "resolution=merge-duplicates")
+                .post(jsonBody.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun fetchOrders(limit: Int = 200): List<SupabaseOrderPayload> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext emptyList()
+        try {
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/orders?order=created_at.desc&limit=$limit")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext emptyList()
+                val body = response.body?.string() ?: return@withContext emptyList()
+                json.decodeFromString<List<SupabaseOrderPayload>>(body)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun fetchOrderItems(orderIds: List<String>): List<SupabaseOrderItemPayload> = withContext(Dispatchers.IO) {
+        if (!isConfigured() || orderIds.isEmpty()) return@withContext emptyList()
+        try {
+            val idsFilter = orderIds.joinToString(",")
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/order_items?order_id=in.($idsFilter)")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext emptyList()
+                val body = response.body?.string() ?: return@withContext emptyList()
+                json.decodeFromString<List<SupabaseOrderItemPayload>>(body)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 }

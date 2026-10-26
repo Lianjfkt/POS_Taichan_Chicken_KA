@@ -33,6 +33,8 @@ import com.kapos.mobile.feature.auth.LoginRoute
 import com.kapos.mobile.feature.auth.LoginViewModel
 import com.kapos.mobile.feature.checkout.CheckoutViewModel
 import com.kapos.mobile.feature.checkout.ConfirmSaleRoute
+import com.kapos.mobile.feature.dashboard.DashboardRoute
+import com.kapos.mobile.feature.dashboard.DashboardViewModel
 import com.kapos.mobile.feature.pos.PosRoute
 import com.kapos.mobile.feature.pos.PosViewModel
 import com.kapos.mobile.feature.report.ReportRoute
@@ -103,6 +105,13 @@ fun KaPosApp(
     val analyticsViewModel: AnalyticsViewModel = viewModel {
         AnalyticsViewModel(app.posRepository, app.settingsRepository)
     }
+    val dashboardViewModel: DashboardViewModel = viewModel {
+        DashboardViewModel(
+            posRepository = app.posRepository,
+            settingsRepository = app.settingsRepository,
+            inventoryRepository = app.inventoryRepository
+        )
+    }
     val reportViewModel: ReportViewModel = viewModel {
         ReportViewModel(
             repository = app.posRepository,
@@ -117,7 +126,9 @@ fun KaPosApp(
             supabaseClient = app.supabaseClient,
             posRepository = app.posRepository,
             bluetoothPrinterService = app.bluetoothPrinterService,
-            database = app.database
+            database = app.database,
+            stockRepository = app.stockRepository,
+            savedOrderRepository = app.savedOrderRepository
         )
     }
 
@@ -236,6 +247,10 @@ fun KaPosApp(
                             AnalyticsRoute(viewModel = analyticsViewModel)
                         }
 
+                        composable("dashboard") {
+                            DashboardRoute(viewModel = dashboardViewModel)
+                        }
+
                         composable("report") {
                             ReportRoute(
                                 viewModel = reportViewModel,
@@ -264,6 +279,9 @@ fun KaPosApp(
                                 },
                                 onNavigateToReport = {
                                     navController.navigate("report")
+                                },
+                                onNavigateToAnalytics = {
+                                    navController.navigate("analytics")
                                 }
                             )
                         }

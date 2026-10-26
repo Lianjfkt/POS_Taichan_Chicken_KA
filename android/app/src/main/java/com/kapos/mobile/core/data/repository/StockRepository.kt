@@ -31,15 +31,8 @@ class StockRepository(context: Context? = null) {
 
     private fun loadData() {
         if (prefs == null) {
-            // Seed initial sample batches for testing/preview if empty
-            val now = System.currentTimeMillis()
-            val todayStr = dateFormat.format(Date(now))
-            _taichanBatches.value = listOf(
-                TaichanBatch(id = "TC-1", date = todayStr, timestamp = now, raw = 200, fried = 50, notes = "Batch pagi")
-            )
-            _chickenBatches.value = listOf(
-                ChickenBatch(id = "CK-1", part = ChickenPart.SAYAP, date = todayStr, timestamp = now, raw = 30, fried = 10, notes = "Potongan segar")
-            )
+            _taichanBatches.value = emptyList()
+            _chickenBatches.value = emptyList()
             return
         }
 
@@ -174,5 +167,11 @@ class StockRepository(context: Context? = null) {
     fun deleteChickenBatch(batchId: String) {
         _chickenBatches.value = _chickenBatches.value.filter { it.id != batchId }
         persistChicken()
+    }
+
+    fun clearAllBatches() {
+        _taichanBatches.value = emptyList()
+        _chickenBatches.value = emptyList()
+        prefs?.edit()?.remove("taichan_batches")?.remove("chicken_batches")?.apply()
     }
 }

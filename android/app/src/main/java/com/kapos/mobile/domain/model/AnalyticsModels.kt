@@ -1,10 +1,30 @@
 package com.kapos.mobile.domain.model
 
-enum class AnalyticsPeriod(val displayName: String, val days: Int) {
+enum class ReportPeriod(val displayName: String, val days: Int) {
     TODAY("Hari Ini", 1),
     WEEK("7 Hari", 7),
-    MONTH("30 Hari", 30)
+    MONTH("Bulan Ini", 30),
+    ALL("Semua", 30);
+
+    fun toDateFilterPreset(): DateFilterPreset = when (this) {
+        TODAY -> DateFilterPreset.TODAY
+        WEEK -> DateFilterPreset.LAST_7_DAYS
+        MONTH -> DateFilterPreset.THIS_MONTH
+        ALL -> DateFilterPreset.ALL
+    }
+
+    companion object {
+        fun fromDateFilterPreset(preset: DateFilterPreset): ReportPeriod? = when (preset) {
+            DateFilterPreset.TODAY -> TODAY
+            DateFilterPreset.LAST_7_DAYS -> WEEK
+            DateFilterPreset.THIS_MONTH -> MONTH
+            DateFilterPreset.ALL -> ALL
+            DateFilterPreset.CUSTOM -> null
+        }
+    }
 }
+
+typealias AnalyticsPeriod = ReportPeriod
 
 data class FinancialSummary(
     val grossRevenue: Double = 0.0,

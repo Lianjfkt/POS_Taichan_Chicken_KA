@@ -10,12 +10,12 @@ import com.kapos.mobile.domain.model.StockMovement
 import com.kapos.mobile.domain.model.StockMovementType
 import com.kapos.mobile.domain.model.TaichanBatch
 
-enum class StockTab(val displayName: String) {
-    INVENTORY("Bahan Baku & Batch"),
-    AUDIT("Audit Mutasi & Waste"),
-    @Deprecated("Legacy tab") TAICHAN("Sate Taichan"),
-    @Deprecated("Legacy tab") CHICKEN("Ayam Potong"),
-    @Deprecated("Legacy tab") MATERIALS("Bahan Baku (BOM)")
+enum class StockTab(val displayName: String, val isLegacy: Boolean = false) {
+    INVENTORY("Bahan Baku & Batch", false),
+    AUDIT("Audit Mutasi & Waste", false),
+    @Deprecated("Legacy tab") TAICHAN("Sate Taichan (Legacy)", true),
+    @Deprecated("Legacy tab") CHICKEN("Ayam Potong (Legacy)", true),
+    @Deprecated("Legacy tab") MATERIALS("Bahan Baku BOM (Legacy)", true)
 }
 
 data class ChickenPartSummary(

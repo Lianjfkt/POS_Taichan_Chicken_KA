@@ -36,7 +36,11 @@ data class ProductEntity(
     val emoji: String,
     val spiceLevel: String,
     val description: String,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val allowSpiceLevel: Boolean = false,
+    val allowSambal: Boolean = false,
+    val allowComplimentary: Boolean = false,
+    val allowToppings: Boolean = false
 )
 
 @Entity(tableName = "orders")

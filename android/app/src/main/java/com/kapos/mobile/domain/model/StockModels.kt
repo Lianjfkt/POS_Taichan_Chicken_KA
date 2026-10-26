@@ -46,14 +46,8 @@ enum class ChickenPart(val id: String, val displayName: String) {
     DADA("dada", "Dada")
 }
 
-data class TaichanBatch(
-    val id: String,
-    val date: String,
-    val timestamp: Long,
-    val raw: Int,
-    val fried: Int = 0,
-    val notes: String = ""
-) {
+interface BatchFreshnessCalculable {
+    val timestamp: Long
     fun freshness(currentTimestamp: Long = System.currentTimeMillis()): StockFreshness {
         val diffDays = ((currentTimestamp - timestamp) / (24L * 60 * 60 * 1000)).toInt()
         return when {
@@ -65,22 +59,21 @@ data class TaichanBatch(
     }
 }
 
+data class TaichanBatch(
+    val id: String,
+    val date: String,
+    override val timestamp: Long,
+    val raw: Int,
+    val fried: Int = 0,
+    val notes: String = ""
+) : BatchFreshnessCalculable
+
 data class ChickenBatch(
     val id: String,
     val part: ChickenPart,
     val date: String,
-    val timestamp: Long,
+    override val timestamp: Long,
     val raw: Int,
     val fried: Int = 0,
     val notes: String = ""
-) {
-    fun freshness(currentTimestamp: Long = System.currentTimeMillis()): StockFreshness {
-        val diffDays = ((currentTimestamp - timestamp) / (24L * 60 * 60 * 1000)).toInt()
-        return when {
-            diffDays <= 0 -> StockFreshness.FRESH
-            diffDays == 1 -> StockFreshness.DAY_2
-            diffDays == 2 -> StockFreshness.DAY_3
-            else -> StockFreshness.EXPIRED
-        }
-    }
-}
+) : BatchFreshnessCalculable

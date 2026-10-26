@@ -26,6 +26,9 @@ import com.kapos.mobile.core.data.local.dao.MaterialBatchDao
 import com.kapos.mobile.core.data.local.entity.MaterialBatchEntity
 import com.kapos.mobile.core.data.local.entity.StockMovementEntity
 
+import com.kapos.mobile.core.data.local.dao.ModifierDao
+import com.kapos.mobile.core.data.local.entity.ModifierEntity
+
 @Database(
     entities = [
         CategoryEntity::class,
@@ -38,9 +41,10 @@ import com.kapos.mobile.core.data.local.entity.StockMovementEntity
         RawMaterialEntity::class,
         RecipeItemEntity::class,
         StockMovementEntity::class,
-        MaterialBatchEntity::class
+        MaterialBatchEntity::class,
+        ModifierEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -54,6 +58,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recipeDao(): RecipeDao
     abstract fun stockMovementDao(): StockMovementDao
     abstract fun materialBatchDao(): MaterialBatchDao
+    abstract fun modifierDao(): ModifierDao
 
     companion object {
         @Volatile

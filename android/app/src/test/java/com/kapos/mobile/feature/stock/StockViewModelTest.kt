@@ -80,8 +80,8 @@ class StockViewModelTest {
 
         val stateAfterSales = viewModel.uiState.value
         assertEquals(30, stateAfterSales.taichanSoldToday)
-        // Sisa stok siap jual: Total Fried (50 dari seed awal + 80 baru = 130) - 30 sold = 100
-        assertEquals(100, stateAfterSales.taichanRemaining)
+        // Sisa stok siap jual: Total Fried (80 baru) - 30 sold = 50
+        assertEquals(50, stateAfterSales.taichanRemaining)
     }
 
     @Test
