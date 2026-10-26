@@ -18,7 +18,9 @@ class SettingsViewModel(
     private val supabaseClient: SupabaseClient,
     private val posRepository: PosRepository,
     private val bluetoothPrinterService: com.kapos.mobile.core.printer.BluetoothPrinterService,
-    database: AppDatabase
+    private val database: AppDatabase,
+    private val stockRepository: com.kapos.mobile.core.data.repository.StockRepository? = null,
+    private val savedOrderRepository: com.kapos.mobile.core.data.repository.SavedOrderRepository? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -325,6 +327,48 @@ class SettingsViewModel(
                         backupStatusMessage = "Gagal impor: ${result.exceptionOrNull()?.message}"
                     )
                 }
+            }
+        }
+    }
+
+    fun resetDatabase(ownerPin: String, onComplete: (Boolean) -> Unit = {}) {
+        if (!settingsRepository.verifyPin(com.kapos.mobile.domain.model.UserRole.OWNER, ownerPin)) {
+            _uiState.update {
+                it.copy(
+                    isResettingDatabase = false,
+                    isResetSuccess = false,
+                    resetDatabaseStatusMessage = "PIN Owner salah! Reset database dibatalkan."
+                )
+            }
+            onComplete(false)
+            return
+        }
+
+        _uiState.update { it.copy(isResettingDatabase = true, resetDatabaseStatusMessage = null) }
+        viewModelScope.launch {
+            try {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    database.clearAllTables()
+                    stockRepository?.clearAllBatches()
+                    savedOrderRepository?.clearAll()
+                }
+                _uiState.update {
+                    it.copy(
+                        isResettingDatabase = false,
+                        isResetSuccess = true,
+                        resetDatabaseStatusMessage = "Database berhasil dikosongkan total! Seluruh data transaksi, menu & bahan telah bersih."
+                    )
+                }
+                onComplete(true)
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isResettingDatabase = false,
+                        isResetSuccess = false,
+                        resetDatabaseStatusMessage = "Gagal mengosongkan database: ${e.message}"
+                    )
+                }
+                onComplete(false)
             }
         }
     }

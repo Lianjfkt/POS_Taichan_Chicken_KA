@@ -37,5 +37,8 @@ data class SettingsUiState(
     val lastSyncTime: Long? = null,
     /** Human-readable result of the last manual syncNow() call */
     val syncResultMessage: String? = null,
-    val isSyncSuccess: Boolean? = null
+    val isSyncSuccess: Boolean? = null,
+    val isResettingDatabase: Boolean = false,
+    val resetDatabaseStatusMessage: String? = null,
+    val isResetSuccess: Boolean? = null
 )
