@@ -168,4 +168,10 @@ class StockRepository(context: Context? = null) {
         _chickenBatches.value = _chickenBatches.value.filter { it.id != batchId }
         persistChicken()
     }
+
+    fun clearAllBatches() {
+        _taichanBatches.value = emptyList()
+        _chickenBatches.value = emptyList()
+        prefs?.edit()?.remove("taichan_batches")?.remove("chicken_batches")?.apply()
+    }
 }
