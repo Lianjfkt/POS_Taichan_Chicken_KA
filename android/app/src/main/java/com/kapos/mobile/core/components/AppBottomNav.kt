@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.ReceiptLong
@@ -52,6 +53,7 @@ sealed class NavDestination(
     object Shift : NavDestination("shift", "Shift", Icons.Default.WorkHistory)
     object Stock : NavDestination("stock", "Stok", Icons.Default.List)
     object Analytics : NavDestination("analytics", "Analisa", Icons.Default.BarChart)
+    object Dashboard : NavDestination("dashboard", "Dashboard", Icons.Default.Dashboard)
     object Report : NavDestination("report", "Laporan", Icons.Default.Assessment)
     object Settings : NavDestination("settings", "Pengaturan", Icons.Default.Settings)
 }
@@ -64,11 +66,11 @@ fun getBottomNavDestinations(role: UserRole): List<NavDestination> {
             NavDestination.Shift
         )
         UserRole.OWNER -> listOf(
+            NavDestination.Dashboard,
             NavDestination.Pos,
             NavDestination.Transactions,
             NavDestination.Shift,
             NavDestination.Stock,
-            NavDestination.Analytics,
             NavDestination.Settings
         )
     }

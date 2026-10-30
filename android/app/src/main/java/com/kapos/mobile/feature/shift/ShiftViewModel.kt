@@ -159,13 +159,27 @@ class ShiftViewModel(
                 pettyCashCategory = if (type == CashMovementType.CASH_OUT) "Operasional" else "Setoran Kas",
                 pettyCashAmountInput = "",
                 pettyCashNotesInput = "",
+                pettyCashPinInput = "",
+                pettyCashPinError = null,
                 errorMessage = null
             )
         }
     }
 
     fun onDismissPettyCashDialog() {
-        _uiState.update { it.copy(showPettyCashDialog = false) }
+        _uiState.update {
+            it.copy(
+                showPettyCashDialog = false,
+                pettyCashPinInput = "",
+                pettyCashPinError = null
+            )
+        }
+    }
+
+    fun onPettyCashPinChange(pin: String) {
+        if (pin.length <= 6 && pin.all { it.isDigit() }) {
+            _uiState.update { it.copy(pettyCashPinInput = pin, pettyCashPinError = null) }
+        }
     }
 
     fun onPettyCashCategoryChange(category: String) {
@@ -192,6 +206,15 @@ class ShiftViewModel(
             return
         }
 
+        // SECURITY: Semua Kas Keluar wajib verifikasi PIN Owner untuk mencegah manipulasi kas
+        if (state.pettyCashType == CashMovementType.CASH_OUT) {
+            val isPinValid = settingsRepository.verifyPin(com.kapos.mobile.domain.model.UserRole.OWNER, state.pettyCashPinInput)
+            if (!isPinValid) {
+                _uiState.update { it.copy(pettyCashPinError = "PIN Owner salah. Otorisasi diperlukan untuk Kas Keluar.") }
+                return
+            }
+        }
+
         viewModelScope.launch {
             try {
                 shiftRepository.addCashMovement(
@@ -204,6 +227,8 @@ class ShiftViewModel(
                 _uiState.update {
                     it.copy(
                         showPettyCashDialog = false,
+                        pettyCashPinInput = "",
+                        pettyCashPinError = null,
                         successMessage = "${state.pettyCashType.displayName} sebesar Rp ${amount.toInt()} berhasil dicatat"
                     )
                 }

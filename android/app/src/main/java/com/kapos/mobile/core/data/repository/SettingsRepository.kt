@@ -3,6 +3,7 @@ package com.kapos.mobile.core.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import com.kapos.mobile.core.config.AppConfig
+import com.kapos.mobile.core.utils.PinHasher
 import com.kapos.mobile.domain.model.AuthSession
 import com.kapos.mobile.domain.model.UserRole
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +22,9 @@ data class AppSettings(
     val printerName: String = "",
     val paperWidth: Int = 58,
     val autoPrintCheckout: Boolean = true,
-    val cashierPin: String = "1111",
-    val ownerPin: String = "1234",
+    // PIN disimpan sebagai SHA-256 hash, bukan plaintext
+    val cashierPin: String = PinHasher.hash("1111"),
+    val ownerPin: String = PinHasher.hash("1234"),
     val dailyFixedCost: Double = 350000.0,
     val dailyRevenueTarget: Double = 1500000.0,
     val staffList: String = "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
@@ -55,6 +57,12 @@ class SettingsRepository(context: Context? = null) {
         val finalUrl = if (storedUrl.isNullOrBlank()) AppConfig.DEFAULT_SUPABASE_URL else storedUrl
         val finalKey = if (storedKey.isNullOrBlank()) AppConfig.DEFAULT_SUPABASE_ANON_KEY else storedKey
 
+        // Migrasi otomatis: jika PIN lama masih plaintext, hash sekarang & simpan
+        val rawCashierPin = prefs.getString("cashier_pin", "1111") ?: "1111"
+        val rawOwnerPin = prefs.getString("owner_pin", "1234") ?: "1234"
+        val cashierPin = migratePinIfPlaintext("cashier_pin", rawCashierPin)
+        val ownerPin = migratePinIfPlaintext("owner_pin", rawOwnerPin)
+
         return AppSettings(
             supabaseUrl = finalUrl,
             supabaseAnonKey = finalKey,
@@ -67,8 +75,8 @@ class SettingsRepository(context: Context? = null) {
             printerName = prefs.getString("printer_name", "") ?: "",
             paperWidth = prefs.getInt("paper_width", 58),
             autoPrintCheckout = prefs.getBoolean("auto_print_checkout", true),
-            cashierPin = prefs.getString("cashier_pin", "1111") ?: "1111",
-            ownerPin = prefs.getString("owner_pin", "1234") ?: "1234",
+            cashierPin = cashierPin,
+            ownerPin = ownerPin,
             dailyFixedCost = prefs.getFloat("daily_fixed_cost", 350000f).toDouble(),
             dailyRevenueTarget = prefs.getFloat("daily_revenue_target", 1500000f).toDouble(),
             staffList = prefs.getString("staff_list", "Kasir Utama,Kasir Pagi,Kasir Malam,Manager") ?: "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
@@ -80,6 +88,20 @@ class SettingsRepository(context: Context? = null) {
                 cashierName = sessionCashierName
             )
         )
+    }
+
+    /**
+     * Jika PIN tersimpan masih plaintext (bukan hash), hash sekarang dan simpan ulang.
+     * Ini memastikan upgrade seamless — user lama tidak perlu reset PIN.
+     */
+    private fun migratePinIfPlaintext(key: String, storedValue: String): String {
+        return if (PinHasher.isHashed(storedValue)) {
+            storedValue  // Sudah hash, tidak perlu migrasi
+        } else {
+            val hashed = PinHasher.hash(storedValue)
+            prefs?.edit()?.putString(key, hashed)?.apply()
+            hashed
+        }
     }
 
     fun saveSettings(settings: AppSettings) {
@@ -95,8 +117,9 @@ class SettingsRepository(context: Context? = null) {
             ?.putString("printer_name", settings.printerName)
             ?.putInt("paper_width", settings.paperWidth)
             ?.putBoolean("auto_print_checkout", settings.autoPrintCheckout)
-            ?.putString("cashier_pin", settings.cashierPin)
-            ?.putString("owner_pin", settings.ownerPin)
+            // PIN selalu disimpan sebagai hash — jika user input plaintext baru, hash dulu
+            ?.putString("cashier_pin", if (PinHasher.isHashed(settings.cashierPin)) settings.cashierPin else PinHasher.hash(settings.cashierPin))
+            ?.putString("owner_pin", if (PinHasher.isHashed(settings.ownerPin)) settings.ownerPin else PinHasher.hash(settings.ownerPin))
             ?.putFloat("daily_fixed_cost", settings.dailyFixedCost.toFloat())
             ?.putFloat("daily_revenue_target", settings.dailyRevenueTarget.toFloat())
             ?.putString("staff_list", settings.staffList)
@@ -156,8 +179,9 @@ class SettingsRepository(context: Context? = null) {
     fun verifyPin(role: UserRole, pin: String): Boolean {
         val current = _settingsFlow.value
         return when (role) {
-            UserRole.CASHIER -> pin == current.cashierPin
-            UserRole.OWNER -> pin == current.ownerPin
+            // Gunakan PinHasher.verify untuk constant-time comparison
+            UserRole.CASHIER -> PinHasher.verify(pin, current.cashierPin)
+            UserRole.OWNER -> PinHasher.verify(pin, current.ownerPin)
         }
     }
 }

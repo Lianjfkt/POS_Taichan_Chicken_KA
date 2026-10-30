@@ -94,6 +94,7 @@ fun ShiftRoute(viewModel: ShiftViewModel, modifier: Modifier = Modifier) {
         onPettyCashCategoryChange = viewModel::onPettyCashCategoryChange,
         onPettyCashAmountChange = viewModel::onPettyCashAmountChange,
         onPettyCashNotesChange = viewModel::onPettyCashNotesChange,
+        onPettyCashPinChange = viewModel::onPettyCashPinChange,
         onSubmitPettyCash = viewModel::submitPettyCash,
         onDismissBlindCount = viewModel::onDismissBlindCountDialog,
         onDenominationCountChange = viewModel::onDenominationCountChange,
@@ -120,6 +121,7 @@ fun ShiftScreen(
     onPettyCashCategoryChange: (String) -> Unit,
     onPettyCashAmountChange: (String) -> Unit,
     onPettyCashNotesChange: (String) -> Unit,
+    onPettyCashPinChange: (String) -> Unit,
     onSubmitPettyCash: () -> Unit,
     onDismissBlindCount: () -> Unit,
     onDenominationCountChange: (denomination: Int, count: Int) -> Unit,
@@ -256,13 +258,17 @@ fun ShiftScreen(
                 selectedCategory = uiState.pettyCashCategory,
                 amountInput = uiState.pettyCashAmountInput,
                 notesInput = uiState.pettyCashNotesInput,
+                pinInput = uiState.pettyCashPinInput,
+                pinError = uiState.pettyCashPinError,
                 onCategoryChange = onPettyCashCategoryChange,
                 onAmountChange = onPettyCashAmountChange,
                 onNotesChange = onPettyCashNotesChange,
+                onPinChange = onPettyCashPinChange,
                 onDismiss = onDismissPettyCash,
                 onSubmit = onSubmitPettyCash
             )
         }
+
 
         // Blind Cash Count Dialog
         if (uiState.showBlindCountDialog) {
@@ -357,7 +363,38 @@ private fun ActiveShiftCard(
                 }
 
                 Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
-                ShiftStatRow("Estimasi Kas Akhir", uiState.formattedExpectedCash, color = Success, bold = true)
+                // SECURITY: Estimasi Kas Akhir DISEMBUNYIKAN dari kasir untuk menjaga integritas
+                // Blind Cash Count. Kasir harus menghitung uang fisik secara mandiri tanpa referensi.
+                // Angka ini hanya tampil di laporan akhir setelah shift resmi ditutup.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Estimasi Kas Akhir",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextSecondary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = null,
+                            tint = Success.copy(alpha = 0.7f),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Tersembunyi (Blind Count)",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Success.copy(alpha = 0.8f),
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

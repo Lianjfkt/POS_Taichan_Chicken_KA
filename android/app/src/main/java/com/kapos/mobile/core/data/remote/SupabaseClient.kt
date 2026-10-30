@@ -4,6 +4,8 @@ import com.kapos.mobile.core.data.remote.dto.SupabaseCategoryDto
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderItemPayload
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderPayload
 import com.kapos.mobile.core.data.remote.dto.SupabaseProductDto
+import com.kapos.mobile.core.data.remote.dto.SupabaseShiftPayload
+import com.kapos.mobile.core.data.remote.dto.SupabaseCashMovementPayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -201,6 +203,46 @@ class SupabaseClient(
             }
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    suspend fun postShifts(shifts: List<SupabaseShiftPayload>): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured() || shifts.isEmpty()) return@withContext false
+        try {
+            val jsonBody = json.encodeToString(shifts)
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/shifts")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Prefer", "resolution=merge-duplicates")
+                .post(jsonBody.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun postCashMovements(movements: List<SupabaseCashMovementPayload>): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured() || movements.isEmpty()) return@withContext false
+        try {
+            val jsonBody = json.encodeToString(movements)
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/cash_movements")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Prefer", "resolution=merge-duplicates")
+                .post(jsonBody.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
         }
     }
 }

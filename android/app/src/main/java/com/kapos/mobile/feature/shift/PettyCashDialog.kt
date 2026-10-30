@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,11 +29,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.kapos.mobile.core.components.PrimaryButton
 import com.kapos.mobile.core.theme.AppShapes
+import com.kapos.mobile.core.theme.Danger
 import com.kapos.mobile.core.theme.OutlineSoft
 import com.kapos.mobile.core.theme.Primary
 import com.kapos.mobile.core.theme.SurfaceTint
@@ -47,9 +50,13 @@ fun PettyCashDialog(
     selectedCategory: String,
     amountInput: String,
     notesInput: String,
+    // SECURITY: PIN otorisasi untuk Kas Keluar
+    pinInput: String = "",
+    pinError: String? = null,
     onCategoryChange: (String) -> Unit,
     onAmountChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,
+    onPinChange: (String) -> Unit = {},
     onDismiss: () -> Unit,
     onSubmit: () -> Unit
 ) {
@@ -61,6 +68,7 @@ fun PettyCashDialog(
 
     val title = if (type == CashMovementType.CASH_OUT) "Catat Kas Keluar (-)" else "Catat Kas Masuk (+)"
     val accentColor = if (type == CashMovementType.CASH_OUT) Color(0xFFEF4444) else Color(0xFF10B981)
+    val isCashOut = type == CashMovementType.CASH_OUT
 
     Dialog(onDismissRequest = onDismiss) {
         Box(
@@ -208,13 +216,63 @@ fun PettyCashDialog(
                     )
                 )
 
+                // SECURITY: PIN Otorisasi Owner – hanya untuk Kas Keluar
+                if (isCashOut) {
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = null,
+                            tint = Danger.copy(alpha = 0.8f),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = "PIN Otorisasi Owner (Wajib)",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Danger.copy(alpha = 0.9f)
+                            )
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Kas Keluar memerlukan verifikasi PIN Owner.",
+                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = pinInput,
+                        onValueChange = onPinChange,
+                        placeholder = { Text("Masukkan PIN Owner", fontSize = 13.sp) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = AppShapes.Sm,
+                        isError = pinError != null,
+                        supportingText = pinError?.let { err ->
+                            { Text(err, color = Danger, fontSize = 11.sp) }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accentColor,
+                            unfocusedBorderColor = OutlineSoft,
+                            errorBorderColor = Danger
+                        )
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // Submit Button
+                val isEnabled = amountInput.isNotBlank() &&
+                        (amountInput.toDoubleOrNull() ?: 0.0) > 0 &&
+                        (!isCashOut || pinInput.isNotBlank())
                 PrimaryButton(
-                    text = if (type == CashMovementType.CASH_OUT) "Simpan Kas Keluar" else "Simpan Kas Masuk",
+                    text = if (isCashOut) "Simpan Kas Keluar" else "Simpan Kas Masuk",
                     onClick = onSubmit,
-                    enabled = amountInput.isNotBlank() && (amountInput.toDoubleOrNull() ?: 0.0) > 0,
+                    enabled = isEnabled,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

@@ -129,7 +129,6 @@ class TransactionsViewModel(
     fun confirmVoid() {
         val state = _uiState.value
         val order = state.orderToVoid ?: return
-        val correctPin = settingsRepository.settingsFlow.value.ownerPin
 
         if (state.selectedVoidReason.isBlank()) {
             _uiState.update { it.copy(voidReasonError = "Silakan pilih alasan pembatalan.") }
@@ -141,7 +140,8 @@ class TransactionsViewModel(
             return
         }
 
-        if (state.voidPinInput != correctPin) {
+        val isPinValid = settingsRepository.verifyPin(com.kapos.mobile.domain.model.UserRole.OWNER, state.voidPinInput)
+        if (!isPinValid) {
             _uiState.update { it.copy(voidPinError = "PIN Owner salah. Coba lagi.") }
             return
         }
@@ -183,12 +183,14 @@ class TransactionsViewModel(
             try {
                 val builder = com.kapos.mobile.core.printer.EscPosBuilder(settings.paperWidth)
                 val escPosItems = items.map {
+                    val (extractedMods, cleanNotes) = extractModifiersFromNotes(it.notes)
                     com.kapos.mobile.core.printer.EscPosItem(
                         name = it.productName,
                         price = it.price,
                         quantity = it.quantity,
                         spiceLevel = it.spiceLevel,
-                        notes = it.notes,
+                        modifiers = extractedMods,
+                        notes = cleanNotes,
                         subtotal = it.subtotal
                     )
                 }
@@ -234,6 +236,20 @@ class TransactionsViewModel(
         viewModelScope.launch {
             repository.syncPendingOrders()
         }
+    }
+}
+
+fun extractModifiersFromNotes(notes: String): Pair<List<String>, String> {
+    if (notes.isBlank()) return Pair(emptyList(), "")
+    val regex = Regex("""^\[Mod:\s*(.*?)]\s*(.*)$""", RegexOption.DOT_MATCHES_ALL)
+    val match = regex.find(notes.trim())
+    return if (match != null) {
+        val modsString = match.groupValues[1]
+        val remainingNotes = match.groupValues[2].trim()
+        val modsList = modsString.split(",").map { it.trim() }.filter { it.isNotBlank() }
+        Pair(modsList, remainingNotes)
+    } else {
+        Pair(emptyList(), notes)
     }
 }
 

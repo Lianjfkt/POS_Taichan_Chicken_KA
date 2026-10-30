@@ -62,3 +62,30 @@ data class SupabaseOrderItemPayload(
     val notes: String? = "",
     val subtotal: Double
 )
+
+@Serializable
+data class SupabaseShiftPayload(
+    val id: String,
+    @SerialName("cashier_name") val cashierName: String,
+    @SerialName("start_time") val startTime: String,
+    @SerialName("end_time") val endTime: String? = null,
+    @SerialName("starting_cash") val startingCash: Double = 0.0,
+    @SerialName("expected_cash") val expectedCash: Double? = null,
+    @SerialName("actual_cash") val actualCash: Double? = null,
+    @SerialName("cash_difference") val cashDifference: Double? = null,
+    @SerialName("total_transactions") val totalTransactions: Int? = 0,
+    val notes: String? = null,
+    @SerialName("is_open") val isOpen: Boolean = true,
+    @SerialName("created_at") val createdAt: String? = null
+)
+
+@Serializable
+data class SupabaseCashMovementPayload(
+    val id: String,
+    @SerialName("shift_id") val shiftId: String,
+    val type: String,
+    val category: String,
+    val amount: Double,
+    val notes: String? = "",
+    @SerialName("created_at") val createdAt: String? = null
+)

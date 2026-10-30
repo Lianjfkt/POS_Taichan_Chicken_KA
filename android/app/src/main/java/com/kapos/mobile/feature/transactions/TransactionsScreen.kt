@@ -523,7 +523,7 @@ fun VoidPinDialog(
                 // PIN Input
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "PIN Owner (Default: 1234):",
+                        text = "PIN Otorisasi Owner:",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary

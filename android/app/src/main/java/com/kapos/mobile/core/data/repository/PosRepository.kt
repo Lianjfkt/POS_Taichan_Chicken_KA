@@ -41,6 +41,7 @@ class PosRepository(
     private val inventoryRepository: InventoryRepository? = null,
     private val customerRepository: CustomerRepository? = null,
     private val settingsRepository: com.kapos.mobile.core.data.repository.SettingsRepository? = null,
+    private val shiftRepository: ShiftRepository? = null,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
     private val categoryDao = database?.categoryDao()
@@ -341,6 +342,7 @@ class PosRepository(
             if (isConnected) {
                 val menuOk = syncMenuInternal()
                 val transOk = syncTransactionsInternal()
+                shiftRepository?.syncPendingShifts()
                 success = menuOk && transOk
                 if (success) _lastSyncTime.value = System.currentTimeMillis()
             }
