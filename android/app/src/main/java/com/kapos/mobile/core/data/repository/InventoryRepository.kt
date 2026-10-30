@@ -406,7 +406,12 @@ class InventoryRepository(
 
         for (cart in cartItems) {
             val recipesForProduct = allRecipes.filter { it.productId == cart.product.id }
-            for (recipe in recipesForProduct) {
+            val modifierRecipes = cart.selectedModifiers.flatMap { mod ->
+                allRecipes.filter { it.productId == mod.id }
+            }
+            val allItemRecipes = recipesForProduct + modifierRecipes
+
+            for (recipe in allItemRecipes) {
                 val totalDeduction = recipe.quantityRequired * cart.quantity
                 
                 // 1. Deduct master raw material stock
@@ -423,6 +428,7 @@ class InventoryRepository(
                     remainingToDeduct -= deductFromBatch
                 }
 
+                val isModifier = recipe.productId != cart.product.id
                 movementsToInsert.add(
                     StockMovementEntity(
                         id = UUID.randomUUID().toString(),
@@ -430,7 +436,7 @@ class InventoryRepository(
                         type = StockMovementType.ORDER_DEDUCTION.name,
                         quantity = -totalDeduction,
                         costTotal = 0.0,
-                        notes = "Auto BOM: ${cart.quantity}x ${cart.product.name}",
+                        notes = "Auto BOM: ${cart.quantity}x ${cart.product.name}" + (if (isModifier) " [Add-on]" else ""),
                         timestamp = now
                     )
                 )

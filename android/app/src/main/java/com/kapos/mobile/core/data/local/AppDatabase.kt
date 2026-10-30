@@ -44,8 +44,8 @@ import com.kapos.mobile.core.data.local.entity.ModifierEntity
         MaterialBatchEntity::class,
         ModifierEntity::class
     ],
-    version = 6,
-    exportSchema = false
+    version = 7,          // Dinaikkan dari 6 → 7 bersama dengan penambahan AppMigrations
+    exportSchema = true   // Ekspor schema ke /schemas/ untuk audit & debug migration
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
@@ -71,7 +71,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "ka_pos_database.db"
                 )
-                    .fallbackToDestructiveMigration()
+                    // Migrations eksplisit — tidak ada data loss saat update app
+                    .addMigrations(*AppMigrations.ALL)
                     .build()
                 INSTANCE = instance
                 instance

@@ -1,0 +1,36 @@
+# ============================================================
+# Android project .gitignore
+# ============================================================
+
+# Credentials & Secrets — JANGAN PERNAH di-commit!
+local.properties
+*.jks
+*.keystore
+google-services.json
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+build/
+app/build/
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+captures/
+*.hprof
+
+# Generated
+gen/
+out/

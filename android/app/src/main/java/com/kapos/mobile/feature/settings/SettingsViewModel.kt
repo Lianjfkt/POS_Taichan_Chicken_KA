@@ -42,8 +42,6 @@ class SettingsViewModel(
                         printerName = settings.printerName,
                         paperWidth = settings.paperWidth,
                         autoPrintCheckout = settings.autoPrintCheckout,
-                        cashierPin = settings.cashierPin,
-                        ownerPin = settings.ownerPin,
                         dailyFixedCost = settings.dailyFixedCost,
                         dailyRevenueTarget = settings.dailyRevenueTarget,
                         staffList = settingsRepository.getStaffNames(),
@@ -121,11 +119,15 @@ class SettingsViewModel(
     }
 
     fun onCashierPinChange(pin: String) {
-        _uiState.update { it.copy(cashierPin = pin) }
+        if (pin.length <= 6 && pin.all { it.isDigit() }) {
+            _uiState.update { it.copy(cashierPin = pin) }
+        }
     }
 
     fun onOwnerPinChange(pin: String) {
-        _uiState.update { it.copy(ownerPin = pin) }
+        if (pin.length <= 6 && pin.all { it.isDigit() }) {
+            _uiState.update { it.copy(ownerPin = pin) }
+        }
     }
 
     fun onDailyFixedCostChange(cost: Double) {
@@ -138,6 +140,18 @@ class SettingsViewModel(
 
     fun saveSettings() {
         val state = _uiState.value
+        val current = settingsRepository.settingsFlow.value
+        val finalCashierPin = if (state.cashierPin.isNotBlank() && state.cashierPin.length >= 4) {
+            state.cashierPin
+        } else {
+            current.cashierPin
+        }
+        val finalOwnerPin = if (state.ownerPin.isNotBlank() && state.ownerPin.length >= 4) {
+            state.ownerPin
+        } else {
+            current.ownerPin
+        }
+
         settingsRepository.saveSettings(
             AppSettings(
                 supabaseUrl = state.supabaseUrl,
@@ -151,14 +165,16 @@ class SettingsViewModel(
                 printerName = state.printerName,
                 paperWidth = state.paperWidth,
                 autoPrintCheckout = state.autoPrintCheckout,
-                cashierPin = state.cashierPin,
-                ownerPin = state.ownerPin,
+                cashierPin = finalCashierPin,
+                ownerPin = finalOwnerPin,
                 dailyFixedCost = state.dailyFixedCost,
                 dailyRevenueTarget = state.dailyRevenueTarget,
                 autoLockMinutes = state.autoLockMinutes,
                 autoSyncIntervalMinutes = state.autoSyncIntervalMinutes
             )
         )
+        // Reset local pin input buffers after save
+        _uiState.update { it.copy(cashierPin = "", ownerPin = "") }
     }
 
     fun testPrintReceipt() {

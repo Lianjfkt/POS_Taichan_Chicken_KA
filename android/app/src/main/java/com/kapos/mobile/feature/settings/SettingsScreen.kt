@@ -63,6 +63,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kapos.mobile.core.components.PrimaryButton
@@ -584,8 +586,11 @@ fun SettingsScreen(
                             OutlinedTextField(
                                 value = uiState.cashierPin,
                                 onValueChange = onCashierPinChange,
-                                label = { Text("PIN Kasir") },
+                                label = { Text("PIN Kasir (Baru)") },
+                                placeholder = { Text("•••• (Tersimpan)") },
                                 singleLine = true,
+                                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                                 shape = AppShapes.Sm,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Primary,
@@ -596,8 +601,11 @@ fun SettingsScreen(
                             OutlinedTextField(
                                 value = uiState.ownerPin,
                                 onValueChange = onOwnerPinChange,
-                                label = { Text("PIN Owner") },
+                                label = { Text("PIN Owner (Baru)") },
+                                placeholder = { Text("•••• (Tersimpan)") },
                                 singleLine = true,
+                                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                                 shape = AppShapes.Sm,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Primary,

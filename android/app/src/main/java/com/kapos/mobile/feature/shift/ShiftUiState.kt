@@ -42,6 +42,9 @@ data class ShiftUiState(
     val pettyCashCategory: String = "Operasional",
     val pettyCashAmountInput: String = "",
     val pettyCashNotesInput: String = "",
+    // SECURITY: PIN otorisasi Owner untuk Kas Keluar
+    val pettyCashPinInput: String = "",
+    val pettyCashPinError: String? = null,
 
     // Blind Cash Count Dialog
     val showBlindCountDialog: Boolean = false,

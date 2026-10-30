@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 import com.kapos.mobile.core.data.repository.InventoryRepository
+import com.kapos.mobile.domain.model.ModifierCategory
+import com.kapos.mobile.domain.model.ModifierOption
 import kotlinx.coroutines.Job
 
 class MenuManagementViewModel(
@@ -37,6 +39,11 @@ class MenuManagementViewModel(
         viewModelScope.launch {
             posRepository.observeAllCategories(includeInactive = true).collect { cats ->
                 _uiState.update { it.copy(categories = cats) }
+            }
+        }
+        viewModelScope.launch {
+            posRepository.observeAllModifiers().collect { mods ->
+                _uiState.update { it.copy(modifiers = mods) }
             }
         }
         inventoryRepository?.let { inv ->
@@ -81,7 +88,11 @@ class MenuManagementViewModel(
         emoji: String,
         spiceLevel: String,
         description: String,
-        isActive: Boolean
+        isActive: Boolean,
+        allowSpiceLevel: Boolean = false,
+        allowSambal: Boolean = false,
+        allowComplimentary: Boolean = false,
+        allowToppings: Boolean = false
     ) {
         val trimmedName = name.trim()
         if (trimmedName.isBlank()) return
@@ -97,7 +108,11 @@ class MenuManagementViewModel(
                     emoji = emoji.ifBlank { "🍢" },
                     spiceLevel = spiceLevel,
                     description = description.trim(),
-                    isActive = isActive
+                    isActive = isActive,
+                    allowSpiceLevel = allowSpiceLevel,
+                    allowSambal = allowSambal,
+                    allowComplimentary = allowComplimentary,
+                    allowToppings = allowToppings
                 )
             } else {
                 Product(
@@ -109,7 +124,11 @@ class MenuManagementViewModel(
                     emoji = emoji.ifBlank { "🍢" },
                     spiceLevel = spiceLevel,
                     description = description.trim(),
-                    isActive = isActive
+                    isActive = isActive,
+                    allowSpiceLevel = allowSpiceLevel,
+                    allowSambal = allowSambal,
+                    allowComplimentary = allowComplimentary,
+                    allowToppings = allowToppings
                 )
             }
             posRepository.saveProduct(product)
@@ -236,6 +255,73 @@ class MenuManagementViewModel(
     fun deleteRecipeItem(recipeId: String) {
         viewModelScope.launch {
             inventoryRepository?.deleteRecipeItem(recipeId)
+        }
+    }
+
+    // --- Modifier Actions ---
+    fun onSelectModifierFilter(category: ModifierCategory?) {
+        _uiState.update { it.copy(selectedModifierCategoryFilter = category) }
+    }
+
+    fun openAddModifier() {
+        _uiState.update { it.copy(isAddEditModifierOpen = true, modifierToEdit = null) }
+    }
+
+    fun openEditModifier(modifier: ModifierOption) {
+        _uiState.update { it.copy(isAddEditModifierOpen = true, modifierToEdit = modifier) }
+    }
+
+    fun closeAddEditModifierDialog() {
+        _uiState.update { it.copy(isAddEditModifierOpen = false, modifierToEdit = null) }
+    }
+
+    fun saveModifier(
+        name: String,
+        price: Double,
+        category: ModifierCategory,
+        isDefault: Boolean
+    ) {
+        val trimmedName = name.trim()
+        if (trimmedName.isBlank()) return
+
+        val current = _uiState.value.modifierToEdit
+        val toSave = current?.copy(
+            name = trimmedName,
+            price = price.coerceAtLeast(0.0),
+            category = category,
+            isDefault = isDefault
+        ) ?: ModifierOption(
+            id = "",
+            name = trimmedName,
+            price = price.coerceAtLeast(0.0),
+            category = category,
+            isDefault = isDefault
+        )
+        viewModelScope.launch {
+            posRepository.saveModifier(toSave)
+            closeAddEditModifierDialog()
+        }
+    }
+
+    fun toggleModifierActive(id: String, isActive: Boolean) {
+        viewModelScope.launch {
+            posRepository.toggleModifierActive(id, isActive)
+        }
+    }
+
+    fun openDeleteModifierDialog(modifier: ModifierOption) {
+        _uiState.update { it.copy(modifierToDelete = modifier) }
+    }
+
+    fun closeDeleteModifierDialog() {
+        _uiState.update { it.copy(modifierToDelete = null) }
+    }
+
+    fun confirmDeleteModifier() {
+        val toDelete = _uiState.value.modifierToDelete ?: return
+        viewModelScope.launch {
+            posRepository.deleteModifier(toDelete.id)
+            closeDeleteModifierDialog()
         }
     }
 }

@@ -213,57 +213,126 @@ CREATE TABLE IF NOT EXISTS public.shifts (
     cash_difference DOUBLE PRECISION,
     total_transactions INT DEFAULT 0,
     notes TEXT,
+    is_open BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
+
+ALTER TABLE public.shifts ADD COLUMN IF NOT EXISTS is_open BOOLEAN DEFAULT TRUE;
+
+-- Cash Movements (Petty Cash: Kas Masuk / Kas Keluar untuk Audit Fraud)
+CREATE TABLE IF NOT EXISTS public.cash_movements (
+    id TEXT PRIMARY KEY,
+    shift_id TEXT REFERENCES public.shifts(id) ON DELETE CASCADE,
+    type TEXT NOT NULL, -- CASH_IN, CASH_OUT
+    category TEXT NOT NULL,
+    amount DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
+);
+
+CREATE INDEX IF NOT EXISTS idx_cash_movements_shift ON public.cash_movements(shift_id);
+CREATE INDEX IF NOT EXISTS idx_cash_movements_created ON public.cash_movements(created_at DESC);
+
+-- Recipes & BOM (Bill of Materials)
+CREATE TABLE IF NOT EXISTS public.recipes (
+    id TEXT PRIMARY KEY,
+    product_id TEXT REFERENCES public.products(id) ON DELETE CASCADE,
+    product_name TEXT NOT NULL,
+    yield_qty INT NOT NULL DEFAULT 1,
+    instructions TEXT DEFAULT '',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
+);
+
+CREATE TABLE IF NOT EXISTS public.recipe_items (
+    id TEXT PRIMARY KEY,
+    recipe_id TEXT NOT NULL REFERENCES public.recipes(id) ON DELETE CASCADE,
+    raw_material_id TEXT NOT NULL REFERENCES public.raw_materials(id) ON DELETE RESTRICT,
+    quantity_required DOUBLE PRECISION NOT NULL,
+    unit TEXT NOT NULL,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
+);
+
+CREATE INDEX IF NOT EXISTS idx_recipe_items_recipe ON public.recipe_items(recipe_id);
 
 -- ==============================================================================
 -- 7. ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
--- Enables full access for POS terminals using the anon or authenticated key.
+-- Keamanan & Fraud Prevention:
+-- 1. Read (SELECT) dibuka untuk klien POS yang terkonfigurasi.
+-- 2. Insert & Update dibuka untuk sinkronisasi POS offline-first.
+-- 3. DELETE DILARANG untuk orders, order_items, shifts, dan cash_movements
+--    agar kasir/pihak tidak bertanggung jawab tidak dapat menghapus jejak audit penjualan/kas.
 
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.modifiers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.raw_materials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.material_batches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recipe_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.shifts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cash_movements ENABLE ROW LEVEL SECURITY;
 
--- Categories: Allow public read & write for sync
+-- Categories & Products & Modifiers: Read & Sync
 DROP POLICY IF EXISTS "Allow all for categories" ON public.categories;
 CREATE POLICY "Allow all for categories" ON public.categories
     FOR ALL TO public USING (true) WITH CHECK (true);
 
--- Products: Allow public read & write for sync
 DROP POLICY IF EXISTS "Allow all for products" ON public.products;
 CREATE POLICY "Allow all for products" ON public.products
     FOR ALL TO public USING (true) WITH CHECK (true);
 
--- Orders: Allow public read & insert/update for sync
+DROP POLICY IF EXISTS "Allow all for modifiers" ON public.modifiers;
+CREATE POLICY "Allow all for modifiers" ON public.modifiers
+    FOR ALL TO public USING (true) WITH CHECK (true);
+
+-- Orders: INSERT & SELECT & UPDATE diperbolehkan (untuk sinkronisasi & VOID).
+-- DELETE DIBLOKIR TOTAL (Audit Trail Anti-Fraud: Order tidak boleh dihapus fisik).
 DROP POLICY IF EXISTS "Allow all for orders" ON public.orders;
-CREATE POLICY "Allow all for orders" ON public.orders
-    FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Allow select for orders" ON public.orders FOR SELECT TO public USING (true);
+CREATE POLICY "Allow insert for orders" ON public.orders FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Allow update for orders" ON public.orders FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Disallow delete for orders" ON public.orders FOR DELETE TO public USING (false);
 
--- Order Items: Allow public read & insert/update for sync
+-- Order Items: Sama seperti orders, blokir DELETE
 DROP POLICY IF EXISTS "Allow all for order_items" ON public.order_items;
-CREATE POLICY "Allow all for order_items" ON public.order_items
-    FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Allow select for order_items" ON public.order_items FOR SELECT TO public USING (true);
+CREATE POLICY "Allow insert for order_items" ON public.order_items FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Allow update for order_items" ON public.order_items FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Disallow delete for order_items" ON public.order_items FOR DELETE TO public USING (false);
 
--- Raw materials & Batches
+-- Shifts & Cash Movements: Cegah kasir menghapus catatan kas/selisih uang
+DROP POLICY IF EXISTS "Allow all for shifts" ON public.shifts;
+CREATE POLICY "Allow select for shifts" ON public.shifts FOR SELECT TO public USING (true);
+CREATE POLICY "Allow insert for shifts" ON public.shifts FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Allow update for shifts" ON public.shifts FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Disallow delete for shifts" ON public.shifts FOR DELETE TO public USING (false);
+
+DROP POLICY IF EXISTS "Allow all for cash_movements" ON public.cash_movements;
+CREATE POLICY "Allow select for cash_movements" ON public.cash_movements FOR SELECT TO public USING (true);
+CREATE POLICY "Allow insert for cash_movements" ON public.cash_movements FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Allow update for cash_movements" ON public.cash_movements FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Disallow delete for cash_movements" ON public.cash_movements FOR DELETE TO public USING (false);
+
+-- Raw materials, Batches & Recipes
 DROP POLICY IF EXISTS "Allow all for raw_materials" ON public.raw_materials;
-CREATE POLICY "Allow all for raw_materials" ON public.raw_materials
-    FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for raw_materials" ON public.raw_materials FOR ALL TO public USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow all for material_batches" ON public.material_batches;
-CREATE POLICY "Allow all for material_batches" ON public.material_batches
-    FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for material_batches" ON public.material_batches FOR ALL TO public USING (true) WITH CHECK (true);
 
--- Customers & Shifts
+DROP POLICY IF EXISTS "Allow all for recipes" ON public.recipes;
+CREATE POLICY "Allow all for recipes" ON public.recipes FOR ALL TO public USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all for recipe_items" ON public.recipe_items;
+CREATE POLICY "Allow all for recipe_items" ON public.recipe_items FOR ALL TO public USING (true) WITH CHECK (true);
+
+-- Customers
 DROP POLICY IF EXISTS "Allow all for customers" ON public.customers;
-CREATE POLICY "Allow all for customers" ON public.customers
-    FOR ALL TO public USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Allow all for shifts" ON public.shifts;
-CREATE POLICY "Allow all for shifts" ON public.shifts
-    FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for customers" ON public.customers FOR ALL TO public USING (true) WITH CHECK (true);

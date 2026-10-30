@@ -6,6 +6,10 @@ import com.kapos.mobile.core.data.remote.SupabaseClient
 import com.kapos.mobile.core.data.repository.PosRepository
 import com.kapos.mobile.core.data.repository.SettingsRepository
 import com.kapos.mobile.core.data.repository.ShiftRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class KaPosApplication : Application() {
@@ -46,6 +50,13 @@ class KaPosApplication : Application() {
     lateinit var promotionRepository: com.kapos.mobile.core.data.repository.PromotionRepository
         private set
 
+    /**
+     * Scope dengan lifecycle yang terikat ke Application process.
+     * Gunakan SupervisorJob agar satu coroutine gagal tidak membatalkan yang lain.
+     * Dibatalkan di onTerminate() agar tidak ada leak saat proses dihentikan.
+     */
+    val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -67,22 +78,34 @@ class KaPosApplication : Application() {
 
         bluetoothPrinterService = com.kapos.mobile.core.printer.BluetoothPrinterService(this)
 
+        shiftRepository = ShiftRepository(
+            database = database,
+            supabaseClient = supabaseClient,
+            scope = applicationScope
+        )
+
         posRepository = PosRepository(
             database = database,
             supabaseClient = supabaseClient,
             inventoryRepository = inventoryRepository,
             customerRepository = customerRepository,
-            settingsRepository = settingsRepository
+            settingsRepository = settingsRepository,
+            shiftRepository = shiftRepository
         )
 
-        shiftRepository = ShiftRepository(database = database)
-
-        // Keep SupabaseClient credentials in sync with Settings
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        // Sinkronkan SupabaseClient credentials saat settings berubah
+        // Menggunakan applicationScope (bukan anonymous scope) agar dapat dicancel
+        applicationScope.launch(Dispatchers.IO) {
             settingsRepository.settingsFlow.collect { s ->
                 supabaseClient.updateConfig(s.supabaseUrl, s.supabaseAnonKey)
             }
         }
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        // Batalkan semua coroutine saat proses dihentikan
+        applicationScope.cancel()
     }
 
     companion object {
