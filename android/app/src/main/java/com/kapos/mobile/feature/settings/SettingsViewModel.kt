@@ -367,6 +367,9 @@ class SettingsViewModel(
                     database.clearAllTables()
                     stockRepository?.clearAllBatches()
                     savedOrderRepository?.clearAll()
+                    if (supabaseClient.isConfigured()) {
+                        supabaseClient.clearAllRemoteData()
+                    }
                 }
                 _uiState.update {
                     it.copy(

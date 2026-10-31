@@ -320,6 +320,7 @@ fun PosScreen(
         if (uiState.selectedProductForModifier != null) {
             ModifierDialog(
                 product = uiState.selectedProductForModifier,
+                availableModifiers = uiState.activeModifiers,
                 onDismiss = onDismissModifier,
                 onConfirmAddToCart = onConfirmModifierAddToCart
             )

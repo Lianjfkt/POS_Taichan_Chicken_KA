@@ -116,7 +116,9 @@ class PosRepository(
 
     suspend fun deleteCategory(id: String) = withContext(Dispatchers.IO) {
         categoryDao?.deleteById(id)
-        scope.launch { syncMenu() }
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.deleteCategory(id)
+        }
     }
 
     suspend fun toggleCategoryActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
@@ -159,7 +161,9 @@ class PosRepository(
 
     suspend fun deleteProduct(id: String) = withContext(Dispatchers.IO) {
         productDao?.deleteById(id)
-        scope.launch { syncMenu() }
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.deleteProduct(id)
+        }
     }
 
     suspend fun toggleProductActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
@@ -178,15 +182,21 @@ class PosRepository(
     suspend fun saveModifier(modifier: ModifierOption) = withContext(Dispatchers.IO) {
         val id = if (modifier.id.isBlank()) UUID.randomUUID().toString() else modifier.id
         modifierDao?.upsert(ModifierEntity.fromDomain(modifier.copy(id = id)))
+        scope.launch { syncMenu() }
     }
 
     suspend fun deleteModifier(id: String) = withContext(Dispatchers.IO) {
         modifierDao?.deleteById(id)
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.deleteModifier(id)
+        }
     }
 
     suspend fun toggleModifierActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
         modifierDao?.toggleActive(id, isActive)
+        scope.launch { syncMenu() }
     }
+
 
     private fun CategoryEntity.toDomain() = Category(
         id = id,
@@ -451,8 +461,39 @@ class PosRepository(
                 )
             })
         }
+        // --- PULL modifiers ---
+        val remoteMods = supabaseClient.fetchModifiers()
+        if (remoteMods.isNotEmpty()) {
+            modifierDao?.upsertAll(remoteMods.map {
+                ModifierEntity(
+                    id = it.id,
+                    name = it.name,
+                    price = it.price,
+                    category = it.category,
+                    isDefault = it.isDefault ?: false,
+                    isActive = it.isActive ?: true,
+                    sortOrder = it.sortOrder ?: 0
+                )
+            })
+        }
+        // --- PUSH local modifiers ---
+        val localMods = modifierDao?.getAll() ?: emptyList()
+        if (localMods.isNotEmpty()) {
+            supabaseClient.upsertModifiers(localMods.map {
+                com.kapos.mobile.core.data.remote.dto.SupabaseModifierDto(
+                    id = it.id,
+                    name = it.name,
+                    price = it.price,
+                    category = it.category,
+                    isDefault = it.isDefault,
+                    isActive = it.isActive,
+                    sortOrder = it.sortOrder
+                )
+            })
+        }
         return true
     }
+
 
     private suspend fun syncTransactionsInternal(): Boolean {
         // --- PUSH pending local orders ---

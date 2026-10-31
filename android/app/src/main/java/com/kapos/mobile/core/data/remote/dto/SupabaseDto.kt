@@ -89,3 +89,15 @@ data class SupabaseCashMovementPayload(
     val notes: String? = "",
     @SerialName("created_at") val createdAt: String? = null
 )
+
+@Serializable
+data class SupabaseModifierDto(
+    val id: String,
+    val name: String,
+    val price: Double = 0.0,
+    val category: String,
+    @SerialName("is_default") val isDefault: Boolean? = false,
+    @SerialName("is_active") val isActive: Boolean? = true,
+    @SerialName("sort_order") val sortOrder: Int? = 0
+)
+

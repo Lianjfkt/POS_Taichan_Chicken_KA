@@ -6,6 +6,7 @@ import com.kapos.mobile.core.data.remote.dto.SupabaseOrderPayload
 import com.kapos.mobile.core.data.remote.dto.SupabaseProductDto
 import com.kapos.mobile.core.data.remote.dto.SupabaseShiftPayload
 import com.kapos.mobile.core.data.remote.dto.SupabaseCashMovementPayload
+import com.kapos.mobile.core.data.remote.dto.SupabaseModifierDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -245,4 +246,117 @@ class SupabaseClient(
             false
         }
     }
+
+    suspend fun deleteProduct(id: String): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured() || id.isBlank()) return@withContext false
+        try {
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/products?id=eq.$id")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun deleteCategory(id: String): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured() || id.isBlank()) return@withContext false
+        try {
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/categories?id=eq.$id")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun deleteModifier(id: String): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured() || id.isBlank()) return@withContext false
+        try {
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/modifiers?id=eq.$id")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .delete()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun fetchModifiers(): List<SupabaseModifierDto> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext emptyList()
+        try {
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/modifiers?is_active=eq.true&order=sort_order.asc")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext emptyList()
+                val body = response.body?.string() ?: return@withContext emptyList()
+                json.decodeFromString<List<SupabaseModifierDto>>(body)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun upsertModifiers(modifiers: List<SupabaseModifierDto>): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured() || modifiers.isEmpty()) return@withContext false
+        try {
+            val jsonBody = json.encodeToString(modifiers)
+            val request = Request.Builder()
+                .url("$baseUrl/rest/v1/modifiers")
+                .addHeader("apikey", apiKey)
+                .addHeader("Authorization", "Bearer $apiKey")
+                .addHeader("Prefer", "resolution=merge-duplicates")
+                .post(jsonBody.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun clearAllRemoteData(): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext false
+        try {
+            val tables = listOf("order_items", "orders", "cash_movements", "shifts", "modifiers", "products", "categories")
+            for (table in tables) {
+                val request = Request.Builder()
+                    .url("$baseUrl/rest/v1/$table?id=not.is.null")
+                    .addHeader("apikey", apiKey)
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .delete()
+                    .build()
+                client.newCall(request).execute().close()
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
+

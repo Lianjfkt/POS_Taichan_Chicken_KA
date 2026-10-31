@@ -19,7 +19,8 @@ data class PosUiState(
     val showHoldDialog: Boolean = false,
     val showSavedOrdersDialog: Boolean = false,
     val customerNameInput: String = "",
-    val tableNoInput: String = ""
+    val tableNoInput: String = "",
+    val activeModifiers: List<com.kapos.mobile.domain.model.ModifierOption> = emptyList()
 ) {
     val filteredProducts: List<Product>
         get() {

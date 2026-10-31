@@ -54,6 +54,11 @@ class PosViewModel(
                 _uiState.update { it.copy(savedOrders = savedList) }
             }
         }
+        viewModelScope.launch {
+            repository.observeActiveModifiers().collect { modifiers ->
+                _uiState.update { it.copy(activeModifiers = modifiers) }
+            }
+        }
     }
 
     fun onSearchQueryChange(query: String) {
