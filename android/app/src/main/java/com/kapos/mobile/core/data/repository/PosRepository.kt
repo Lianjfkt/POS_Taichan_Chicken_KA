@@ -6,10 +6,10 @@ import com.kapos.mobile.core.data.local.entity.OrderEntity
 import com.kapos.mobile.core.data.local.entity.OrderItemEntity
 import com.kapos.mobile.core.data.local.entity.ProductEntity
 import com.kapos.mobile.core.data.remote.SupabaseClient
-import com.kapos.mobile.core.data.remote.dto.SupabaseCategoryDto
+
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderItemPayload
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderPayload
-import com.kapos.mobile.core.data.remote.dto.SupabaseProductDto
+
 import com.kapos.mobile.domain.model.CartItem
 import com.kapos.mobile.domain.model.Category
 import com.kapos.mobile.domain.model.Order
@@ -391,8 +391,20 @@ class PosRepository(
     }
 
     private suspend fun syncMenuInternal(): Boolean {
-        // --- PULL categories ---
+        // =========================================================
+        // STRATEGI: CLOUD-WINS (Cloud adalah sumber kebenaran)
+        // Pull dari cloud → update local agar sesuai cloud.
+        // TIDAK push local ke cloud di sini.
+        // Upload ke cloud HANYA saat user sengaja tambah/edit/hapus
+        // item (sudah di-handle oleh saveCategory, saveProduct, dll).
+        // Ini mencegah data lama di lokal ter-upload ulang ke cloud
+        // setelah admin membersihkan data di Supabase.
+        // =========================================================
+
+        // --- PULL & SYNC categories (cloud wins) ---
         val remoteCats = supabaseClient.fetchCategories()
+        val remoteCatIds = remoteCats.map { it.id }.toSet()
+        // Upsert semua yang ada di cloud ke lokal
         if (remoteCats.isNotEmpty()) {
             categoryDao?.upsertAll(remoteCats.map {
                 CategoryEntity(
@@ -405,22 +417,15 @@ class PosRepository(
                 )
             })
         }
-        // --- PUSH local categories ---
+        // Hapus dari lokal yang sudah tidak ada di cloud
         val localCats = categoryDao?.getAllIncludeInactive() ?: emptyList()
-        if (localCats.isNotEmpty()) {
-            supabaseClient.upsertCategories(localCats.map {
-                SupabaseCategoryDto(
-                    id = it.id,
-                    name = it.name,
-                    emoji = it.emoji,
-                    color = it.color,
-                    sortOrder = it.sortOrder,
-                    isActive = it.isActive
-                )
-            })
-        }
-        // --- PULL products ---
+        val catsToDelete = localCats.filter { it.id !in remoteCatIds }
+        catsToDelete.forEach { categoryDao?.deleteById(it.id) }
+
+        // --- PULL & SYNC products (cloud wins) ---
         val remoteProds = supabaseClient.fetchProducts()
+        val remoteProdIds = remoteProds.map { it.id }.toSet()
+        // Upsert semua yang ada di cloud ke lokal
         if (remoteProds.isNotEmpty()) {
             productDao?.upsertAll(remoteProds.map {
                 ProductEntity(
@@ -440,29 +445,15 @@ class PosRepository(
                 )
             })
         }
-        // --- PUSH local products ---
+        // Hapus dari lokal yang sudah tidak ada di cloud
         val localProds = productDao?.getAllIncludeInactive() ?: emptyList()
-        if (localProds.isNotEmpty()) {
-            supabaseClient.upsertProducts(localProds.map {
-                SupabaseProductDto(
-                    id = it.id,
-                    categoryId = it.categoryId,
-                    name = it.name,
-                    price = it.price,
-                    costPrice = it.costPrice,
-                    emoji = it.emoji,
-                    spiceLevel = it.spiceLevel,
-                    description = it.description,
-                    isActive = it.isActive,
-                    allowSpiceLevel = it.allowSpiceLevel,
-                    allowSambal = it.allowSambal,
-                    allowComplimentary = it.allowComplimentary,
-                    allowToppings = it.allowToppings
-                )
-            })
-        }
-        // --- PULL modifiers ---
+        val prodsToDelete = localProds.filter { it.id !in remoteProdIds }
+        prodsToDelete.forEach { productDao?.deleteById(it.id) }
+
+        // --- PULL & SYNC modifiers (cloud wins) ---
         val remoteMods = supabaseClient.fetchModifiers()
+        val remoteModIds = remoteMods.map { it.id }.toSet()
+        // Upsert semua yang ada di cloud ke lokal
         if (remoteMods.isNotEmpty()) {
             modifierDao?.upsertAll(remoteMods.map {
                 ModifierEntity(
@@ -476,21 +467,11 @@ class PosRepository(
                 )
             })
         }
-        // --- PUSH local modifiers ---
+        // Hapus dari lokal yang sudah tidak ada di cloud
         val localMods = modifierDao?.getAll() ?: emptyList()
-        if (localMods.isNotEmpty()) {
-            supabaseClient.upsertModifiers(localMods.map {
-                com.kapos.mobile.core.data.remote.dto.SupabaseModifierDto(
-                    id = it.id,
-                    name = it.name,
-                    price = it.price,
-                    category = it.category,
-                    isDefault = it.isDefault,
-                    isActive = it.isActive,
-                    sortOrder = it.sortOrder
-                )
-            })
-        }
+        val modsToDelete = localMods.filter { it.id !in remoteModIds }
+        modsToDelete.forEach { modifierDao?.deleteById(it.id) }
+
         return true
     }
 
