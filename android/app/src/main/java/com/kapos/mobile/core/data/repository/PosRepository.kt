@@ -6,9 +6,10 @@ import com.kapos.mobile.core.data.local.entity.OrderEntity
 import com.kapos.mobile.core.data.local.entity.OrderItemEntity
 import com.kapos.mobile.core.data.local.entity.ProductEntity
 import com.kapos.mobile.core.data.remote.SupabaseClient
-
+import com.kapos.mobile.core.data.remote.dto.SupabaseCategoryDto
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderItemPayload
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderPayload
+import com.kapos.mobile.core.data.remote.dto.SupabaseProductDto
 
 import com.kapos.mobile.domain.model.CartItem
 import com.kapos.mobile.domain.model.Category
@@ -101,16 +102,26 @@ class PosRepository(
 
     suspend fun saveCategory(category: Category) = withContext(Dispatchers.IO) {
         val id = if (category.id.isBlank()) UUID.randomUUID().toString() else category.id
-        categoryDao?.upsert(
-            CategoryEntity(
-                id = id,
-                name = category.name.trim(),
-                emoji = category.emoji.ifBlank { "🍽️" },
-                color = category.color.ifBlank { "#0B5C73" },
-                sortOrder = category.sortOrder,
-                isActive = category.isActive
-            )
+        val entity = CategoryEntity(
+            id = id,
+            name = category.name.trim(),
+            emoji = category.emoji.ifBlank { "🍽️" },
+            color = category.color.ifBlank { "#0B5C73" },
+            sortOrder = category.sortOrder,
+            isActive = category.isActive
         )
+        // 1. Simpan ke Room lokal → langsung muncul di UI
+        categoryDao?.upsert(entity)
+        // 2. Upload ke Supabase DULU sebelum sync, agar cloud-wins tidak menghapusnya kembali
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.upsertCategories(listOf(
+                SupabaseCategoryDto(
+                    id = entity.id, name = entity.name, emoji = entity.emoji,
+                    color = entity.color, sortOrder = entity.sortOrder, isActive = entity.isActive
+                )
+            ))
+        }
+        // 3. Sync untuk pull perubahan lain dari cloud
         scope.launch { syncMenu() }
     }
 
@@ -123,6 +134,18 @@ class PosRepository(
 
     suspend fun toggleCategoryActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
         categoryDao?.toggleActive(id, isActive)
+        // Upload perubahan ke Supabase sebelum sync
+        if (supabaseClient.isConfigured()) {
+            val entity = categoryDao?.getById(id)
+            if (entity != null) {
+                supabaseClient.upsertCategories(listOf(
+                    SupabaseCategoryDto(
+                        id = entity.id, name = entity.name, emoji = entity.emoji,
+                        color = entity.color, sortOrder = entity.sortOrder, isActive = entity.isActive
+                    )
+                ))
+            }
+        }
         scope.launch { syncMenu() }
     }
 
@@ -139,23 +162,37 @@ class PosRepository(
 
     suspend fun saveProduct(product: Product) = withContext(Dispatchers.IO) {
         val id = if (product.id.isBlank()) UUID.randomUUID().toString() else product.id
-        productDao?.upsert(
-            ProductEntity(
-                id = id,
-                categoryId = product.categoryId,
-                name = product.name.trim(),
-                price = product.price.coerceAtLeast(0.0),
-                costPrice = product.costPrice.coerceAtLeast(0.0),
-                emoji = product.emoji.ifBlank { "🍢" },
-                spiceLevel = product.spiceLevel,
-                description = product.description.trim(),
-                isActive = product.isActive,
-                allowSpiceLevel = product.allowSpiceLevel,
-                allowSambal = product.allowSambal,
-                allowComplimentary = product.allowComplimentary,
-                allowToppings = product.allowToppings
-            )
+        val entity = ProductEntity(
+            id = id,
+            categoryId = product.categoryId,
+            name = product.name.trim(),
+            price = product.price.coerceAtLeast(0.0),
+            costPrice = product.costPrice.coerceAtLeast(0.0),
+            emoji = product.emoji.ifBlank { "🍢" },
+            spiceLevel = product.spiceLevel,
+            description = product.description.trim(),
+            isActive = product.isActive,
+            allowSpiceLevel = product.allowSpiceLevel,
+            allowSambal = product.allowSambal,
+            allowComplimentary = product.allowComplimentary,
+            allowToppings = product.allowToppings
         )
+        // 1. Simpan ke Room lokal → langsung muncul di UI
+        productDao?.upsert(entity)
+        // 2. Upload ke Supabase DULU sebelum sync, agar cloud-wins tidak menghapusnya kembali
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.upsertProducts(listOf(
+                SupabaseProductDto(
+                    id = entity.id, categoryId = entity.categoryId, name = entity.name,
+                    price = entity.price, costPrice = entity.costPrice, emoji = entity.emoji,
+                    spiceLevel = entity.spiceLevel, description = entity.description,
+                    isActive = entity.isActive, allowSpiceLevel = entity.allowSpiceLevel,
+                    allowSambal = entity.allowSambal, allowComplimentary = entity.allowComplimentary,
+                    allowToppings = entity.allowToppings
+                )
+            ))
+        }
+        // 3. Sync untuk pull perubahan lain dari cloud
         scope.launch { syncMenu() }
     }
 
@@ -168,6 +205,22 @@ class PosRepository(
 
     suspend fun toggleProductActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
         productDao?.toggleActive(id, isActive)
+        // Upload perubahan ke Supabase sebelum sync
+        if (supabaseClient.isConfigured()) {
+            val entity = productDao?.getById(id)
+            if (entity != null) {
+                supabaseClient.upsertProducts(listOf(
+                    SupabaseProductDto(
+                        id = entity.id, categoryId = entity.categoryId, name = entity.name,
+                        price = entity.price, costPrice = entity.costPrice, emoji = entity.emoji,
+                        spiceLevel = entity.spiceLevel, description = entity.description,
+                        isActive = entity.isActive, allowSpiceLevel = entity.allowSpiceLevel,
+                        allowSambal = entity.allowSambal, allowComplimentary = entity.allowComplimentary,
+                        allowToppings = entity.allowToppings
+                    )
+                ))
+            }
+        }
         scope.launch { syncMenu() }
     }
 
@@ -181,7 +234,20 @@ class PosRepository(
 
     suspend fun saveModifier(modifier: ModifierOption) = withContext(Dispatchers.IO) {
         val id = if (modifier.id.isBlank()) UUID.randomUUID().toString() else modifier.id
-        modifierDao?.upsert(ModifierEntity.fromDomain(modifier.copy(id = id)))
+        val entity = ModifierEntity.fromDomain(modifier.copy(id = id))
+        // 1. Simpan ke Room lokal
+        modifierDao?.upsert(entity)
+        // 2. Upload ke Supabase DULU sebelum sync
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.upsertModifiers(listOf(
+                com.kapos.mobile.core.data.remote.dto.SupabaseModifierDto(
+                    id = entity.id, name = entity.name, price = entity.price,
+                    category = entity.category, isDefault = entity.isDefault,
+                    isActive = entity.isActive, sortOrder = entity.sortOrder
+                )
+            ))
+        }
+        // 3. Sync untuk pull perubahan lain dari cloud
         scope.launch { syncMenu() }
     }
 
@@ -194,6 +260,19 @@ class PosRepository(
 
     suspend fun toggleModifierActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
         modifierDao?.toggleActive(id, isActive)
+        // Upload perubahan ke Supabase sebelum sync
+        if (supabaseClient.isConfigured()) {
+            val entity = modifierDao?.getById(id)
+            if (entity != null) {
+                supabaseClient.upsertModifiers(listOf(
+                    com.kapos.mobile.core.data.remote.dto.SupabaseModifierDto(
+                        id = entity.id, name = entity.name, price = entity.price,
+                        category = entity.category, isDefault = entity.isDefault,
+                        isActive = entity.isActive, sortOrder = entity.sortOrder
+                    )
+                ))
+            }
+        }
         scope.launch { syncMenu() }
     }
 
