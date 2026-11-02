@@ -18,6 +18,7 @@ data class PosUiState(
     val savedOrders: List<com.kapos.mobile.domain.model.SavedOrder> = emptyList(),
     val showHoldDialog: Boolean = false,
     val showSavedOrdersDialog: Boolean = false,
+    val showCustomItemDialog: Boolean = false,
     val customerNameInput: String = "",
     val tableNoInput: String = "",
     val activeModifiers: List<com.kapos.mobile.domain.model.ModifierOption> = emptyList()

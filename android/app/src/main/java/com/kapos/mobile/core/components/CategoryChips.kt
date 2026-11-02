@@ -27,18 +27,66 @@ import com.kapos.mobile.core.theme.TextPrimary
 import com.kapos.mobile.core.theme.TextSecondary
 import com.kapos.mobile.domain.model.Category
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Icon
+import com.kapos.mobile.core.theme.PrimarySoft
+
 @Composable
 fun CategoryChips(
     categories: List<Category>,
     selectedCategoryId: String?,
     onCategorySelect: (String?) -> Unit,
+    onAddCustomItemClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        if (onAddCustomItemClick != null) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(PrimarySoft)
+                        .border(
+                            width = 1.dp,
+                            color = Primary.copy(alpha = 0.5f),
+                            shape = CircleShape
+                        )
+                        .clickable(onClick = onAddCustomItemClick)
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Menu Manual",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = 13.sp,
+                                color = Primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+            }
+        }
         item {
             val isSelected = selectedCategoryId == null
             CategoryChipItem(

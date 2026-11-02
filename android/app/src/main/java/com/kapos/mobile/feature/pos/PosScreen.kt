@@ -87,6 +87,9 @@ fun PosRoute(
         onProductClick = viewModel::onProductClick,
         onDismissModifier = viewModel::dismissModifier,
         onConfirmModifierAddToCart = viewModel::confirmModifierAddToCart,
+        onOpenCustomItem = viewModel::onOpenCustomItemDialog,
+        onDismissCustomItem = viewModel::onDismissCustomItemDialog,
+        onConfirmAddCustomItem = viewModel::confirmAddCustomItem,
         onOpenCartSheet = { viewModel.setCartSheetOpen(true) },
         onCloseCartSheet = { viewModel.setCartSheetOpen(false) },
         onQuantityChange = viewModel::updateCartItemQuantity,
@@ -121,6 +124,9 @@ fun PosScreen(
     onProductClick: (com.kapos.mobile.domain.model.Product) -> Unit,
     onDismissModifier: () -> Unit,
     onConfirmModifierAddToCart: (com.kapos.mobile.domain.model.Product, Int, String, List<com.kapos.mobile.domain.model.ModifierOption>, String) -> Unit,
+    onOpenCustomItem: () -> Unit = {},
+    onDismissCustomItem: () -> Unit = {},
+    onConfirmAddCustomItem: (name: String, price: Double, quantity: Int, categoryId: String?, notes: String, savePermanently: Boolean) -> Unit = { _, _, _, _, _, _ -> },
     onOpenCartSheet: () -> Unit,
     onCloseCartSheet: () -> Unit,
     onQuantityChange: (Int, Int) -> Unit,
@@ -180,25 +186,60 @@ fun PosScreen(
                     CategoryChips(
                         categories = uiState.categories,
                         selectedCategoryId = uiState.selectedCategoryId,
-                        onCategorySelect = onSelectCategory
+                        onCategorySelect = onSelectCategory,
+                        onAddCustomItemClick = onOpenCustomItem
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 140.dp),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(uiState.filteredProducts, key = { it.id }) { product ->
-                            val categoryName = uiState.categories.find { it.id == product.categoryId }?.name
-                            ProductCard(
-                                product = product,
-                                categoryName = categoryName,
-                                onAddClick = { onProductClick(product) }
-                            )
+                    if (uiState.filteredProducts.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(text = "🍽️", style = MaterialTheme.typography.headlineLarge)
+                                Text(
+                                    text = if (uiState.searchQuery.isNotBlank()) "Menu \"${uiState.searchQuery}\" tidak ditemukan" else "Belum ada menu di kategori ini",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = TextPrimary
+                                    )
+                                )
+                                Text(
+                                    text = "Pembeli ingin pesan item yang belum terdaftar di menu?",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Box(modifier = Modifier.width(220.dp)) {
+                                    PrimaryButton(
+                                        text = "+ Input Menu Manual",
+                                        onClick = onOpenCustomItem
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minSize = 140.dp),
+                            contentPadding = PaddingValues(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(uiState.filteredProducts, key = { it.id }) { product ->
+                                val categoryName = uiState.categories.find { it.id == product.categoryId }?.name
+                                ProductCard(
+                                    product = product,
+                                    categoryName = categoryName,
+                                    onAddClick = { onProductClick(product) }
+                                )
+                            }
                         }
                     }
                 }
@@ -225,7 +266,8 @@ fun PosScreen(
                         onRemoveItem = onRemoveCartItem,
                         onClearCart = onClearCart,
                         onHoldOrderClick = onHoldOrderClick,
-                        onCheckoutClick = onCheckoutClick
+                        onCheckoutClick = onCheckoutClick,
+                        onAddCustomItemClick = onOpenCustomItem
                     )
                 }
             }
@@ -257,30 +299,66 @@ fun PosScreen(
                 CategoryChips(
                     categories = uiState.categories,
                     selectedCategoryId = uiState.selectedCategoryId,
-                    onCategorySelect = onSelectCategory
+                    onCategorySelect = onSelectCategory,
+                    onAddCustomItemClick = onOpenCustomItem
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 4.dp,
-                        bottom = if (uiState.cartTotalCount > 0) 140.dp else 90.dp
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(uiState.filteredProducts, key = { it.id }) { product ->
-                        val categoryName = uiState.categories.find { it.id == product.categoryId }?.name
-                        ProductCard(
-                            product = product,
-                            categoryName = categoryName,
-                            onAddClick = { onProductClick(product) }
-                        )
+                if (uiState.filteredProducts.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(text = "🍽️", style = MaterialTheme.typography.headlineLarge)
+                            Text(
+                                text = if (uiState.searchQuery.isNotBlank()) "Menu \"${uiState.searchQuery}\" tidak ditemukan" else "Belum ada menu di kategori ini",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextPrimary
+                                )
+                            )
+                            Text(
+                                text = "Pembeli ingin pesan item yang belum terdaftar di menu?",
+                                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Box(modifier = Modifier.width(220.dp)) {
+                                PrimaryButton(
+                                    text = "+ Input Menu Manual",
+                                    onClick = onOpenCustomItem
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 4.dp,
+                            bottom = if (uiState.cartTotalCount > 0) 140.dp else 90.dp
+                        ),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(uiState.filteredProducts, key = { it.id }) { product ->
+                            val categoryName = uiState.categories.find { it.id == product.categoryId }?.name
+                            ProductCard(
+                                product = product,
+                                categoryName = categoryName,
+                                onAddClick = { onProductClick(product) }
+                            )
+                        }
                     }
                 }
             }
@@ -311,6 +389,7 @@ fun PosScreen(
                     onClearCart = onClearCart,
                     onHoldOrderClick = onHoldOrderClick,
                     onCheckoutClick = onCheckoutClick,
+                    onAddCustomItemClick = onOpenCustomItem,
                     onDismiss = onCloseCartSheet
                 )
             }
@@ -323,6 +402,16 @@ fun PosScreen(
                 availableModifiers = uiState.activeModifiers,
                 onDismiss = onDismissModifier,
                 onConfirmAddToCart = onConfirmModifierAddToCart
+            )
+        }
+
+        // Custom Item Dialog
+        if (uiState.showCustomItemDialog) {
+            CustomItemDialog(
+                categories = uiState.categories,
+                currentCategoryId = uiState.selectedCategoryId,
+                onDismiss = onDismissCustomItem,
+                onConfirmAdd = onConfirmAddCustomItem
             )
         }
 
@@ -445,6 +534,7 @@ fun TabletCartPanel(
     onClearCart: () -> Unit,
     onHoldOrderClick: () -> Unit,
     onCheckoutClick: () -> Unit,
+    onAddCustomItemClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -465,15 +555,28 @@ fun TabletCartPanel(
                     color = TextPrimary
                 )
             )
-            if (cartItems.isNotEmpty()) {
-                TextButton(onClick = onClearCart) {
-                    Text(
-                        text = "Kosongkan",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = Danger,
-                            fontWeight = FontWeight.Bold
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (onAddCustomItemClick != null) {
+                    TextButton(onClick = onAddCustomItemClick) {
+                        Text(
+                            text = "+ Menu Manual",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Primary,
+                                fontWeight = FontWeight.Bold
+                            )
                         )
-                    )
+                    }
+                }
+                if (cartItems.isNotEmpty()) {
+                    TextButton(onClick = onClearCart) {
+                        Text(
+                            text = "Kosongkan",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Danger,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
                 }
             }
         }

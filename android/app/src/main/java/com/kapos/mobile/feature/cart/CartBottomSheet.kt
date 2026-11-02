@@ -62,6 +62,7 @@ fun CartBottomSheet(
     onClearCart: () -> Unit,
     onHoldOrderClick: () -> Unit = {},
     onCheckoutClick: () -> Unit,
+    onAddCustomItemClick: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -92,14 +93,29 @@ fun CartBottomSheet(
                     )
                 )
 
-                TextButton(onClick = onClearCart) {
-                    Text(
-                        text = "Kosongkan",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = Danger,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (onAddCustomItemClick != null) {
+                        TextButton(onClick = onAddCustomItemClick) {
+                            Text(
+                                text = "+ Menu Manual",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
+                    if (cartItems.isNotEmpty()) {
+                        TextButton(onClick = onClearCart) {
+                            Text(
+                                text = "Kosongkan",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Danger,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
                 }
             }
 

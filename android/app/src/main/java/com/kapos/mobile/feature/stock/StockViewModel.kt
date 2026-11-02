@@ -262,8 +262,8 @@ class StockViewModel(
         _isRestockDialogOpen.value = false
     }
 
-    fun addTaichanBatch(raw: Int, notes: String = "") {
-        stockRepository.addTaichanBatch(raw, notes)
+    fun addTaichanBatch(raw: Int, notes: String = "", receivedDate: Long = System.currentTimeMillis()) {
+        stockRepository.addTaichanBatch(raw, notes, receivedDate)
         closeRestockDialog()
     }
 
@@ -275,8 +275,8 @@ class StockViewModel(
         stockRepository.deleteTaichanBatch(batchId)
     }
 
-    fun addChickenBatch(part: ChickenPart, raw: Int, notes: String = "") {
-        stockRepository.addChickenBatch(part, raw, notes)
+    fun addChickenBatch(part: ChickenPart, raw: Int, notes: String = "", receivedDate: Long = System.currentTimeMillis()) {
+        stockRepository.addChickenBatch(part, raw, notes, receivedDate)
         closeRestockDialog()
     }
 

@@ -236,6 +236,53 @@ class PosViewModel(
         savedOrderRepository.removeSavedOrder(orderId)
     }
 
+    // --- Custom / Manual Item ---
+    fun onOpenCustomItemDialog() {
+        _uiState.update { it.copy(showCustomItemDialog = true) }
+    }
+
+    fun onDismissCustomItemDialog() {
+        _uiState.update { it.copy(showCustomItemDialog = false) }
+    }
+
+    fun confirmAddCustomItem(
+        name: String,
+        price: Double,
+        quantity: Int,
+        categoryId: String?,
+        notes: String,
+        savePermanently: Boolean
+    ) {
+        val trimmedName = name.trim()
+        if (trimmedName.isBlank() || price < 0.0 || quantity <= 0) return
+
+        val prodId = "MANUAL-" + java.util.UUID.randomUUID().toString().take(8)
+        val customProduct = Product(
+            id = prodId,
+            categoryId = categoryId,
+            name = trimmedName,
+            price = price,
+            costPrice = 0.0,
+            emoji = "✨",
+            isActive = true
+        )
+
+        if (savePermanently) {
+            viewModelScope.launch {
+                repository.saveProduct(customProduct)
+            }
+        }
+
+        addToCart(
+            product = customProduct,
+            quantity = quantity,
+            spiceLevel = "",
+            selectedModifiers = emptyList(),
+            notes = notes.trim()
+        )
+        onDismissCustomItemDialog()
+    }
+
     fun refreshData() {
         viewModelScope.launch {
             repository.refreshFromSupabase()
