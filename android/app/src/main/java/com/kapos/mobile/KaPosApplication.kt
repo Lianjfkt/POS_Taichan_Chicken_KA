@@ -65,16 +65,25 @@ class KaPosApplication : Application() {
         backupManager = com.kapos.mobile.core.data.backup.DatabaseBackupManager(database)
         promotionRepository = com.kapos.mobile.core.data.repository.PromotionRepository()
         settingsRepository = SettingsRepository(this)
-        customerRepository = com.kapos.mobile.core.data.repository.CustomerRepository(database = database)
-        inventoryRepository = com.kapos.mobile.core.data.repository.InventoryRepository(database = database)
-        stockRepository = com.kapos.mobile.core.data.repository.StockRepository(this)
-        savedOrderRepository = com.kapos.mobile.core.data.repository.SavedOrderRepository(this)
 
         val settings = settingsRepository.settingsFlow.value
         supabaseClient = SupabaseClient(
             baseUrl = settings.supabaseUrl,
             apiKey = settings.supabaseAnonKey
         )
+
+        customerRepository = com.kapos.mobile.core.data.repository.CustomerRepository(
+            database = database,
+            supabaseClient = supabaseClient,
+            scope = applicationScope
+        )
+        inventoryRepository = com.kapos.mobile.core.data.repository.InventoryRepository(
+            database = database,
+            supabaseClient = supabaseClient,
+            scope = applicationScope
+        )
+        stockRepository = com.kapos.mobile.core.data.repository.StockRepository(this)
+        savedOrderRepository = com.kapos.mobile.core.data.repository.SavedOrderRepository(this)
 
         bluetoothPrinterService = com.kapos.mobile.core.printer.BluetoothPrinterService(this)
 

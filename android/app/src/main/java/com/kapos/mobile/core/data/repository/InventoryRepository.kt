@@ -17,6 +17,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.kapos.mobile.core.data.local.entity.MaterialBatchEntity
+import com.kapos.mobile.core.data.remote.SupabaseClient
+import com.kapos.mobile.core.data.remote.dto.SupabaseMaterialBatchDto
+import com.kapos.mobile.core.data.remote.dto.SupabaseRawMaterialDto
+import com.kapos.mobile.core.data.remote.dto.SupabaseRecipeDto
+import com.kapos.mobile.core.data.remote.dto.SupabaseRecipeItemDto
 import com.kapos.mobile.domain.model.MaterialBatch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -25,6 +30,7 @@ import java.util.UUID
 
 class InventoryRepository(
     private val database: AppDatabase,
+    private val supabaseClient: SupabaseClient? = null,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
     private val rawMaterialDao = database.rawMaterialDao()
@@ -90,11 +96,34 @@ class InventoryRepository(
             lastRestockedAt = material.lastRestockedAt
         )
         rawMaterialDao.upsert(entity)
+
+        if (supabaseClient?.isConfigured() == true) {
+            scope.launch {
+                supabaseClient.upsertRawMaterials(listOf(
+                    SupabaseRawMaterialDto(
+                        id = entity.id,
+                        name = entity.name,
+                        sku = entity.category,
+                        unit = entity.unit,
+                        currentStock = entity.currentStock,
+                        minimumStock = entity.minStock,
+                        costPerUnit = entity.costPerUnit,
+                        isActive = true
+                    )
+                ))
+            }
+        }
+
         entity.toDomain()
     }
 
     suspend fun deleteRawMaterial(id: String) = withContext(Dispatchers.IO) {
         rawMaterialDao.deleteById(id)
+        if (supabaseClient?.isConfigured() == true) {
+            scope.launch {
+                supabaseClient.deleteRawMaterial(id)
+            }
+        }
     }
 
     suspend fun restockMaterial(
@@ -195,6 +224,38 @@ class InventoryRepository(
 
         // Cascade update BOP to all products with this material in Recipe BOM
         recalculateAllProductsBopForMaterial(materialId)
+
+        if (supabaseClient?.isConfigured() == true) {
+            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            scope.launch {
+                supabaseClient.upsertMaterialBatches(listOf(
+                    SupabaseMaterialBatchDto(
+                        id = batchEntity.id,
+                        materialId = batchEntity.materialId,
+                        batchNumber = batchEntity.batchNumber,
+                        initialQuantity = batchEntity.initialQuantity,
+                        remainingQuantity = batchEntity.remainingQuantity,
+                        costPerUnit = batchEntity.costPerUnit,
+                        receivedAt = isoFormat.format(Date(batchEntity.receivedDate)),
+                        expiryDate = batchEntity.expiryDate?.let { isoFormat.format(Date(it)) }
+                    )
+                ))
+                supabaseClient.upsertRawMaterials(listOf(
+                    SupabaseRawMaterialDto(
+                        id = material.id,
+                        name = material.name,
+                        sku = material.category,
+                        unit = material.unit,
+                        currentStock = newTotalStock,
+                        minimumStock = material.minStock,
+                        costPerUnit = newAvgCost,
+                        isActive = true
+                    )
+                ))
+            }
+        }
 
         batchEntity.toDomain()
     }
@@ -381,6 +442,29 @@ class InventoryRepository(
             )
         )
         recalculateProductBop(productId)
+
+        if (supabaseClient?.isConfigured() == true) {
+            val prod = productDao.getById(productId)
+            scope.launch {
+                supabaseClient.upsertRecipes(listOf(
+                    SupabaseRecipeDto(
+                        id = productId,
+                        productId = productId,
+                        productName = prod?.name ?: "Recipe",
+                        yieldQty = 1,
+                        isActive = true
+                    )
+                ))
+                supabaseClient.upsertRecipeItems(listOf(
+                    SupabaseRecipeItemDto(
+                        id = id,
+                        recipeId = productId,
+                        rawMaterialId = materialId,
+                        quantityRequired = quantityRequired.coerceAtLeast(0.01)
+                    )
+                ))
+            }
+        }
     }
 
     suspend fun deleteRecipeItem(id: String) = withContext(Dispatchers.IO) {
@@ -388,6 +472,11 @@ class InventoryRepository(
         recipeDao.deleteById(id)
         if (item != null) {
             recalculateProductBop(item.productId)
+            if (supabaseClient?.isConfigured() == true) {
+                scope.launch {
+                    supabaseClient.deleteRecipeItemsByRecipe(item.productId)
+                }
+            }
         }
     }
 
@@ -499,6 +588,100 @@ class InventoryRepository(
 
         if (movementsToInsert.isNotEmpty()) {
             stockMovementDao.insertAll(movementsToInsert)
+        }
+    }
+
+    /**
+     * Sinkronisasi 2 arah Inventaris Bahan Baku, Batch, dan Resep BOM dengan Supabase.
+     * Dipanggil saat startup atau Sync Now.
+     */
+    suspend fun syncInventory(): Boolean = withContext(Dispatchers.IO) {
+        val client = supabaseClient ?: return@withContext false
+        if (!client.isConfigured()) return@withContext false
+        try {
+            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+
+            // 1. SYNC RAW MATERIALS
+            val localMaterials = rawMaterialDao.getAll()
+            if (localMaterials.isNotEmpty()) {
+                client.upsertRawMaterials(localMaterials.map {
+                    SupabaseRawMaterialDto(
+                        id = it.id,
+                        name = it.name,
+                        sku = it.category,
+                        unit = it.unit,
+                        currentStock = it.currentStock,
+                        minimumStock = it.minStock,
+                        costPerUnit = it.costPerUnit,
+                        isActive = true
+                    )
+                })
+            }
+            val remoteMaterials = client.fetchRawMaterials()
+            if (remoteMaterials.isNotEmpty()) {
+                rawMaterialDao.upsertAll(remoteMaterials.map { rem ->
+                    val cat = try {
+                        RawMaterialCategory.valueOf(rem.sku ?: "BUMBU_SAMBAL").name
+                    } catch (_: Exception) {
+                        "BUMBU_SAMBAL"
+                    }
+                    RawMaterialEntity(
+                        id = rem.id,
+                        name = rem.name,
+                        category = cat,
+                        unit = rem.unit.ifBlank { "gram" },
+                        currentStock = rem.currentStock,
+                        minStock = rem.minimumStock,
+                        costPerUnit = rem.costPerUnit,
+                        lastRestockedAt = System.currentTimeMillis()
+                    )
+                })
+            }
+
+            // 2. SYNC MATERIAL BATCHES
+            val remoteBatches = client.fetchMaterialBatches()
+            if (remoteBatches.isNotEmpty()) {
+                materialBatchDao.upsertAll(remoteBatches.map { b ->
+                    val received = b.receivedAt?.let {
+                        try { isoFormat.parse(it.take(19))?.time } catch (_: Exception) { System.currentTimeMillis() }
+                    } ?: System.currentTimeMillis()
+                    val expiry = b.expiryDate?.let {
+                        try { isoFormat.parse(it.take(19))?.time } catch (_: Exception) { null }
+                    }
+                    MaterialBatchEntity(
+                        id = b.id,
+                        materialId = b.materialId,
+                        batchNumber = b.batchNumber,
+                        initialQuantity = b.initialQuantity,
+                        remainingQuantity = b.remainingQuantity,
+                        costTotal = b.initialQuantity * b.costPerUnit,
+                        costPerUnit = b.costPerUnit,
+                        receivedDate = received,
+                        expiryDate = expiry,
+                        isUsable = b.remainingQuantity > 0.0,
+                        notes = ""
+                    )
+                })
+            }
+
+            // 3. SYNC RECIPES & RECIPE ITEMS
+            val remoteRecipeItems = client.fetchRecipeItems()
+            if (remoteRecipeItems.isNotEmpty()) {
+                recipeDao.upsertAll(remoteRecipeItems.map { r ->
+                    RecipeItemEntity(
+                        id = r.id,
+                        productId = r.recipeId,
+                        materialId = r.rawMaterialId,
+                        quantityRequired = r.quantityRequired
+                    )
+                })
+            }
+
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 

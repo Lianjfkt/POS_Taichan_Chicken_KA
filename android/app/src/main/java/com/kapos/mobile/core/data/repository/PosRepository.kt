@@ -431,8 +431,10 @@ class PosRepository(
             if (isConnected) {
                 val menuOk = syncMenuInternal()
                 val transOk = syncTransactionsInternal()
+                val invOk = inventoryRepository?.syncInventory() ?: true
+                val custOk = customerRepository?.syncCustomers() ?: true
                 shiftRepository?.syncPendingShifts()
-                success = menuOk && transOk
+                success = menuOk && transOk && invOk && custOk
                 if (success) _lastSyncTime.value = System.currentTimeMillis()
             }
         } catch (e: Exception) {
