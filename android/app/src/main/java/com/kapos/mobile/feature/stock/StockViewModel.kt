@@ -351,13 +351,23 @@ class StockViewModel(
                     name = trimmed,
                     category = category,
                     unit = unit.trim().ifBlank { "gram" },
-                    currentStock = currentStock.coerceAtLeast(0.0),
+                    currentStock = 0.0,
                     minStock = minStock.coerceAtLeast(0.0),
                     costPerUnit = costPerUnit.coerceAtLeast(0.0),
                     lastRestockedAt = System.currentTimeMillis()
                 )
             }
             inventoryRepository?.saveRawMaterial(material)
+            if (current == null && currentStock > 0.0) {
+                inventoryRepository?.restockMaterialWithBatch(
+                    materialId = material.id,
+                    quantity = currentStock,
+                    costTotal = currentStock * costPerUnit.coerceAtLeast(0.0),
+                    expiryDate = null,
+                    notes = "Stok awal pendaftaran bahan baku",
+                    receivedDate = System.currentTimeMillis()
+                )
+            }
             closeAddEditMaterial()
         }
     }

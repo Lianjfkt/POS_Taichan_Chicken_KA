@@ -370,7 +370,8 @@ class InventoryRepository(
     }
 
     suspend fun saveRecipeItem(productId: String, materialId: String, quantityRequired: Double) = withContext(Dispatchers.IO) {
-        val id = UUID.randomUUID().toString()
+        val existing = recipeDao.getByProduct(productId).firstOrNull { it.materialId == materialId }
+        val id = existing?.id ?: UUID.randomUUID().toString()
         recipeDao.upsert(
             RecipeItemEntity(
                 id = id,
