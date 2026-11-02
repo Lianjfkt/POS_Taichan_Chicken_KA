@@ -210,4 +210,67 @@ class StockIntegrationWorkflowTest {
         val threeDay = nonPerishable.copy(expiryDate = now + (3 * oneDayMs))
         assertEquals(BatchFreshness.FRESH, threeDay.freshnessStatus(now))
     }
+
+    @Test
+    fun testBackdatedBatchRestockLifecycleAndFifo() {
+        val now = 1730520000000L // 02 Nov 2024
+        val oneDayMs = 24L * 60 * 60 * 1000
+
+        // Case: Material arrived 2 days ago (31 Oct), but entered today (02 Nov)
+        val arrivalDate = now - (2 * oneDayMs)
+        val shelfLifeDays = 3 // normally 3 days shelf life
+
+        // Relative expiry: arrivalDate + 3 days = now + 1 day (only 1 day left today!)
+        val expiryDate = arrivalDate + (shelfLifeDays * oneDayMs)
+
+        val backdatedBatch = MaterialBatch(
+            id = "batch_backdated",
+            materialId = "mat_ayam",
+            batchNumber = "B-20241031-1000",
+            initialQuantity = 500.0,
+            remainingQuantity = 500.0,
+            costTotal = 25000.0,
+            costPerUnit = 50.0,
+            receivedDate = arrivalDate,
+            expiryDate = expiryDate,
+            isUsable = true,
+            notes = "Pasar Senen [BACKDATED: Diterima 31/10/2024 | Diinput 02/11/2024 10:00]"
+        )
+
+        // Today's batch (arrived today with 3 days shelf life)
+        val todayBatch = MaterialBatch(
+            id = "batch_today",
+            materialId = "mat_ayam",
+            batchNumber = "B-20241102-1000",
+            initialQuantity = 1000.0,
+            remainingQuantity = 1000.0,
+            costTotal = 50000.0,
+            costPerUnit = 50.0,
+            receivedDate = now,
+            expiryDate = now + (3 * oneDayMs),
+            isUsable = true,
+            notes = "Pasar Senen"
+        )
+
+        // 1. Freshness evaluation:
+        // Backdated batch only has 1 day left -> EXPIRING_SOON (<= 2 days)
+        assertEquals(BatchFreshness.EXPIRING_SOON, backdatedBatch.freshnessStatus(now))
+        // Today's batch has 3 days left -> FRESH
+        assertEquals(BatchFreshness.FRESH, todayBatch.freshnessStatus(now))
+
+        // 2. FIFO Order Verification:
+        // FIFO sort priority: expiryDate ASC, receivedDate ASC
+        val sortedBatches = listOf(todayBatch, backdatedBatch).sortedWith(
+            compareBy<MaterialBatch> { it.expiryDate ?: Long.MAX_VALUE }
+                .thenBy { it.receivedDate }
+        )
+
+        // Backdated batch MUST be consumed first in FIFO because its expiry is earlier!
+        assertEquals("batch_backdated", sortedBatches[0].id)
+        assertEquals("batch_today", sortedBatches[1].id)
+
+        // 3. Anti-fraud audit note verification
+        assertTrue(backdatedBatch.notes.contains("[BACKDATED: Diterima 31/10/2024 | Diinput 02/11/2024 10:00]"))
+        assertFalse(todayBatch.notes.contains("[BACKDATED"))
+    }
 }
