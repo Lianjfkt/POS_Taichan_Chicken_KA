@@ -117,15 +117,33 @@ class InventoryRepository(
         quantity: Double,
         costTotal: Double,
         expiryDate: Long? = null,
-        notes: String = ""
+        notes: String = "",
+        receivedDate: Long = System.currentTimeMillis()
     ): MaterialBatch = withContext(Dispatchers.IO) {
         if (quantity <= 0.0) throw IllegalArgumentException("Jumlah masuk harus > 0")
         val now = System.currentTimeMillis()
+        val sevenDaysAgo = now - (7L * 24 * 60 * 60 * 1000)
+        require(receivedDate in sevenDaysAgo..(now + 60_000L)) {
+            "Tanggal penerimaan tidak valid (maksimal 7 hari ke belakang dan tidak boleh di masa depan)"
+        }
+
         val material = rawMaterialDao.getById(materialId) ?: throw IllegalArgumentException("Bahan tidak ditemukan")
 
         val unitCost = if (quantity > 0) costTotal / quantity else 0.0
         val batchId = UUID.randomUUID().toString()
-        val batchNumber = "B-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.getDefault()).format(Date(now))
+        val batchNumber = "B-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.getDefault()).format(Date(receivedDate))
+
+        // Generate Anti-Fraud Audit Watermark
+        val dayFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val isBackdated = dayFormat.format(Date(receivedDate)) != dayFormat.format(Date(now))
+        val finalNotes = if (isBackdated) {
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val timeFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            val watermark = "[BACKDATED: Diterima ${dateFormat.format(Date(receivedDate))} | Diinput ${timeFormat.format(Date(now))}]"
+            if (notes.isNotBlank()) "${notes.trim()} $watermark" else watermark
+        } else {
+            notes.trim()
+        }
 
         val batchEntity = MaterialBatchEntity(
             id = batchId,
@@ -135,10 +153,10 @@ class InventoryRepository(
             remainingQuantity = quantity,
             costTotal = costTotal,
             costPerUnit = unitCost,
-            receivedDate = now,
+            receivedDate = receivedDate,
             expiryDate = expiryDate,
             isUsable = true,
-            notes = notes
+            notes = finalNotes
         )
         materialBatchDao.insert(batchEntity)
 
@@ -156,13 +174,13 @@ class InventoryRepository(
             material.copy(
                 currentStock = newTotalStock,
                 costPerUnit = newAvgCost,
-                lastRestockedAt = now
+                lastRestockedAt = maxOf(material.lastRestockedAt, receivedDate)
             )
         )
 
         updateMaterialExpiryState(materialId)
 
-        // Record Stock Movement
+        // Record Stock Movement with backdated timestamp and audit watermark
         stockMovementDao.insert(
             StockMovementEntity(
                 id = UUID.randomUUID().toString(),
@@ -170,8 +188,8 @@ class InventoryRepository(
                 type = StockMovementType.RESTOCK.name,
                 quantity = quantity,
                 costTotal = costTotal,
-                notes = "Restock $batchNumber: $notes (Harga Beli: Rp ${unitCost.toInt()}/${material.unit})",
-                timestamp = now
+                notes = "Restock $batchNumber: $finalNotes (Harga Beli: Rp ${unitCost.toInt()}/${material.unit})",
+                timestamp = receivedDate
             )
         )
 
