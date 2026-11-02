@@ -387,10 +387,18 @@ class StockViewModel(
         quantity: Double,
         costTotal: Double,
         expiryDate: Long?,
-        notes: String
+        notes: String,
+        receivedDate: Long = System.currentTimeMillis()
     ) {
         viewModelScope.launch {
-            inventoryRepository?.restockMaterialWithBatch(materialId, quantity, costTotal, expiryDate, notes)
+            inventoryRepository?.restockMaterialWithBatch(
+                materialId = materialId,
+                quantity = quantity,
+                costTotal = costTotal,
+                expiryDate = expiryDate,
+                notes = notes,
+                receivedDate = receivedDate
+            )
             closeRestockMaterial()
         }
     }
