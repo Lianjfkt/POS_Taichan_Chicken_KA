@@ -138,6 +138,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // WorkManager for guaranteed background sync
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Security Crypto for secure settings storage
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
     // Tooling & Tests
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
