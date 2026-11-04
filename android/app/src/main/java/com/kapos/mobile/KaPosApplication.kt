@@ -1,16 +1,24 @@
 package com.kapos.mobile
 
 import android.app.Application
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.kapos.mobile.core.data.local.AppDatabase
 import com.kapos.mobile.core.data.remote.SupabaseClient
 import com.kapos.mobile.core.data.repository.PosRepository
 import com.kapos.mobile.core.data.repository.SettingsRepository
 import com.kapos.mobile.core.data.repository.ShiftRepository
+import com.kapos.mobile.core.sync.SyncOrdersWorker
+import com.kapos.mobile.core.utils.NetworkMonitor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class KaPosApplication : Application() {
 
@@ -50,6 +58,9 @@ class KaPosApplication : Application() {
     lateinit var promotionRepository: com.kapos.mobile.core.data.repository.PromotionRepository
         private set
 
+    lateinit var networkMonitor: NetworkMonitor
+        private set
+
     /**
      * Scope dengan lifecycle yang terikat ke Application process.
      * Gunakan SupervisorJob agar satu coroutine gagal tidak membatalkan yang lain.
@@ -60,6 +71,8 @@ class KaPosApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        networkMonitor = NetworkMonitor(this)
 
         database = AppDatabase.getInstance(this)
         backupManager = com.kapos.mobile.core.data.backup.DatabaseBackupManager(database)
@@ -109,10 +122,55 @@ class KaPosApplication : Application() {
                 supabaseClient.updateConfig(s.supabaseUrl, s.supabaseAnonKey)
             }
         }
+
+        // Setup WorkManager periodic background sync
+        setupWorkManager()
+
+        // Observe network changes for instant reconnect sync
+        observeNetworkChanges()
+    }
+
+    private fun setupWorkManager() {
+        try {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val syncRequest = PeriodicWorkRequestBuilder<SyncOrdersWorker>(15, TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                SyncOrdersWorker.WORK_NAME,
+                ExistingPeriodicWorkPolicy.KEEP,
+                syncRequest
+            )
+        } catch (e: Exception) {
+            // Ignore in testing environments without WorkManager initialization
+        }
+    }
+
+    private fun observeNetworkChanges() {
+        applicationScope.launch(Dispatchers.IO) {
+            var wasOnline: Boolean? = null
+            // StateFlow is inherently distinctUntilChanged
+            networkMonitor.isOnlineFlow.collect { isOnline ->
+                // Trigger syncAll() immediately when transitioning from offline to online
+                if (wasOnline == false && isOnline) {
+                    posRepository.syncAll()
+                }
+                wasOnline = isOnline
+            }
+        }
     }
 
     override fun onTerminate() {
         super.onTerminate()
+        try {
+            networkMonitor.unregister()
+        } catch (e: Exception) {
+            // Ignore
+        }
         // Batalkan semua coroutine saat proses dihentikan
         applicationScope.cancel()
     }
@@ -122,4 +180,3 @@ class KaPosApplication : Application() {
             private set
     }
 }
-

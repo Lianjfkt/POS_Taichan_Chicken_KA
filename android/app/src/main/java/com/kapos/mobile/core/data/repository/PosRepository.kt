@@ -625,12 +625,15 @@ class PosRepository(
         return true
     }
 
-    suspend fun syncPendingOrders() = withContext(Dispatchers.IO) {
-        if (!supabaseClient.isConfigured()) return@withContext
-        val pending = orderDao?.getPendingOrders() ?: return@withContext
-        if (pending.isEmpty()) return@withContext
+    fun isSupabaseConfigured(): Boolean = supabaseClient.isConfigured()
+
+    suspend fun syncPendingOrders(): Boolean = withContext(Dispatchers.IO) {
+        if (!supabaseClient.isConfigured()) return@withContext false
+        val pending = orderDao?.getPendingOrders() ?: return@withContext true
+        if (pending.isEmpty()) return@withContext true
 
         _isSyncing.value = true
+        var allSuccess = true
         try {
             val isoFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
                 timeZone = java.util.TimeZone.getTimeZone("UTC")
@@ -677,11 +680,15 @@ class PosRepository(
 
                 if (orderSuccess && itemsSuccess) {
                     orderDao.updateSyncStatus(order.id, SyncStatus.SYNCED.name)
+                } else {
+                    allSuccess = false
                 }
             }
             _isOnline.value = true
+            allSuccess
         } catch (e: Exception) {
             _isOnline.value = false
+            false
         } finally {
             _isSyncing.value = false
         }
