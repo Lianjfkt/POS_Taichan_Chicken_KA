@@ -450,13 +450,13 @@ fun FloatingCartBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(58.dp)
-            .shadow(elevation = 16.dp, shape = CircleShape, spotColor = Primary.copy(alpha = 0.2f))
+            .height(52.dp)
+            .shadow(elevation = 10.dp, shape = CircleShape, spotColor = Primary.copy(alpha = 0.18f))
             .clip(CircleShape)
             .background(SurfaceWhite)
             .border(1.dp, OutlineSoft, CircleShape)
             .clickable(onClick = onViewCartClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 14.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -467,7 +467,7 @@ fun FloatingCartBar(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(34.dp)
                         .clip(CircleShape)
                         .background(Primary),
                     contentAlignment = Alignment.Center
@@ -476,23 +476,25 @@ fun FloatingCartBar(
                         imageVector = Icons.Default.ShoppingBag,
                         contentDescription = "Cart",
                         tint = SurfaceWhite,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(17.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
                         text = "$itemCount Items",
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = TextPrimary,
+                            fontSize = 12.sp
                         )
                     )
                     Text(
                         text = CurrencyFormatter.formatRupiah(subtotal),
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = Primary,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
                         )
                     )
                 }
@@ -502,14 +504,15 @@ fun FloatingCartBar(
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(Primary)
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Lihat",
+                        text = "Bayar",
                         style = MaterialTheme.typography.labelMedium.copy(
                             color = SurfaceWhite,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
                         )
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -517,7 +520,7 @@ fun FloatingCartBar(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
                         tint = SurfaceWhite,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
                 }
             }

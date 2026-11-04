@@ -18,9 +18,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.PointOfSale
-import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WorkHistory
 import androidx.compose.material3.Icon
@@ -49,9 +49,9 @@ sealed class NavDestination(
     val icon: ImageVector
 ) {
     object Pos : NavDestination("pos", "Kasir", Icons.Default.PointOfSale)
-    object Transactions : NavDestination("transactions", "Transaksi", Icons.Default.ReceiptLong)
+    object Transactions : NavDestination("transactions", "Transaksi", Icons.AutoMirrored.Filled.ReceiptLong)
     object Shift : NavDestination("shift", "Shift", Icons.Default.WorkHistory)
-    object Stock : NavDestination("stock", "Stok", Icons.Default.List)
+    object Stock : NavDestination("stock", "Stok", Icons.AutoMirrored.Filled.List)
     object Analytics : NavDestination("analytics", "Analisa", Icons.Default.BarChart)
     object Dashboard : NavDestination("dashboard", "Dashboard", Icons.Default.Dashboard)
     object Report : NavDestination("report", "Laporan", Icons.Default.Assessment)
@@ -99,18 +99,18 @@ fun AppBottomNav(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-                .shadow(elevation = 12.dp, shape = CircleShape, spotColor = Primary.copy(alpha = 0.15f))
+                .height(56.dp)
+                .shadow(elevation = 8.dp, shape = CircleShape, spotColor = Primary.copy(alpha = 0.12f))
                 .clip(CircleShape)
                 .background(SurfaceWhite)
                 .border(1.dp, OutlineSoft, CircleShape)
-                .padding(horizontal = 6.dp),
+                .padding(horizontal = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -140,11 +140,11 @@ fun BottomNavItem(
     Box(
         modifier = Modifier
             .clip(CircleShape)
-            .background(if (isSelected) Primary else SurfaceTint)
+            .background(if (isSelected) Primary else androidx.compose.ui.graphics.Color.Transparent)
             .clickable(onClick = onClick)
             .padding(
-                horizontal = if (isSelected) 14.dp else 10.dp,
-                vertical = 8.dp
+                horizontal = if (isSelected) 12.dp else 8.dp,
+                vertical = 6.dp
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -153,7 +153,7 @@ fun BottomNavItem(
                 imageVector = item.icon,
                 contentDescription = item.title,
                 tint = if (isSelected) SurfaceWhite else TextSecondary,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(17.dp)
             )
             if (isSelected) {
                 Spacer(modifier = Modifier.width(4.dp))
@@ -162,7 +162,7 @@ fun BottomNavItem(
                     style = MaterialTheme.typography.labelMedium.copy(
                         color = SurfaceWhite,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = 11.5.sp
                     )
                 )
             }

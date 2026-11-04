@@ -62,7 +62,7 @@ fun CategoryChips(
                             shape = CircleShape
                         )
                         .clickable(onClick = onAddCustomItemClick)
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
@@ -73,12 +73,12 @@ fun CategoryChips(
                             imageVector = Icons.Default.Add,
                             contentDescription = null,
                             tint = Primary,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = "Menu Manual",
                             style = MaterialTheme.typography.labelMedium.copy(
-                                fontSize = 13.sp,
+                                fontSize = 12.sp,
                                 color = Primary,
                                 fontWeight = FontWeight.Bold
                             )
@@ -122,13 +122,13 @@ fun CategoryChipItem(
                 shape = CircleShape
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 13.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium.copy(
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 color = if (isSelected) SurfaceWhite else TextPrimary,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
             )

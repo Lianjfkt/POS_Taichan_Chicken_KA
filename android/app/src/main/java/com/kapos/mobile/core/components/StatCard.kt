@@ -42,10 +42,10 @@ fun StatCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(AppShapes.Md)
+            .clip(AppShapes.Sm)
             .background(SurfaceWhite)
-            .border(1.dp, OutlineSoft, AppShapes.Md)
-            .padding(14.dp)
+            .border(1.dp, OutlineSoft, AppShapes.Sm)
+            .padding(11.dp)
     ) {
         Column {
             Row(
@@ -55,7 +55,7 @@ fun StatCard(
                 if (icon != null) {
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(30.dp)
                             .clip(CircleShape)
                             .background(PrimarySoft),
                         contentAlignment = Alignment.Center
@@ -64,30 +64,30 @@ fun StatCard(
                             imageVector = icon,
                             contentDescription = title,
                             tint = Primary,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                 }
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.labelMedium.copy(color = TextSecondary)
+                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 11.sp)
                 )
             }
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleLarge.copy(
+                style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
+                    fontSize = 17.sp,
                     color = TextPrimary
                 )
             )
             if (subtitle != null) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                    style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 10.sp)
                 )
             }
         }
