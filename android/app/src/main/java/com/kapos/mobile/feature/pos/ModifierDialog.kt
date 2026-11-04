@@ -62,6 +62,7 @@ import com.kapos.mobile.domain.model.Product
 @Composable
 fun ModifierDialog(
     product: Product,
+    availableModifiers: List<ModifierOption> = emptyList(),
     onDismiss: () -> Unit,
     onConfirmAddToCart: (
         product: Product,
@@ -71,12 +72,13 @@ fun ModifierDialog(
         notes: String
     ) -> Unit
 ) {
+    val modifierSource = if (availableModifiers.isNotEmpty()) availableModifiers else PresetModifiers.allOptions
     val spiceOptions = listOf("Original", "Lv.1", "Lv.2", "Lv.3", "Lv.4", "Lv.5")
     var selectedSpice by remember {
         mutableStateOf(if (product.spiceLevel.isNotBlank()) product.spiceLevel else "Original")
     }
 
-    val defaultSambal = PresetModifiers.allOptions.firstOrNull { it.category == ModifierCategory.SAMBAL && it.isDefault }
+    val defaultSambal = modifierSource.firstOrNull { it.category == ModifierCategory.SAMBAL && it.isDefault }
     var selectedSambal by remember { mutableStateOf(defaultSambal) }
 
     // Multi-select for extras and complimentaries
@@ -178,7 +180,7 @@ fun ModifierDialog(
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            PresetModifiers.allOptions
+                            modifierSource
                                 .filter { it.category == ModifierCategory.SAMBAL }
                                 .forEach { option ->
                                     SelectableTag(
@@ -205,7 +207,7 @@ fun ModifierDialog(
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            PresetModifiers.allOptions
+                            modifierSource
                                 .filter { it.category == ModifierCategory.COMPLIMENTARY }
                                 .forEach { option ->
                                     val isSelected = selectedExtras.contains(option)
@@ -237,7 +239,7 @@ fun ModifierDialog(
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            PresetModifiers.allOptions
+                            modifierSource
                                 .filter { it.category == ModifierCategory.EXTRA || it.category == ModifierCategory.PACKAGING }
                                 .forEach { option ->
                                     val isSelected = selectedExtras.contains(option)

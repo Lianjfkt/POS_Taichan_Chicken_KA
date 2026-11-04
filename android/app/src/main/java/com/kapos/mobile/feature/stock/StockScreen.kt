@@ -94,10 +94,10 @@ fun StockRoute(
         onTabSelect = viewModel::onTabSelect,
         onOpenRestock = viewModel::openRestockDialog,
         onCloseRestock = viewModel::closeRestockDialog,
-        onAddTaichan = viewModel::addTaichanBatch,
+        onAddTaichan = { raw, notes, receivedDate -> viewModel.addTaichanBatch(raw, notes, receivedDate) },
         onUpdateTaichanFried = viewModel::updateTaichanFried,
         onDeleteTaichan = viewModel::deleteTaichanBatch,
-        onAddChicken = viewModel::addChickenBatch,
+        onAddChicken = { part, raw, notes, receivedDate -> viewModel.addChickenBatch(part, raw, notes, receivedDate) },
         onUpdateChickenFried = viewModel::updateChickenFried,
         onDeleteChicken = viewModel::deleteChickenBatch,
         // Raw Materials callbacks
@@ -135,10 +135,10 @@ fun StockScreen(
     onTabSelect: (StockTab) -> Unit,
     onOpenRestock: (ChickenPart) -> Unit,
     onCloseRestock: () -> Unit,
-    onAddTaichan: (raw: Int, notes: String) -> Unit,
+    onAddTaichan: (raw: Int, notes: String, receivedDate: Long) -> Unit,
     onUpdateTaichanFried: (id: String, fried: Int) -> Unit,
     onDeleteTaichan: (id: String) -> Unit,
-    onAddChicken: (part: ChickenPart, raw: Int, notes: String) -> Unit,
+    onAddChicken: (part: ChickenPart, raw: Int, notes: String, receivedDate: Long) -> Unit,
     onUpdateChickenFried: (id: String, fried: Int) -> Unit,
     onDeleteChicken: (id: String) -> Unit,
     // Raw Materials
@@ -151,8 +151,8 @@ fun StockScreen(
     onDeleteMaterial: (id: String) -> Unit,
     onOpenRestockMaterial: (RawMaterial) -> Unit,
     onCloseRestockMaterial: () -> Unit,
-    onConfirmRestockMaterial: (materialId: String, quantity: Double, cost: Double, notes: String) -> Unit,
-    onConfirmRestockWithBatch: (materialId: String, quantity: Double, cost: Double, expiryDate: Long?, notes: String) -> Unit = { _, _, _, _, _ -> },
+    onConfirmRestockMaterial: (materialId: String, quantity: Double, cost: Double, notes: String) -> Unit = { _, _, _, _ -> },
+    onConfirmRestockWithBatch: (materialId: String, quantity: Double, cost: Double, expiryDate: Long?, notes: String, receivedDate: Long) -> Unit = { _, _, _, _, _, _ -> },
     onOpenBatchDetail: (RawMaterial) -> Unit = {},
     onCloseBatchDetail: () -> Unit = {},
     onToggleBatchUsability: (batchId: String, isUsable: Boolean) -> Unit = { _, _ -> },
@@ -530,8 +530,8 @@ fun StockScreen(
         if (uiState.isRestockMaterialOpen && uiState.selectedMaterialForAction != null) {
             RestockMaterialDialog(
                 material = uiState.selectedMaterialForAction!!,
-                onConfirm = { qty, cost, expiryDate, notes ->
-                    onConfirmRestockWithBatch(uiState.selectedMaterialForAction!!.id, qty, cost, expiryDate, notes)
+                onConfirm = { qty, cost, expiryDate, notes, receivedDate ->
+                    onConfirmRestockWithBatch(uiState.selectedMaterialForAction!!.id, qty, cost, expiryDate, notes, receivedDate)
                 },
                 onDismiss = onCloseRestockMaterial
             )

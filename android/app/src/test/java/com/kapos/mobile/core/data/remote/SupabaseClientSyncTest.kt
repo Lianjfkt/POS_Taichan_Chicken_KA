@@ -35,6 +35,12 @@ class SupabaseClientSyncTest {
         assertFalse(unconfiguredClient.upsertProducts(emptyList()))
         assertTrue(unconfiguredClient.fetchOrders().isEmpty())
         assertTrue(unconfiguredClient.fetchOrderItems(emptyList()).isEmpty())
+        assertFalse(unconfiguredClient.deleteProduct("prod_1"))
+        assertFalse(unconfiguredClient.deleteCategory("cat_1"))
+        assertFalse(unconfiguredClient.deleteModifier("mod_1"))
+        assertTrue(unconfiguredClient.fetchModifiers().isEmpty())
+        assertFalse(unconfiguredClient.upsertModifiers(emptyList()))
+        assertFalse(unconfiguredClient.clearAllRemoteData())
     }
 
     @Test
@@ -43,6 +49,10 @@ class SupabaseClientSyncTest {
         // Empty upsert list should return true/false without crashing
         assertFalse(configuredClient.upsertCategories(emptyList()))
         assertFalse(configuredClient.upsertProducts(emptyList()))
+        assertFalse(configuredClient.upsertModifiers(emptyList()))
+        assertFalse(configuredClient.deleteProduct(""))
+        assertFalse(configuredClient.deleteCategory(""))
+        assertFalse(configuredClient.deleteModifier(""))
         assertTrue(configuredClient.fetchOrderItems(emptyList()).isEmpty())
     }
 }

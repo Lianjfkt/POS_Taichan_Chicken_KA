@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudUpload
@@ -27,9 +28,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import com.kapos.mobile.domain.model.CartItem
+import com.kapos.mobile.domain.model.PaymentMethod
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -98,6 +106,13 @@ fun TransactionsRoute(
         onVoidReasonNotesChange = viewModel::onVoidReasonNotesChange,
         onVoidPinChange = viewModel::onVoidPinInputChange,
         onConfirmVoid = viewModel::confirmVoid,
+        onOpenBackdatedClick = viewModel::onOpenBackdatedOrder,
+        onDismissBackdatedOrder = viewModel::onDismissBackdatedOrder,
+        onOwnerAuthPinChange = viewModel::onOwnerAuthPinChange,
+        onConfirmOwnerAuthPin = viewModel::onConfirmOwnerAuthPin,
+        onDismissOwnerAuthPin = viewModel::onDismissOwnerAuthPin,
+        onSubmitBackdatedOrder = viewModel::submitBackdatedOrder,
+        onClearActionSuccessMessage = viewModel::clearActionSuccessMessage,
         modifier = modifier
     )
 }
@@ -120,8 +135,23 @@ fun TransactionsScreen(
     onVoidReasonNotesChange: (String) -> Unit,
     onVoidPinChange: (String) -> Unit,
     onConfirmVoid: () -> Unit,
+    onOpenBackdatedClick: () -> Unit,
+    onDismissBackdatedOrder: () -> Unit,
+    onOwnerAuthPinChange: (String) -> Unit,
+    onConfirmOwnerAuthPin: () -> Unit,
+    onDismissOwnerAuthPin: () -> Unit,
+    onSubmitBackdatedOrder: (Long, List<CartItem>, PaymentMethod, String) -> Unit,
+    onClearActionSuccessMessage: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.actionSuccessMessage) {
+        uiState.actionSuccessMessage?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+            onClearActionSuccessMessage()
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -154,19 +184,48 @@ fun TransactionsScreen(
                     )
                 }
 
-                IconButton(
-                    onClick = onSyncClick,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(PrimarySoft)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Sync,
-                        contentDescription = "Sync",
-                        tint = Primary,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFFEF3C7))
+                            .clickable(onClick = onOpenBackdatedClick)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = Color(0xFFB45309),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Susulan",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFB45309)
+                            )
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onSyncClick,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(PrimarySoft)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sync,
+                            contentDescription = "Sync",
+                            tint = Primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 
@@ -273,6 +332,34 @@ fun TransactionsScreen(
                 onDismiss = { onShowDatePickerDialog(false) }
             )
         }
+
+        // Backdated Order Dialog (Owner)
+        if (uiState.showBackdatedOrderDialog) {
+            BackdatedOrderDialog(
+                availableProducts = uiState.availableProducts,
+                isSubmitting = uiState.isSubmittingBackdated,
+                onSubmit = onSubmitBackdatedOrder,
+                onDismiss = onDismissBackdatedOrder
+            )
+        }
+
+        // Owner Auth PIN Dialog (When accessed by Cashier)
+        if (uiState.showOwnerAuthPinDialog) {
+            OwnerAuthPinDialog(
+                pin = uiState.ownerAuthPinInput,
+                errorMessage = uiState.ownerAuthPinError,
+                onPinChange = onOwnerAuthPinChange,
+                onConfirm = onConfirmOwnerAuthPin,
+                onDismiss = onDismissOwnerAuthPin
+            )
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        )
     }
 }
 
@@ -308,6 +395,24 @@ fun TransactionCard(
                         )
                     )
                     Spacer(modifier = Modifier.width(6.dp))
+                    if (order.notes?.contains("[Susulan]") == true) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFFFEF3C7))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "Susulan",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFB45309),
+                                    fontSize = 10.sp
+                                )
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
                     if (order.syncStatus == SyncStatus.PENDING_SYNC) {
                         Icon(
                             imageVector = Icons.Default.CloudUpload,
@@ -582,4 +687,99 @@ fun VoidPinDialog(
         }
     }
 }
+
+@Composable
+fun OwnerAuthPinDialog(
+    pin: String,
+    errorMessage: String?,
+    onPinChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(AppShapes.Lg)
+                .background(SurfaceWhite)
+                .border(1.dp, OutlineSoft, AppShapes.Lg)
+                .padding(20.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFEF3C7)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Otorisasi Owner",
+                        tint = Color(0xFFB45309),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Otorisasi Akses Owner",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Masukkan PIN Owner untuk input transaksi susulan",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = TextSecondary,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+
+                OutlinedTextField(
+                    value = pin,
+                    onValueChange = onPinChange,
+                    placeholder = { Text("PIN Owner (6 Digit)", style = MaterialTheme.typography.bodySmall) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    singleLine = true,
+                    isError = errorMessage != null,
+                    supportingText = if (errorMessage != null) {
+                        { Text(text = errorMessage, color = Danger) }
+                    } else null,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = if (errorMessage != null) Danger else Primary,
+                        unfocusedBorderColor = if (errorMessage != null) Danger else OutlineSoft
+                    )
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    SecondaryButton(
+                        text = "Batal",
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f)
+                    )
+                    PrimaryButton(
+                        text = "Verifikasi",
+                        onClick = onConfirm,
+                        enabled = pin.length >= 4,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
 

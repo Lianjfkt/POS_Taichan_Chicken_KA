@@ -21,10 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -73,7 +75,7 @@ fun RecipeBomDialog(
     onDeleteRecipeItem: (recipeId: String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var selectedMaterial by remember(allMaterials) {
+    var selectedMaterial by remember(allMaterials, recipes) {
         val existingIds = recipes.map { it.materialId }.toSet()
         mutableStateOf(allMaterials.firstOrNull { it.id !in existingIds } ?: allMaterials.firstOrNull())
     }
@@ -253,31 +255,57 @@ fun RecipeBomDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (allMaterials.isNotEmpty()) {
-                    ExposedDropdownMenuBox(
-                        expanded = isMaterialDropdownExpanded,
-                        onExpandedChange = { isMaterialDropdownExpanded = !isMaterialDropdownExpanded }
-                    ) {
-                        OutlinedTextField(
-                            value = selectedMaterial?.let { "${it.name} (${it.unit})" } ?: "Pilih Bahan Baku",
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isMaterialDropdownExpanded) },
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Box(
                             modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth(),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                unfocusedBorderColor = OutlineSoft
-                            ),
-                            shape = AppShapes.Sm
-                        )
-                        ExposedDropdownMenu(
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(SurfaceTint)
+                                .border(1.dp, Primary, AppShapes.Sm)
+                                .clickable { isMaterialDropdownExpanded = true }
+                                .padding(horizontal = 14.dp, vertical = 12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Inventory,
+                                        contentDescription = null,
+                                        tint = Primary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = selectedMaterial?.let { "${it.name} (${it.unit})" } ?: "Pilih Bahan Baku",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Medium,
+                                            color = if (selectedMaterial != null) TextPrimary else TextSecondary
+                                        )
+                                    )
+                                }
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = TextSecondary)
+                            }
+                        }
+
+                        DropdownMenu(
                             expanded = isMaterialDropdownExpanded,
-                            onDismissRequest = { isMaterialDropdownExpanded = false }
+                            onDismissRequest = { isMaterialDropdownExpanded = false },
+                            modifier = Modifier.fillMaxWidth(0.85f)
                         ) {
                             allMaterials.forEach { mat ->
                                 DropdownMenuItem(
-                                    text = { Text("${mat.name} (${mat.unit})") },
+                                    text = {
+                                        Column {
+                                            Text(mat.name, fontWeight = FontWeight.Bold)
+                                            Text(
+                                                text = "Stok: ${mat.currentStock} ${mat.unit} • ${CurrencyFormatter.formatRupiah(mat.costPerUnit)}/${mat.unit}",
+                                                style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary, fontSize = 11.sp)
+                                            )
+                                        }
+                                    },
                                     onClick = {
                                         selectedMaterial = mat
                                         isMaterialDropdownExpanded = false
@@ -317,7 +345,7 @@ fun RecipeBomDialog(
                                 .background(Primary)
                                 .clickable {
                                     val mat = selectedMaterial
-                                    val qty = quantityText.toDoubleOrNull()
+                                    val qty = quantityText.trim().replace(',', '.').toDoubleOrNull()
                                     if (mat == null) {
                                         errorMessage = "Pilih bahan baku terlebih dahulu"
                                     } else if (qty == null || qty <= 0) {

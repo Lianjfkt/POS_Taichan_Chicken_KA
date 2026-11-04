@@ -116,12 +116,12 @@ class StockRepository(context: Context? = null) {
         prefs.edit().putString("chicken_batches", array.toString()).apply()
     }
 
-    fun addTaichanBatch(raw: Int, notes: String = "") {
-        val now = System.currentTimeMillis()
+    fun addTaichanBatch(raw: Int, notes: String = "", receivedDate: Long = System.currentTimeMillis()) {
+        val entryTime = System.currentTimeMillis()
         val newBatch = TaichanBatch(
-            id = "TC-$now",
-            date = dateFormat.format(Date(now)),
-            timestamp = now,
+            id = "TC-$entryTime",
+            date = dateFormat.format(Date(receivedDate)),
+            timestamp = receivedDate,
             raw = raw,
             fried = 0,
             notes = notes
@@ -142,13 +142,13 @@ class StockRepository(context: Context? = null) {
         persistTaichan()
     }
 
-    fun addChickenBatch(part: ChickenPart, raw: Int, notes: String = "") {
-        val now = System.currentTimeMillis()
+    fun addChickenBatch(part: ChickenPart, raw: Int, notes: String = "", receivedDate: Long = System.currentTimeMillis()) {
+        val entryTime = System.currentTimeMillis()
         val newBatch = ChickenBatch(
-            id = "CK-$now",
+            id = "CK-$entryTime",
             part = part,
-            date = dateFormat.format(Date(now)),
-            timestamp = now,
+            date = dateFormat.format(Date(receivedDate)),
+            timestamp = receivedDate,
             raw = raw,
             fried = 0,
             notes = notes
