@@ -34,3 +34,4 @@ class BackdatedOrderValidationTest {
         assertTrue(orderNo.startsWith("KA-"))
     }
 }
+

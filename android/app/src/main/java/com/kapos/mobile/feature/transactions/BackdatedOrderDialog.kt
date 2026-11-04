@@ -29,10 +29,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -190,7 +187,7 @@ fun BackdatedOrderDialog(
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
-                Divider(color = OutlineSoft)
+                HorizontalDivider(color = OutlineSoft)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Scrollable Content
@@ -347,12 +344,12 @@ fun BackdatedOrderDialog(
                     // Daftar Produk
                     items(filteredProducts) { product ->
                         val qty = selectedQuantities[product.id] ?: 0
-                        ElevatedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = androidx.compose.material3.CardDefaults.elevatedCardColors(
-                                containerColor = if (qty > 0) SurfaceTint.copy(alpha = 0.5f) else ScreenBackground
-                            )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (qty > 0) SurfaceTint else SurfaceWhite)
+                                .border(1.dp, OutlineSoft, RoundedCornerShape(10.dp))
                         ) {
                             Row(
                                 modifier = Modifier
@@ -445,20 +442,21 @@ fun BackdatedOrderDialog(
                             ) {
                                 listOf(PaymentMethod.CASH, PaymentMethod.QRIS, PaymentMethod.TRANSFER).forEach { method ->
                                     val isSelected = selectedPaymentMethod == method
-                                    FilledTonalButton(
-                                        onClick = { selectedPaymentMethod = method },
-                                        shape = RoundedCornerShape(8.dp),
-                                        colors = ButtonDefaults.filledTonalButtonColors(
-                                            containerColor = if (isSelected) Primary else ScreenBackground,
-                                            contentColor = if (isSelected) Color.White else TextPrimary
-                                        ),
-                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                                        modifier = Modifier.weight(1f)
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(if (isSelected) Primary else SurfaceWhite)
+                                            .border(1.dp, if (isSelected) Primary else OutlineSoft, RoundedCornerShape(8.dp))
+                                            .clickable { selectedPaymentMethod = method }
+                                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = method.displayName,
                                             style = MaterialTheme.typography.labelSmall.copy(
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                color = if (isSelected) Color.White else TextPrimary
                                             )
                                         )
                                     }
@@ -497,7 +495,7 @@ fun BackdatedOrderDialog(
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
-                Divider(color = OutlineSoft)
+                HorizontalDivider(color = OutlineSoft)
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // Total & Tombol Aksi
@@ -544,3 +542,4 @@ fun BackdatedOrderDialog(
         }
     }
 }
+

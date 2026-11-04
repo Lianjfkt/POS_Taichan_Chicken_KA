@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudUpload
@@ -27,10 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -190,24 +188,27 @@ fun TransactionsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    FilledTonalButton(
-                        onClick = onOpenBackdatedClick,
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Color(0xFFFEF3C7),
-                            contentColor = Color(0xFFB45309)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFFEF3C7))
+                            .clickable(onClick = onOpenBackdatedClick)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = null,
+                            tint = Color(0xFFB45309),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Susulan",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFB45309)
+                            )
                         )
                     }
 
