@@ -3,12 +3,21 @@ package com.kapos.mobile.feature.transactions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kapos.mobile.core.data.repository.PosRepository
+import com.kapos.mobile.domain.model.CartItem
 import com.kapos.mobile.domain.model.Order
+import com.kapos.mobile.domain.model.OrderType
+import com.kapos.mobile.domain.model.PaymentMethod
+import com.kapos.mobile.domain.model.PaymentStatus
+import com.kapos.mobile.domain.model.SyncStatus
+import com.kapos.mobile.domain.model.UserRole
+import com.kapos.mobile.feature.checkout.generateOrderNo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.UUID
 
 class TransactionsViewModel(
     private val repository: PosRepository,
@@ -32,12 +41,19 @@ class TransactionsViewModel(
         }
         viewModelScope.launch {
             settingsRepository.settingsFlow.collect { settings ->
+                val isOwner = settings.currentSession.role == UserRole.OWNER
                 _uiState.update {
                     it.copy(
+                        isOwner = isOwner,
                         storeName = settings.storeName,
                         storeAddress = settings.storeAddress
                     )
                 }
+            }
+        }
+        viewModelScope.launch {
+            repository.observeProducts().collect { prods ->
+                _uiState.update { it.copy(availableProducts = prods) }
             }
         }
     }
@@ -226,6 +242,104 @@ class TransactionsViewModel(
                 _uiState.update { it.copy(printFeedbackMessage = "Gagal mencetak struk: ${e.message}") }
             }
         }
+    }
+
+    // --- Backdated Order (Owner) ---
+    fun onOpenBackdatedOrder() {
+        if (_uiState.value.isOwner) {
+            _uiState.update { it.copy(showBackdatedOrderDialog = true) }
+        } else {
+            _uiState.update {
+                it.copy(
+                    showOwnerAuthPinDialog = true,
+                    ownerAuthPinInput = "",
+                    ownerAuthPinError = null
+                )
+            }
+        }
+    }
+
+    fun onDismissBackdatedOrder() {
+        _uiState.update { it.copy(showBackdatedOrderDialog = false) }
+    }
+
+    fun onOwnerAuthPinChange(pin: String) {
+        _uiState.update { it.copy(ownerAuthPinInput = pin, ownerAuthPinError = null) }
+    }
+
+    fun onDismissOwnerAuthPin() {
+        _uiState.update { it.copy(showOwnerAuthPinDialog = false, ownerAuthPinInput = "", ownerAuthPinError = null) }
+    }
+
+    fun onConfirmOwnerAuthPin() {
+        val pin = _uiState.value.ownerAuthPinInput
+        val isValid = settingsRepository.verifyPin(UserRole.OWNER, pin)
+        if (isValid) {
+            _uiState.update {
+                it.copy(
+                    showOwnerAuthPinDialog = false,
+                    showBackdatedOrderDialog = true,
+                    ownerAuthPinInput = "",
+                    ownerAuthPinError = null
+                )
+            }
+        } else {
+            _uiState.update { it.copy(ownerAuthPinError = "PIN Owner salah. Akses ditolak.") }
+        }
+    }
+
+    fun submitBackdatedOrder(
+        timestampMillis: Long,
+        items: List<CartItem>,
+        paymentMethod: PaymentMethod,
+        reason: String
+    ) {
+        if (items.isEmpty() || reason.isBlank()) return
+
+        _uiState.update { it.copy(isSubmittingBackdated = true) }
+        viewModelScope.launch {
+            try {
+                val orderDate = Date(timestampMillis)
+                val generatedOrderNo = generateOrderNo(orderDate)
+                val subtotal = items.sumOf { it.subtotal }
+                val formattedNotes = "[Susulan] ${reason.trim()}"
+
+                val order = Order(
+                    id = UUID.randomUUID().toString(),
+                    orderNo = generatedOrderNo,
+                    customerName = null,
+                    customerPhone = null,
+                    orderType = OrderType.DINE_IN,
+                    tableNo = null,
+                    subtotal = subtotal,
+                    discount = 0.0,
+                    total = subtotal,
+                    paymentMethod = paymentMethod,
+                    paymentStatus = PaymentStatus.PAID,
+                    cashierName = "Owner (Koreksi)",
+                    notes = formattedNotes,
+                    createdAt = timestampMillis,
+                    paidAt = timestampMillis,
+                    syncStatus = SyncStatus.PENDING_SYNC
+                )
+
+                repository.submitOrder(order, items)
+
+                _uiState.update {
+                    it.copy(
+                        isSubmittingBackdated = false,
+                        showBackdatedOrderDialog = false,
+                        actionSuccessMessage = "Transaksi susulan berhasil disimpan!"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSubmittingBackdated = false) }
+            }
+        }
+    }
+
+    fun clearActionSuccessMessage() {
+        _uiState.update { it.copy(actionSuccessMessage = null) }
     }
 
     fun clearPrintFeedback() {
