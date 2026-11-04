@@ -1,6 +1,7 @@
 package com.kapos.mobile.core.data.repository
 
 import com.kapos.mobile.core.data.local.AppDatabase
+import androidx.room.withTransaction
 import com.kapos.mobile.core.data.local.entity.CategoryEntity
 import com.kapos.mobile.core.data.local.entity.OrderEntity
 import com.kapos.mobile.core.data.local.entity.OrderItemEntity
@@ -400,13 +401,18 @@ class PosRepository(
             )
         }
 
-        // 1. Instantly write to Room (SSOT)
-        database?.orderDao()?.insertCompleteOrder(orderEntity, itemEntities)
+        // Write to Room and deduct BOM stock atomically inside a transaction
+        if (database != null) {
+            database.withTransaction {
+                database.orderDao().insertCompleteOrder(orderEntity, itemEntities)
+                inventoryRepository?.deductStockForOrderItems(items)
+            }
+        } else {
+            // Fallback for mocks / unit tests without database instance
+            inventoryRepository?.deductStockForOrderItems(items)
+        }
 
-        // 2. Automatically deduct raw material stock via BOM
-        inventoryRepository?.deductStockForOrderItems(items)
-
-        // 3. Trigger asynchronous background push to Supabase
+        // Trigger asynchronous background push to Supabase
         scope.launch {
             syncPendingOrders()
         }
@@ -683,46 +689,49 @@ class PosRepository(
 
     suspend fun voidOrder(orderId: String, reason: String = "Dibatalkan Kasir") = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
-        val orderEntity = orderDao?.getOrderById(orderId)
-
-        // 1. Restore BOM stock for order items
-        val itemEntities = orderDao?.getItemsForOrder(orderId) ?: emptyList()
-        val domainItems = itemEntities.map {
-            OrderItem(
-                id = it.id,
-                orderId = it.orderId,
-                productId = it.productId,
-                productName = it.productName,
-                price = it.price,
-                quantity = it.quantity,
-                spiceLevel = it.spiceLevel,
-                notes = it.notes,
-                subtotal = it.subtotal
-            )
-        }
-        inventoryRepository?.restoreStockForOrderItems(domainItems)
-
-        // 2. Reverse customer loyalty points and spend if member order
-        if (orderEntity != null) {
-            val phone = orderEntity.customerPhone
-            if (!phone.isNullOrBlank()) {
-                val customer = customerRepository?.getCustomerByPhone(phone)
-                if (customer != null) {
-                    val pointsEarned = (orderEntity.total / 10000.0).toInt().coerceAtLeast(0)
-                    customerRepository?.reverseCustomerTransaction(
-                        customerId = customer.id,
-                        totalSpent = orderEntity.total,
-                        pointsRedeemed = 0,
-                        pointsEarned = pointsEarned
+        if (database != null) {
+            database.withTransaction {
+                val orderEntity = database.orderDao().getOrderById(orderId)
+                val itemEntities = database.orderDao().getItemsForOrder(orderId)
+                val domainItems = itemEntities.map {
+                    OrderItem(
+                        id = it.id,
+                        orderId = it.orderId,
+                        productId = it.productId,
+                        productName = it.productName,
+                        price = it.price,
+                        quantity = it.quantity,
+                        spiceLevel = it.spiceLevel,
+                        notes = it.notes,
+                        subtotal = it.subtotal
                     )
                 }
+                inventoryRepository?.restoreStockForOrderItems(domainItems)
+
+                if (orderEntity != null) {
+                    val phone = orderEntity.customerPhone
+                    if (!phone.isNullOrBlank()) {
+                        val customer = customerRepository?.getCustomerByPhone(phone)
+                        if (customer != null) {
+                            val pointsEarned = (orderEntity.total / 10000.0).toInt().coerceAtLeast(0)
+                            customerRepository?.reverseCustomerTransaction(
+                                customerId = customer.id,
+                                totalSpent = orderEntity.total,
+                                pointsRedeemed = 0,
+                                pointsEarned = pointsEarned
+                            )
+                        }
+                    }
+                }
+
+                database.orderDao().voidOrderWithReason(orderId, reason, now)
             }
+        } else {
+            // Fallback for mocks / unit tests without database instance
+            orderDao?.voidOrderWithReason(orderId, reason, now)
         }
 
-        // 3. Mark order as VOID in local DB
-        orderDao?.voidOrderWithReason(orderId, reason, now)
-
-        // 4. Trigger cloud push to sync VOID status to Supabase
+        // Trigger cloud push to sync VOID status to Supabase
         scope.launch { syncPendingOrders() }
     }
 }
