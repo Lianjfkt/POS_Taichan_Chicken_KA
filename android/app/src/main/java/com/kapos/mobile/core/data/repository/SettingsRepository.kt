@@ -2,6 +2,8 @@ package com.kapos.mobile.core.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.kapos.mobile.core.config.AppConfig
 import com.kapos.mobile.core.utils.PinHasher
 import com.kapos.mobile.domain.model.AuthSession
@@ -38,7 +40,26 @@ data class AppSettings(
 )
 
 class SettingsRepository(context: Context? = null) {
-    private val prefs: SharedPreferences? = context?.getSharedPreferences("ka_pos_settings", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences? = context?.let { ctx ->
+        try {
+            val masterKey = MasterKey.Builder(ctx)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            val securePrefs = EncryptedSharedPreferences.create(
+                ctx,
+                "ka_pos_secure_settings",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+            // One-time migration: copy existing plain prefs into secure prefs
+            migrateFromPlainPrefsIfNeeded(ctx, securePrefs)
+            securePrefs
+        } catch (e: Throwable) {
+            // Fallback for unit tests or devices where Keystore is unavailable
+            ctx.getSharedPreferences("ka_pos_settings", Context.MODE_PRIVATE)
+        }
+    }
 
     private val _settingsFlow = MutableStateFlow(loadSettings())
     val settingsFlow: StateFlow<AppSettings> = _settingsFlow.asStateFlow()
@@ -182,6 +203,41 @@ class SettingsRepository(context: Context? = null) {
             // Gunakan PinHasher.verify untuk constant-time comparison
             UserRole.CASHIER -> PinHasher.verify(pin, current.cashierPin)
             UserRole.OWNER -> PinHasher.verify(pin, current.ownerPin)
+        }
+    }
+
+    companion object {
+        private const val MIGRATION_KEY = "encrypted_migration_done"
+
+        /**
+         * One-time migration: copies all keys from the old plain SharedPreferences file
+         * ("ka_pos_settings") to the new EncryptedSharedPreferences, then marks it done.
+         * Safe to call repeatedly — only runs if migration flag is not set.
+         */
+        private fun migrateFromPlainPrefsIfNeeded(context: Context, securePrefs: SharedPreferences) {
+            if (securePrefs.getBoolean(MIGRATION_KEY, false)) return
+            try {
+                val legacy = context.getSharedPreferences("ka_pos_settings", Context.MODE_PRIVATE)
+                if (legacy.all.isNotEmpty()) {
+                    val editor = securePrefs.edit()
+                    for ((key, value) in legacy.all) {
+                        when (value) {
+                            is String -> editor.putString(key, value)
+                            is Boolean -> editor.putBoolean(key, value)
+                            is Int -> editor.putInt(key, value)
+                            is Float -> editor.putFloat(key, value)
+                            is Long -> editor.putLong(key, value)
+                            else -> {} // skip unknown types
+                        }
+                    }
+                    editor.putBoolean(MIGRATION_KEY, true)
+                    editor.apply()
+                } else {
+                    securePrefs.edit().putBoolean(MIGRATION_KEY, true).apply()
+                }
+            } catch (e: Exception) {
+                // Migration failure is non-fatal; app continues with fresh secure prefs
+            }
         }
     }
 }
