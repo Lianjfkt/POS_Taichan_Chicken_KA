@@ -69,15 +69,11 @@ import com.kapos.mobile.core.theme.TextSecondary
 import com.kapos.mobile.core.theme.Warning
 import com.kapos.mobile.core.utils.CurrencyFormatter
 import com.kapos.mobile.domain.model.BatchFreshness
-import com.kapos.mobile.domain.model.ChickenBatch
-import com.kapos.mobile.domain.model.ChickenPart
 import com.kapos.mobile.domain.model.MaterialBatch
 import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RawMaterialCategory
-import com.kapos.mobile.domain.model.StockFreshness
 import com.kapos.mobile.domain.model.StockMovement
 import com.kapos.mobile.domain.model.StockMovementType
-import com.kapos.mobile.domain.model.TaichanBatch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -92,14 +88,6 @@ fun StockRoute(
     StockScreen(
         uiState = uiState,
         onTabSelect = viewModel::onTabSelect,
-        onOpenRestock = viewModel::openRestockDialog,
-        onCloseRestock = viewModel::closeRestockDialog,
-        onAddTaichan = { raw, notes, receivedDate -> viewModel.addTaichanBatch(raw, notes, receivedDate) },
-        onUpdateTaichanFried = viewModel::updateTaichanFried,
-        onDeleteTaichan = viewModel::deleteTaichanBatch,
-        onAddChicken = { part, raw, notes, receivedDate -> viewModel.addChickenBatch(part, raw, notes, receivedDate) },
-        onUpdateChickenFried = viewModel::updateChickenFried,
-        onDeleteChicken = viewModel::deleteChickenBatch,
         // Raw Materials callbacks
         onMaterialCategorySelect = viewModel::onMaterialCategorySelect,
         onMaterialSearchQueryChange = viewModel::onMaterialSearchQueryChange,
@@ -133,14 +121,6 @@ fun StockRoute(
 fun StockScreen(
     uiState: StockUiState,
     onTabSelect: (StockTab) -> Unit,
-    onOpenRestock: (ChickenPart) -> Unit,
-    onCloseRestock: () -> Unit,
-    onAddTaichan: (raw: Int, notes: String, receivedDate: Long) -> Unit,
-    onUpdateTaichanFried: (id: String, fried: Int) -> Unit,
-    onDeleteTaichan: (id: String) -> Unit,
-    onAddChicken: (part: ChickenPart, raw: Int, notes: String, receivedDate: Long) -> Unit,
-    onUpdateChickenFried: (id: String, fried: Int) -> Unit,
-    onDeleteChicken: (id: String) -> Unit,
     // Raw Materials
     onMaterialCategorySelect: (RawMaterialCategory?) -> Unit,
     onMaterialSearchQueryChange: (String) -> Unit,
@@ -197,27 +177,20 @@ fun StockScreen(
                     )
                     Text(
                         text = when (uiState.activeTab) {
-                            StockTab.INVENTORY, StockTab.MATERIALS -> "Stok bahan baku, resep BOM & opname"
+                            StockTab.INVENTORY -> "Stok bahan baku, resep BOM & opname"
                             StockTab.AUDIT -> "Riwayat mutasi & audit stok otomatis"
-                            else -> "Kontrol stok harian, batch & penggorengan"
                         },
                         style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                     )
                 }
 
-                // Action Button in Header (only for Taichan, Chicken & Materials)
-                if (uiState.activeTab != StockTab.AUDIT) {
+                // Action Button in Header (Bahan Baru for Inventory)
+                if (uiState.activeTab == StockTab.INVENTORY) {
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(Primary)
-                            .clickable {
-                                if (uiState.activeTab == StockTab.INVENTORY || uiState.activeTab == StockTab.MATERIALS) {
-                                    onOpenAddMaterial()
-                                } else {
-                                    onOpenRestock(uiState.restockChickenPart)
-                                }
-                            }
+                            .clickable { onOpenAddMaterial() }
                             .padding(horizontal = 14.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -225,7 +198,7 @@ fun StockScreen(
                             Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah", tint = SurfaceWhite, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = if (uiState.activeTab == StockTab.INVENTORY || uiState.activeTab == StockTab.MATERIALS) "Bahan Baru" else "Restock",
+                                text = "Bahan Baru",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = SurfaceWhite
@@ -244,8 +217,7 @@ fun StockScreen(
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val visibleTabs = StockTab.values().filter { !it.isLegacy || it == uiState.activeTab }
-                visibleTabs.forEach { tab ->
+                StockTab.entries.forEach { tab ->
                     val isSelected = uiState.activeTab == tab
                     Box(
                         modifier = Modifier
@@ -270,122 +242,7 @@ fun StockScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             when (uiState.activeTab) {
-                StockTab.TAICHAN -> {
-                    // Metric Summary Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        StatCard(
-                            title = "Stok Mentah",
-                            value = "${uiState.taichanTotalRaw}",
-                            subtitle = "tusuk",
-                            modifier = Modifier.weight(1f)
-                        )
-                        StatCard(
-                            title = "Sudah Digoreng",
-                            value = "${uiState.taichanTotalFried}",
-                            subtitle = "tusuk",
-                            modifier = Modifier.weight(1f)
-                        )
-                        StatCard(
-                            title = "Terjual Hari Ini",
-                            value = "${uiState.taichanSoldToday}",
-                            subtitle = "tusuk",
-                            modifier = Modifier.weight(1f)
-                        )
-                        StatCard(
-                            title = "Sisa Siap Saji",
-                            value = "${uiState.taichanRemaining}",
-                            subtitle = "tusuk",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Text(
-                        text = "Daftar Batch Siap Saji",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (uiState.taichanBatches.isEmpty()) {
-                        EmptyStockView(tabName = "Sate Taichan")
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(uiState.taichanBatches, key = { it.id }) { batch ->
-                                TaichanBatchCard(
-                                    batch = batch,
-                                    onUpdateFried = { newFried -> onUpdateTaichanFried(batch.id, newFried) },
-                                    onDelete = { onDeleteTaichan(batch.id) }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                StockTab.CHICKEN -> {
-                    // Grid summary per chicken part
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        ChickenPart.values().forEach { part ->
-                            val summary = uiState.chickenSummaries[part]
-                            StatCard(
-                                title = part.displayName,
-                                value = "${summary?.remaining ?: 0}",
-                                subtitle = "ptg siap",
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Text(
-                        text = "Daftar Batch Potongan Ayam",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (uiState.chickenBatches.isEmpty()) {
-                        EmptyStockView(tabName = "Ayam Potong")
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(uiState.chickenBatches, key = { it.id }) { batch ->
-                                ChickenBatchCard(
-                                    batch = batch,
-                                    onUpdateFried = { newFried -> onUpdateChickenFried(batch.id, newFried) },
-                                    onDelete = { onDeleteChicken(batch.id) }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                StockTab.INVENTORY, StockTab.MATERIALS -> {
+                StockTab.INVENTORY -> {
                     // Low Stock Alert Warning Banner
                     if (uiState.lowStockCount > 0) {
                         Box(
@@ -509,16 +366,6 @@ fun StockScreen(
         }
 
         // Dialogs
-        if (uiState.isRestockDialogOpen) {
-            AddStockBatchDialog(
-                selectedChickenPart = uiState.restockChickenPart,
-                activeTab = uiState.activeTab,
-                onAddTaichan = onAddTaichan,
-                onAddChicken = onAddChicken,
-                onDismiss = onCloseRestock
-            )
-        }
-
         if (uiState.isAddEditMaterialOpen) {
             AddEditMaterialDialog(
                 material = uiState.materialToEdit,
@@ -869,256 +716,9 @@ fun RawMaterialItemCard(
     }
 }
 
-@Composable
-private fun TaichanBatchCard(
-    batch: TaichanBatch,
-    onUpdateFried: (Int) -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val freshness = batch.freshness()
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceWhite)
-            .border(1.dp, OutlineSoft, RoundedCornerShape(12.dp))
-            .padding(14.dp)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Batch ${batch.date}",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    FreshnessBadge(freshness = freshness)
-                }
 
-                IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
-                    Icon(imageVector = Icons.Default.DeleteOutline, contentDescription = "Hapus", tint = Color(0xFFDC2626))
-                }
-            }
 
-            if (batch.notes.isNotBlank()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = batch.notes,
-                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary, fontSize = 12.sp)
-                )
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Stepper for fried quantity
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Mentah: ${batch.raw} tusuk",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = TextPrimary
-                    )
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Goreng:",
-                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceTint)
-                            .clickable { onUpdateFried((batch.fried - 10).coerceAtLeast(0)) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(imageVector = Icons.Default.Remove, contentDescription = "Kurang", modifier = Modifier.size(16.dp))
-                    }
-                    Text(
-                        text = "${batch.fried}",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(Primary)
-                            .clickable { onUpdateFried((batch.fried + 10).coerceAtMost(batch.raw)) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah", tint = SurfaceWhite, modifier = Modifier.size(16.dp))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ChickenBatchCard(
-    batch: ChickenBatch,
-    onUpdateFried: (Int) -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val freshness = batch.freshness()
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceWhite)
-            .border(1.dp, OutlineSoft, RoundedCornerShape(12.dp))
-            .padding(14.dp)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${batch.part.displayName} • ${batch.date}",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    FreshnessBadge(freshness = freshness)
-                }
-
-                IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
-                    Icon(imageVector = Icons.Default.DeleteOutline, contentDescription = "Hapus", tint = Color(0xFFDC2626))
-                }
-            }
-
-            if (batch.notes.isNotBlank()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = batch.notes,
-                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary, fontSize = 12.sp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Stepper for fried quantity
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Mentah: ${batch.raw} potong",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = TextPrimary
-                    )
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Goreng:",
-                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceTint)
-                            .clickable { onUpdateFried((batch.fried - 1).coerceAtLeast(0)) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(imageVector = Icons.Default.Remove, contentDescription = "Kurang", modifier = Modifier.size(16.dp))
-                    }
-                    Text(
-                        text = "${batch.fried}",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(Primary)
-                            .clickable { onUpdateFried((batch.fried + 1).coerceAtMost(batch.raw)) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah", tint = SurfaceWhite, modifier = Modifier.size(16.dp))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FreshnessBadge(freshness: StockFreshness) {
-    val (bgColor, textColor) = when (freshness) {
-        StockFreshness.FRESH -> Color(0xFFDCFCE7) to Color(0xFF15803D)
-        StockFreshness.DAY_2 -> Color(0xFFDBEAFE) to Color(0xFF1D4ED8)
-        StockFreshness.DAY_3 -> Color(0xFFFEF3C7) to Color(0xFFB45309)
-        StockFreshness.EXPIRED -> Color(0xFFFEE2E2) to Color(0xFFDC2626)
-    }
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(bgColor)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-    ) {
-        Text(
-            text = freshness.displayName,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Bold,
-                color = textColor,
-                fontSize = 10.sp
-            )
-        )
-    }
-}
-
-@Composable
-private fun EmptyStockView(tabName: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 40.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Belum Ada Batch $tabName",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Klik tombol Restock di atas untuk mencatat batch masuk",
-                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
-            )
-        }
-    }
-}
 
 private data class MovementBadgeStyle(
     val bgColor: Color,

@@ -4,42 +4,38 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kapos.mobile.core.data.repository.InventoryRepository
 import com.kapos.mobile.core.data.repository.PosRepository
-import com.kapos.mobile.core.data.repository.StockRepository
-import com.kapos.mobile.domain.model.ChickenPart
-import com.kapos.mobile.domain.model.PaymentStatus
+import com.kapos.mobile.domain.model.MaterialBatch
 import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RawMaterialCategory
+import com.kapos.mobile.domain.model.StockMovement
+import com.kapos.mobile.domain.model.StockMovementType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.util.Calendar
 import java.util.UUID
 
 class StockViewModel(
-    private val stockRepository: StockRepository,
     private val posRepository: PosRepository? = null,
     private val inventoryRepository: InventoryRepository? = null,
-    private val scope: kotlinx.coroutines.CoroutineScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) : ViewModel() {
 
     private val _activeTab = MutableStateFlow(StockTab.INVENTORY)
-    private val _isRestockDialogOpen = MutableStateFlow(false)
-    private val _restockChickenPart = MutableStateFlow(ChickenPart.SAYAP)
-    private val _taichanSoldToday = MutableStateFlow(0)
-    private val _chickenSoldToday = MutableStateFlow<Map<ChickenPart, Int>>(emptyMap())
 
     // Raw Material & Batch states
     private val _rawMaterials = MutableStateFlow<List<RawMaterial>>(emptyList())
-    private val _batchesByMaterial = MutableStateFlow<Map<String, List<com.kapos.mobile.domain.model.MaterialBatch>>>(emptyMap())
+    private val _batchesByMaterial = MutableStateFlow<Map<String, List<MaterialBatch>>>(emptyMap())
     private val _selectedMaterialCategory = MutableStateFlow<RawMaterialCategory?>(null)
     private val _materialSearchQuery = MutableStateFlow("")
     private val _selectedMaterialForAction = MutableStateFlow<RawMaterial?>(null)
     private val _selectedMaterialForBatches = MutableStateFlow<RawMaterial?>(null)
     private val _isBatchDetailOpen = MutableStateFlow(false)
-    private val _selectedBatchForWaste = MutableStateFlow<com.kapos.mobile.domain.model.MaterialBatch?>(null)
+    private val _selectedBatchForWaste = MutableStateFlow<MaterialBatch?>(null)
     private val _isWasteDialogOpen = MutableStateFlow(false)
     private val _isAddEditMaterialOpen = MutableStateFlow(false)
     private val _materialToEdit = MutableStateFlow<RawMaterial?>(null)
@@ -48,74 +44,10 @@ class StockViewModel(
     private val _isOpnameMaterialOpen = MutableStateFlow(false)
 
     // Stock Movements Audit Log
-    private val _stockMovements = MutableStateFlow<List<com.kapos.mobile.domain.model.StockMovement>>(emptyList())
-    private val _movementFilterType = MutableStateFlow<com.kapos.mobile.domain.model.StockMovementType?>(null)
+    private val _stockMovements = MutableStateFlow<List<StockMovement>>(emptyList())
+    private val _movementFilterType = MutableStateFlow<StockMovementType?>(null)
 
     init {
-        posRepository?.let { repo ->
-            scope.launch {
-                repo.observeOrders().collect { orders ->
-                    val cal = Calendar.getInstance().apply {
-                        set(Calendar.HOUR_OF_DAY, 0)
-                        set(Calendar.MINUTE, 0)
-                        set(Calendar.SECOND, 0)
-                        set(Calendar.MILLISECOND, 0)
-                    }
-                    val todayStart = cal.timeInMillis
-
-                    val paidTodayOrders = orders.filter { it.createdAt >= todayStart && it.paymentStatus == PaymentStatus.PAID }
-                    var totalTaichanTusuk = 0
-                    val chickenSoldMap = mutableMapOf<ChickenPart, Int>()
-                    ChickenPart.values().forEach { chickenSoldMap[it] = 0 }
-
-                    for (order in paidTodayOrders) {
-                        val items = repo.getOrderItems(order.id)
-                        for (item in items) {
-                            val nameLower = item.productName.lowercase()
-                            val idLower = item.productId.lowercase()
-                            val isTaichan = nameLower.contains("taichan") || idLower.contains("taichan")
-
-                            if (isTaichan) {
-                                totalTaichanTusuk += item.quantity * 10
-                            }
-
-                            // Check chicken part sales
-                            when {
-                                nameLower.contains("sayap") || idLower.contains("sayap") -> {
-                                    chickenSoldMap[ChickenPart.SAYAP] = (chickenSoldMap[ChickenPart.SAYAP] ?: 0) + item.quantity
-                                }
-                                nameLower.contains("paha atas") || idLower.contains("paha_atas") -> {
-                                    chickenSoldMap[ChickenPart.PAHA_ATAS] = (chickenSoldMap[ChickenPart.PAHA_ATAS] ?: 0) + item.quantity
-                                }
-                                nameLower.contains("paha bawah") || idLower.contains("paha_bawah") -> {
-                                    chickenSoldMap[ChickenPart.PAHA_BAWAH] = (chickenSoldMap[ChickenPart.PAHA_BAWAH] ?: 0) + item.quantity
-                                }
-                                nameLower.contains("dada") || idLower.contains("dada") -> {
-                                    chickenSoldMap[ChickenPart.DADA] = (chickenSoldMap[ChickenPart.DADA] ?: 0) + item.quantity
-                                }
-                                nameLower.contains("ayam") || idLower.contains("chicken") || idLower.contains("ay_") -> {
-                                    if (!isTaichan) {
-                                        val notesLower = (item.notes ?: "").lowercase()
-                                        when {
-                                            notesLower.contains("sayap") -> chickenSoldMap[ChickenPart.SAYAP] = (chickenSoldMap[ChickenPart.SAYAP] ?: 0) + item.quantity
-                                            notesLower.contains("paha atas") -> chickenSoldMap[ChickenPart.PAHA_ATAS] = (chickenSoldMap[ChickenPart.PAHA_ATAS] ?: 0) + item.quantity
-                                            notesLower.contains("paha") -> chickenSoldMap[ChickenPart.PAHA_BAWAH] = (chickenSoldMap[ChickenPart.PAHA_BAWAH] ?: 0) + item.quantity
-                                            notesLower.contains("dada") -> chickenSoldMap[ChickenPart.DADA] = (chickenSoldMap[ChickenPart.DADA] ?: 0) + item.quantity
-                                            else -> {
-                                                chickenSoldMap[ChickenPart.SAYAP] = (chickenSoldMap[ChickenPart.SAYAP] ?: 0) + item.quantity
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    _taichanSoldToday.value = totalTaichanTusuk
-                    _chickenSoldToday.value = chickenSoldMap
-                }
-            }
-        }
-
         inventoryRepository?.let { inv ->
             scope.launch {
                 inv.observeRawMaterials().collect { list ->
@@ -138,15 +70,7 @@ class StockViewModel(
     }
 
     val uiState: StateFlow<StockUiState> = combine(
-        combine(
-            _activeTab,
-            _isRestockDialogOpen,
-            _restockChickenPart,
-            _taichanSoldToday,
-            _chickenSoldToday
-        ) { tab, dialog, part, soldToday, ckSold ->
-            listOf(tab, dialog, part, soldToday, ckSold)
-        },
+        _activeTab,
         combine(
             _rawMaterials,
             _batchesByMaterial,
@@ -174,25 +98,12 @@ class StockViewModel(
         ) { movements, filterType, matBatches, isBatchOpen, wasteBatch ->
             listOf(movements, filterType, matBatches, isBatchOpen, wasteBatch)
         },
-        combine(
-            stockRepository.taichanBatches,
-            stockRepository.chickenBatches,
-            _isWasteDialogOpen
-        ) { tcBatches, ckBatches, isWasteDialog ->
-            Triple(tcBatches, ckBatches, isWasteDialog)
-        }
-    ) { baseList, matList, dialogList, batchDialogList, repoData ->
-        val tab = baseList[0] as StockTab
-        val isDialogOpen = baseList[1] as Boolean
-        val chickenPart = baseList[2] as ChickenPart
-        val soldToday = baseList[3] as Int
-        @Suppress("UNCHECKED_CAST")
-        val chickenSoldMap = baseList[4] as Map<ChickenPart, Int>
-
+        _isWasteDialogOpen
+    ) { tab, matList, dialogList, batchDialogList, isWasteDialog ->
         @Suppress("UNCHECKED_CAST")
         val mats = matList[0] as List<RawMaterial>
         @Suppress("UNCHECKED_CAST")
-        val batchesMap = matList[1] as Map<String, List<com.kapos.mobile.domain.model.MaterialBatch>>
+        val batchesMap = matList[1] as Map<String, List<MaterialBatch>>
         val cat = matList[2] as RawMaterialCategory?
         val query = matList[3] as String
         val selectedMat = matList[4] as RawMaterial?
@@ -204,24 +115,14 @@ class StockViewModel(
         val opname = dialogList[4] as Boolean
 
         @Suppress("UNCHECKED_CAST")
-        val movements = batchDialogList[0] as List<com.kapos.mobile.domain.model.StockMovement>
-        val movementFilter = batchDialogList[1] as com.kapos.mobile.domain.model.StockMovementType?
+        val movements = batchDialogList[0] as List<StockMovement>
+        val movementFilter = batchDialogList[1] as StockMovementType?
         val matBatches = batchDialogList[2] as RawMaterial?
         val isBatchOpen = batchDialogList[3] as Boolean
-        val wasteBatch = batchDialogList[4] as com.kapos.mobile.domain.model.MaterialBatch?
-
-        val tcBatches = repoData.first
-        val ckBatches = repoData.second
-        val isWasteDialog = repoData.third
+        val wasteBatch = batchDialogList[4] as MaterialBatch?
 
         StockUiState(
             activeTab = tab,
-            taichanBatches = tcBatches,
-            chickenBatches = ckBatches,
-            taichanSoldToday = soldToday,
-            chickenSoldToday = chickenSoldMap,
-            isRestockDialogOpen = isDialogOpen,
-            restockChickenPart = chickenPart,
             rawMaterials = mats,
             batchesByMaterial = batchesMap,
             selectedMaterialCategory = cat,
@@ -242,61 +143,14 @@ class StockViewModel(
     }.stateIn(
         scope = scope,
         started = SharingStarted.Eagerly,
-        initialValue = StockUiState(
-            taichanBatches = stockRepository.taichanBatches.value,
-            chickenBatches = stockRepository.chickenBatches.value
-        )
+        initialValue = StockUiState()
     )
 
     fun onTabSelect(tab: StockTab) {
         _activeTab.value = tab
     }
 
-    // --- Taichan & Chicken Batches ---
-    fun openRestockDialog(part: ChickenPart = ChickenPart.SAYAP) {
-        _restockChickenPart.value = part
-        _isRestockDialogOpen.value = true
-    }
-
-    fun closeRestockDialog() {
-        _isRestockDialogOpen.value = false
-    }
-
-    fun addTaichanBatch(raw: Int, notes: String = "", receivedDate: Long = System.currentTimeMillis()) {
-        stockRepository.addTaichanBatch(raw, notes, receivedDate)
-        closeRestockDialog()
-    }
-
-    fun updateTaichanFried(batchId: String, fried: Int) {
-        stockRepository.updateTaichanFried(batchId, fried)
-    }
-
-    fun deleteTaichanBatch(batchId: String) {
-        stockRepository.deleteTaichanBatch(batchId)
-    }
-
-    fun addChickenBatch(part: ChickenPart, raw: Int, notes: String = "", receivedDate: Long = System.currentTimeMillis()) {
-        stockRepository.addChickenBatch(part, raw, notes, receivedDate)
-        closeRestockDialog()
-    }
-
-    fun updateChickenFried(batchId: String, fried: Int) {
-        stockRepository.updateChickenFried(batchId, fried)
-    }
-
-    fun deleteChickenBatch(batchId: String) {
-        stockRepository.deleteChickenBatch(batchId)
-    }
-
-    fun setTaichanSoldTodayForTest(sold: Int) {
-        _taichanSoldToday.value = sold
-    }
-
-    fun setChickenSoldTodayForTest(map: Map<ChickenPart, Int>) {
-        _chickenSoldToday.value = map
-    }
-
-    fun onSelectMovementFilter(type: com.kapos.mobile.domain.model.StockMovementType?) {
+    fun onSelectMovementFilter(type: StockMovementType?) {
         _movementFilterType.value = type
     }
 
@@ -424,7 +278,7 @@ class StockViewModel(
         _selectedMaterialForBatches.value = null
     }
 
-    fun openWasteForBatch(batch: com.kapos.mobile.domain.model.MaterialBatch) {
+    fun openWasteForBatch(batch: MaterialBatch) {
         _selectedBatchForWaste.value = batch
         _isWasteDialogOpen.value = true
     }

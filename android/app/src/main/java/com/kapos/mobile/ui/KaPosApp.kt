@@ -100,7 +100,7 @@ fun KaPosApp(
         )
     }
     val stockViewModel: StockViewModel = viewModel {
-        StockViewModel(app.stockRepository, app.posRepository, app.inventoryRepository)
+        StockViewModel(app.posRepository, app.inventoryRepository)
     }
     val analyticsViewModel: AnalyticsViewModel = viewModel {
         AnalyticsViewModel(app.posRepository, app.settingsRepository)
