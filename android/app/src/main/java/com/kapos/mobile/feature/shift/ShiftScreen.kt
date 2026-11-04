@@ -27,7 +27,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -349,7 +349,7 @@ private fun ActiveShiftCard(
 
             if (shift != null) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Divider(color = OutlineSoft)
+                HorizontalDivider(color = OutlineSoft)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 ShiftStatRow("Modal Awal (Kas Laci)", uiState.formattedStartCash)
@@ -362,7 +362,7 @@ private fun ActiveShiftCard(
                     ShiftStatRow("Kas Keluar (-)", "- ${uiState.formattedCashOut}", color = Danger)
                 }
 
-                Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
                 // SECURITY: Estimasi Kas Akhir DISEMBUNYIKAN dari kasir untuk menjaga integritas
                 // Blind Cash Count. Kasir harus menghitung uang fisik secara mandiri tanpa referensi.
                 // Angka ini hanya tampil di laporan akhir setelah shift resmi ditutup.
@@ -600,7 +600,7 @@ private fun ShiftHistoryCard(shift: Shift) {
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            Divider(color = OutlineSoft)
+            HorizontalDivider(color = OutlineSoft)
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(

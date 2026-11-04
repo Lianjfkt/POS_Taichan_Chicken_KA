@@ -62,7 +62,7 @@ fun KaPosApp(
     val settings by app.settingsRepository.settingsFlow.collectAsState()
     val currentSession = settings.currentSession
 
-    // Shared ViewModels
+    // Shared Root ViewModels
     val loginViewModel: LoginViewModel = viewModel {
         LoginViewModel(app.settingsRepository)
     }
@@ -76,59 +76,6 @@ fun KaPosApp(
             app.bluetoothPrinterService,
             app.customerRepository,
             app.promotionRepository
-        )
-    }
-    val customerViewModel: CustomerViewModel = viewModel {
-        CustomerViewModel(app.customerRepository, app.settingsRepository)
-    }
-    val menuManagementViewModel: MenuManagementViewModel = viewModel {
-        MenuManagementViewModel(app.posRepository, app.inventoryRepository)
-    }
-    val transactionsViewModel: com.kapos.mobile.feature.transactions.TransactionsViewModel = viewModel {
-        com.kapos.mobile.feature.transactions.TransactionsViewModel(
-            app.posRepository,
-            app.settingsRepository,
-            app.bluetoothPrinterService
-        )
-    }
-    val shiftViewModel: ShiftViewModel = viewModel {
-        ShiftViewModel(
-            shiftRepository = app.shiftRepository,
-            settingsRepository = app.settingsRepository,
-            posRepository = app.posRepository,
-            bluetoothPrinterService = app.bluetoothPrinterService
-        )
-    }
-    val stockViewModel: StockViewModel = viewModel {
-        StockViewModel(app.posRepository, app.inventoryRepository)
-    }
-    val analyticsViewModel: AnalyticsViewModel = viewModel {
-        AnalyticsViewModel(app.posRepository, app.settingsRepository)
-    }
-    val dashboardViewModel: DashboardViewModel = viewModel {
-        DashboardViewModel(
-            posRepository = app.posRepository,
-            settingsRepository = app.settingsRepository,
-            inventoryRepository = app.inventoryRepository
-        )
-    }
-    val reportViewModel: ReportViewModel = viewModel {
-        ReportViewModel(
-            repository = app.posRepository,
-            settingsRepository = app.settingsRepository,
-            shiftRepository = app.shiftRepository,
-            bluetoothPrinterService = app.bluetoothPrinterService
-        )
-    }
-    val settingsViewModel: SettingsViewModel = viewModel {
-        SettingsViewModel(
-            settingsRepository = app.settingsRepository,
-            supabaseClient = app.supabaseClient,
-            posRepository = app.posRepository,
-            bluetoothPrinterService = app.bluetoothPrinterService,
-            database = app.database,
-            stockRepository = app.stockRepository,
-            savedOrderRepository = app.savedOrderRepository
         )
     }
 
@@ -230,28 +177,64 @@ fun KaPosApp(
                         }
 
                         composable("transactions") {
+                            val transactionsViewModel: com.kapos.mobile.feature.transactions.TransactionsViewModel = viewModel {
+                                com.kapos.mobile.feature.transactions.TransactionsViewModel(
+                                    app.posRepository,
+                                    app.settingsRepository,
+                                    app.bluetoothPrinterService
+                                )
+                            }
                             com.kapos.mobile.feature.transactions.TransactionsRoute(
                                 viewModel = transactionsViewModel
                             )
                         }
 
                         composable("shift") {
+                            val shiftViewModel: ShiftViewModel = viewModel {
+                                ShiftViewModel(
+                                    shiftRepository = app.shiftRepository,
+                                    settingsRepository = app.settingsRepository,
+                                    posRepository = app.posRepository,
+                                    bluetoothPrinterService = app.bluetoothPrinterService
+                                )
+                            }
                             ShiftRoute(viewModel = shiftViewModel)
                         }
 
                         composable("stock") {
+                            val stockViewModel: StockViewModel = viewModel {
+                                StockViewModel(app.posRepository, app.inventoryRepository)
+                            }
                             StockRoute(viewModel = stockViewModel)
                         }
 
                         composable("analytics") {
+                            val analyticsViewModel: AnalyticsViewModel = viewModel {
+                                AnalyticsViewModel(app.posRepository, app.settingsRepository)
+                            }
                             AnalyticsRoute(viewModel = analyticsViewModel)
                         }
 
                         composable("dashboard") {
+                            val dashboardViewModel: DashboardViewModel = viewModel {
+                                DashboardViewModel(
+                                    posRepository = app.posRepository,
+                                    settingsRepository = app.settingsRepository,
+                                    inventoryRepository = app.inventoryRepository
+                                )
+                            }
                             DashboardRoute(viewModel = dashboardViewModel)
                         }
 
                         composable("report") {
+                            val reportViewModel: ReportViewModel = viewModel {
+                                ReportViewModel(
+                                    repository = app.posRepository,
+                                    settingsRepository = app.settingsRepository,
+                                    shiftRepository = app.shiftRepository,
+                                    bluetoothPrinterService = app.bluetoothPrinterService
+                                )
+                            }
                             ReportRoute(
                                 viewModel = reportViewModel,
                                 onBack = { navController.popBackStack() }
@@ -259,6 +242,17 @@ fun KaPosApp(
                         }
 
                         composable("settings") {
+                            val settingsViewModel: SettingsViewModel = viewModel {
+                                SettingsViewModel(
+                                    settingsRepository = app.settingsRepository,
+                                    supabaseClient = app.supabaseClient,
+                                    posRepository = app.posRepository,
+                                    bluetoothPrinterService = app.bluetoothPrinterService,
+                                    database = app.database,
+                                    stockRepository = app.stockRepository,
+                                    savedOrderRepository = app.savedOrderRepository
+                                )
+                            }
                             SettingsRoute(
                                 viewModel = settingsViewModel,
                                 onLockClick = {
@@ -287,6 +281,9 @@ fun KaPosApp(
                         }
 
                         composable("menu_management") {
+                            val menuManagementViewModel: MenuManagementViewModel = viewModel {
+                                MenuManagementViewModel(app.posRepository, app.inventoryRepository)
+                            }
                             MenuManagementRoute(
                                 viewModel = menuManagementViewModel,
                                 onBack = { navController.popBackStack() }
@@ -294,6 +291,9 @@ fun KaPosApp(
                         }
 
                         composable("customers") {
+                            val customerViewModel: CustomerViewModel = viewModel {
+                                CustomerViewModel(app.customerRepository, app.settingsRepository)
+                            }
                             CustomerRoute(
                                 viewModel = customerViewModel,
                                 onBack = { navController.popBackStack() }

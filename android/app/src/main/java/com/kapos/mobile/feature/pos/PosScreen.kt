@@ -23,7 +23,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
 import androidx.compose.material.icons.filled.Pause
 import com.kapos.mobile.core.components.PrimaryButton
@@ -38,7 +38,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -514,7 +514,7 @@ fun FloatingCartBar(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
-                        imageVector = Icons.Default.ArrowForward,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
                         tint = SurfaceWhite,
                         modifier = Modifier.size(14.dp)
@@ -581,7 +581,7 @@ fun TabletCartPanel(
             }
         }
 
-        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
 
         if (cartItems.isEmpty()) {
             Box(
@@ -627,7 +627,7 @@ fun TabletCartPanel(
             }
         }
 
-        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+        HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -664,7 +664,7 @@ fun TabletCartPanel(
             Box(modifier = Modifier.weight(0.6f)) {
                 PrimaryButton(
                     text = "Bayar",
-                    icon = Icons.Default.ArrowForward,
+                    icon = Icons.AutoMirrored.Filled.ArrowForward,
                     onClick = onCheckoutClick,
                     enabled = cartItems.isNotEmpty()
                 )

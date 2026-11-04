@@ -22,7 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Lock
@@ -31,7 +31,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -172,7 +172,7 @@ fun ConfirmSaleScreen(
             ) {
                 IconButton(onClick = onBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
                         tint = TextPrimary
                     )
@@ -343,7 +343,7 @@ fun ConfirmSaleScreen(
                                     // Loyalty points redemption toggle
                                     if (uiState.availablePoints > 0) {
                                         Spacer(modifier = Modifier.height(10.dp))
-                                        Divider(color = Primary.copy(alpha = 0.2f), thickness = 1.dp)
+                                        HorizontalDivider(color = Primary.copy(alpha = 0.2f), thickness = 1.dp)
                                         Spacer(modifier = Modifier.height(8.dp))
 
                                         Row(
@@ -506,7 +506,7 @@ fun ConfirmSaleScreen(
                             }
                         }
 
-                        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+                        HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
 
                         // Subtotal
                         Row(
@@ -697,7 +697,7 @@ fun ConfirmSaleScreen(
                             }
                         }
 
-                        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+                        HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),

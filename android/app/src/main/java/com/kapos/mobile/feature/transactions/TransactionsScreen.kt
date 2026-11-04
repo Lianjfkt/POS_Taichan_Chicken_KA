@@ -756,8 +756,9 @@ fun OwnerAuthPinDialog(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = if (errorMessage != null) Danger else Primary,
-                        unfocusedBorderColor = if (errorMessage != null) Danger else OutlineSoft
+                        focusedBorderColor = Primary,
+                        unfocusedBorderColor = OutlineSoft,
+                        errorBorderColor = Danger
                     )
                 )
 
