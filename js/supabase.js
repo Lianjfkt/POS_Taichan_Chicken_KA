@@ -157,36 +157,99 @@ class SupabaseService {
     }
   }
 
-  // BUG-03 fix: langsung insert ke Supabase jika online, hanya queue jika offline
+  _buildOrderPayloads(trx) {
+    const orderId = trx.no || trx.id || trx._tempId || (trx._tempId = `ORD-${Date.now()}`);
+    const createdIso = new Date(trx.tgl || trx.created_at || Date.now()).toISOString();
+    const nowIso = new Date().toISOString();
+    const isVoid = trx.status === 'void';
+
+    const orderPayload = {
+      id: orderId,
+      order_no: trx.no || trx.order_no || orderId,
+      customer_name: trx.pelanggan || trx.customerName || trx.customer_name || null,
+      customer_phone: trx.customerPhone || trx.customer_phone || null,
+      order_type: trx.tipe || trx.order_type || 'dine-in',
+      table_no: trx.meja || trx.table_no || '',
+      subtotal: Number(trx.subtotal != null ? trx.subtotal : (trx.total || 0)),
+      discount: Number(trx.diskon != null ? trx.diskon : (trx.discount || 0)),
+      total: Number(trx.total || 0),
+      payment_method: trx.metode || trx.payment_method || 'cash',
+      status: isVoid ? 'void' : (trx.status || 'completed'),
+      cashier_id: trx.kasir || trx.cashier_id || 'Kasir',
+      notes: trx.catatan || trx.notes || '',
+      void_reason: isVoid ? (trx.voidReason || trx.void_reason || '') : (trx.voidReason || null),
+      void_by: isVoid ? (trx.voidBy || trx.void_by || '') : null,
+      void_at: isVoid ? (trx.voidAt ? new Date(trx.voidAt).toISOString() : nowIso) : null,
+      paid_at: trx.paid_at ? new Date(trx.paid_at).toISOString() : createdIso,
+      created_at: createdIso,
+      updated_at: nowIso
+    };
+
+    const itemPayloads = (trx.items || []).map((it, idx) => {
+      const unitPrice = Number(it.hr != null ? it.hr : (it.price || 0));
+      const qty = Number(it.qty != null ? it.qty : (it.quantity != null ? it.quantity : 1));
+      return {
+        id: `${orderId}_${idx + 1}`,
+        order_id: orderId,
+        product_id: String(it.id || it.productId || it.product_id || ''),
+        product_name: it.nm || it.name || it.product_name || '',
+        price: unitPrice,
+        quantity: qty,
+        spice_level: it.level || it.spiceLevel || it.spice_level || it.spice || '',
+        notes: it.catatan || it.notes || it.mod || '',
+        subtotal: Number(it.subtotal != null ? it.subtotal : (unitPrice * qty)),
+        created_at: createdIso
+      };
+    });
+
+    return { orderPayload, itemPayloads };
+  }
+
+  async _upsertOrderAndItems(trx) {
+    const { orderPayload, itemPayloads } = this._buildOrderPayloads(trx);
+
+    const { error: orderErr } = await this.client
+      .from('orders')
+      .upsert([orderPayload], { onConflict: 'id' });
+    if (orderErr) throw orderErr;
+
+    if (itemPayloads.length > 0) {
+      const { error: itemsErr } = await this.client
+        .from('order_items')
+        .upsert(itemPayloads, { onConflict: 'id' });
+      if (itemsErr) throw itemsErr;
+    }
+  }
+
+  async _pushOrderStatusUpdate(orderNo, status, voidData = {}) {
+    const updatePayload = {
+      status: status,
+      void_reason: voidData.reason || '',
+      void_by: voidData.by || '',
+      void_at: voidData.at ? new Date(voidData.at).toISOString() : new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await this.client.from('orders').update(updatePayload).eq('id', orderNo);
+    if (error) {
+      const res2 = await this.client.from('orders').update(updatePayload).eq('order_no', orderNo);
+      if (res2.error) throw res2.error;
+    }
+  }
+
+  // BUG-03 fix: langsung upsert relasional (orders + order_items) ke Supabase jika online, queue jika offline
   async queueTransaction(trx) {
     if (this.status === 'online' && this.client) {
       try {
-        const payload = {
-          id: trx.no || `ORD-${Date.now()}`,
-          order_no: trx.no || `ORD-${Date.now()}`,
-          order_type: trx.tipe || 'dine-in',
-          table_no: '',
-          cashier_id: trx.kasir || 'Kasir',
-          payment_method: trx.metode || 'cash',
-          subtotal: trx.subtotal || trx.total,
-          discount_amount: trx.diskon || 0,
-          total_amount: trx.total || 0,
-          paid_amount: trx.bayar || trx.total,
-          change_amount: trx.kembali || 0,
-          status: 'completed',
-          items: trx.items || [],
-          created_at: new Date(trx.tgl || Date.now()).toISOString()
-        };
-        const { error } = await this.client.from('orders').insert([payload]);
-        if (error) throw error;
+        await this._upsertOrderAndItems(trx);
         return; // berhasil, tidak perlu masuk queue
       } catch (err) {
         console.warn('[Supabase] Direct insert failed, falling back to queue:', err);
       }
     }
-    // Offline atau insert gagal: masuk ke offline queue
+    // Offline atau upsert gagal: masuk ke offline queue
     window.State.offlineQueue.push(trx);
-    window.State.save(LS_KEYS.ofq, window.State.offlineQueue);
+    window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
     this.setStatus(this.status);
   }
 
@@ -210,19 +273,7 @@ class SupabaseService {
     // 2. Jika online, langsung update status nota di Supabase orders table
     if (this.status === 'online' && this.client) {
       try {
-        const updatePayload = {
-          status: status,
-          void_reason: voidData.reason || '',
-          void_by: voidData.by || '',
-          void_at: voidData.at ? new Date(voidData.at).toISOString() : new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-
-        let { error } = await this.client.from('orders').update(updatePayload).eq('id', orderNo);
-        if (error) {
-          const res2 = await this.client.from('orders').update(updatePayload).eq('order_no', orderNo);
-          if (res2.error) throw res2.error;
-        }
+        await this._pushOrderStatusUpdate(orderNo, status, voidData);
         console.log(`[Supabase] Status nota ${orderNo} berhasil diupdate ke '${status}' di Cloud.`);
         return { success: true };
       } catch (err) {
@@ -258,46 +309,17 @@ class SupabaseService {
 
         // Periksa jika antrean merupakan aksi update status (Void)
         if (item._action === 'update_status') {
-          const updatePayload = {
-            status: item.status || 'void',
-            void_reason: item.voidReason || '',
-            void_by: item.voidBy || '',
-            void_at: item.voidAt ? new Date(item.voidAt).toISOString() : new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          let { error } = await this.client.from('orders').update(updatePayload).eq('id', item.no);
-          if (error) {
-            const res2 = await this.client.from('orders').update(updatePayload).eq('order_no', item.no);
-            if (res2.error) throw res2.error;
-          }
+          await this._pushOrderStatusUpdate(item.no, item.status || 'void', {
+            reason: item.voidReason || '',
+            by: item.voidBy || '',
+            at: item.voidAt
+          });
           window.State.offlineQueue.shift();
           window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
           continue;
         }
 
-        const isVoid = item.status === 'void';
-        const payload = {
-          id: item.no || `ORD-${Date.now()}`,
-          order_no: item.no || `ORD-${Date.now()}`,
-          order_type: item.tipe || 'dine-in',
-          table_no: '',
-          cashier_id: item.kasir || 'Kasir',
-          payment_method: item.metode || 'cash',
-          subtotal: item.subtotal || item.total,
-          discount_amount: item.diskon || 0,
-          total_amount: item.total || 0,
-          paid_amount: item.bayar || item.total,
-          change_amount: item.kembali || 0,
-          status: isVoid ? 'void' : 'completed',
-          void_reason: isVoid ? (item.voidReason || '') : null,
-          void_by: isVoid ? (item.voidBy || '') : null,
-          void_at: isVoid ? (item.voidAt ? new Date(item.voidAt).toISOString() : new Date().toISOString()) : null,
-          items: item.items || [],
-          created_at: new Date(item.tgl || Date.now()).toISOString()
-        };
-
-        const { error } = await this.client.from('orders').insert([payload]);
-        if (error) throw error;
+        await this._upsertOrderAndItems(item);
 
         // Shift successfully pushed item
         window.State.offlineQueue.shift();
