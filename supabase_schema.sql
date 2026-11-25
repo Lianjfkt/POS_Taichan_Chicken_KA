@@ -287,10 +287,14 @@ ALTER TABLE public.shifts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cash_movements ENABLE ROW LEVEL SECURITY;
 
 -- Categories, Products & Modifiers: Read & Sync
+DROP POLICY IF EXISTS "Allow read access to all" ON public.categories;
+DROP POLICY IF EXISTS "Allow write access to authenticated and anon" ON public.categories;
 DROP POLICY IF EXISTS "Allow all for categories" ON public.categories;
 CREATE POLICY "Allow all for categories" ON public.categories
     FOR ALL TO public USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow read access to all" ON public.products;
+DROP POLICY IF EXISTS "Allow write access to authenticated and anon" ON public.products;
 DROP POLICY IF EXISTS "Allow all for products" ON public.products;
 CREATE POLICY "Allow all for products" ON public.products
     FOR ALL TO public USING (true) WITH CHECK (true);
@@ -301,6 +305,8 @@ CREATE POLICY "Allow all for modifiers" ON public.modifiers
 
 -- Orders: INSERT & SELECT & UPDATE diperbolehkan (untuk sinkronisasi & VOID).
 -- DELETE DIBLOKIR TOTAL (Audit Trail Anti-Fraud: Order tidak boleh dihapus fisik).
+DROP POLICY IF EXISTS "Allow read access to all" ON public.orders;
+DROP POLICY IF EXISTS "Allow write access to authenticated and anon" ON public.orders;
 DROP POLICY IF EXISTS "Allow all for orders" ON public.orders;
 DROP POLICY IF EXISTS "Allow select for orders" ON public.orders;
 DROP POLICY IF EXISTS "Allow insert for orders" ON public.orders;
@@ -309,9 +315,11 @@ DROP POLICY IF EXISTS "Disallow delete for orders" ON public.orders;
 CREATE POLICY "Allow select for orders" ON public.orders FOR SELECT TO public USING (true);
 CREATE POLICY "Allow insert for orders" ON public.orders FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Allow update for orders" ON public.orders FOR UPDATE TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Disallow delete for orders" ON public.orders FOR DELETE TO public USING (false);
+CREATE POLICY "Disallow delete for orders" ON public.orders AS RESTRICTIVE FOR DELETE TO public USING (false);
 
 -- Order Items: Sama seperti orders, blokir DELETE
+DROP POLICY IF EXISTS "Allow read access to all" ON public.order_items;
+DROP POLICY IF EXISTS "Allow write access to authenticated and anon" ON public.order_items;
 DROP POLICY IF EXISTS "Allow all for order_items" ON public.order_items;
 DROP POLICY IF EXISTS "Allow select for order_items" ON public.order_items;
 DROP POLICY IF EXISTS "Allow insert for order_items" ON public.order_items;
@@ -320,7 +328,7 @@ DROP POLICY IF EXISTS "Disallow delete for order_items" ON public.order_items;
 CREATE POLICY "Allow select for order_items" ON public.order_items FOR SELECT TO public USING (true);
 CREATE POLICY "Allow insert for order_items" ON public.order_items FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Allow update for order_items" ON public.order_items FOR UPDATE TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Disallow delete for order_items" ON public.order_items FOR DELETE TO public USING (false);
+CREATE POLICY "Disallow delete for order_items" ON public.order_items AS RESTRICTIVE FOR DELETE TO public USING (false);
 
 -- Shifts & Cash Movements: Cegah kasir menghapus catatan kas/selisih uang
 DROP POLICY IF EXISTS "Allow all for shifts" ON public.shifts;
@@ -331,7 +339,7 @@ DROP POLICY IF EXISTS "Disallow delete for shifts" ON public.shifts;
 CREATE POLICY "Allow select for shifts" ON public.shifts FOR SELECT TO public USING (true);
 CREATE POLICY "Allow insert for shifts" ON public.shifts FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Allow update for shifts" ON public.shifts FOR UPDATE TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Disallow delete for shifts" ON public.shifts FOR DELETE TO public USING (false);
+CREATE POLICY "Disallow delete for shifts" ON public.shifts AS RESTRICTIVE FOR DELETE TO public USING (false);
 
 DROP POLICY IF EXISTS "Allow all for cash_movements" ON public.cash_movements;
 DROP POLICY IF EXISTS "Allow select for cash_movements" ON public.cash_movements;
@@ -341,7 +349,7 @@ DROP POLICY IF EXISTS "Disallow delete for cash_movements" ON public.cash_moveme
 CREATE POLICY "Allow select for cash_movements" ON public.cash_movements FOR SELECT TO public USING (true);
 CREATE POLICY "Allow insert for cash_movements" ON public.cash_movements FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Allow update for cash_movements" ON public.cash_movements FOR UPDATE TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Disallow delete for cash_movements" ON public.cash_movements FOR DELETE TO public USING (false);
+CREATE POLICY "Disallow delete for cash_movements" ON public.cash_movements AS RESTRICTIVE FOR DELETE TO public USING (false);
 
 -- Raw materials, Batches & Recipes
 DROP POLICY IF EXISTS "Allow all for raw_materials" ON public.raw_materials;
