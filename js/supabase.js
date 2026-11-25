@@ -9,6 +9,7 @@ class SupabaseService {
     this.isFlushing = false;
     this.channel = null;
     this.lastSyncTime = null;
+    this._activeConfigKey = null;
     this._realtimeOrderTimer = null;
     this._realtimeMenuTimer = null;
   }
@@ -20,11 +21,14 @@ class SupabaseService {
     if (config && config.url && config.anonKey) {
       try {
         if (window.supabase) {
-          this.client = window.supabase.createClient(config.url, config.anonKey, {
-            realtime: { params: { eventsPerSecond: 10 } }
-          });
+          const newConfigKey = `${config.url}|${config.anonKey}`;
+          if (this._activeConfigKey !== newConfigKey || !this.client) {
+            this.cleanup();
+            this.client = window.supabase.createClient(config.url, config.anonKey, {
+              realtime: { params: { eventsPerSecond: 10 } }
+            });
+          }
           this.testConnection();
-          this.subscribeRealtime();
         } else {
           this.setStatus(isNetOnline ? 'online' : 'offline');
         }
@@ -107,6 +111,7 @@ class SupabaseService {
 
     try {
       this.setStatus('syncing');
+      const newConfigKey = `${url}|${key}`;
       const testClient = window.supabase.createClient(url, key, {
         realtime: { params: { eventsPerSecond: 10 } }
       });
@@ -116,12 +121,16 @@ class SupabaseService {
         throw error;
       }
 
-      if (this.client && this.channel) {
+      const needsRecreate = !this.client || !this.channel || this._activeConfigKey !== newConfigKey;
+      if (needsRecreate) {
         this.cleanup();
+        this.client = testClient;
+        this._activeConfigKey = newConfigKey;
+        this.setStatus('online');
+        this.subscribeRealtime();
+      } else {
+        this.setStatus('online');
       }
-      this.client = testClient;
-      this.setStatus('online');
-      this.subscribeRealtime();
       return { success: true, message: 'Berhasil terhubung ke Supabase Cloud!' };
     } catch (err) {
       console.warn('[Supabase] Connection failed:', err);
@@ -152,6 +161,7 @@ class SupabaseService {
       }
       this.channel = null;
     }
+    this._activeConfigKey = null;
   }
 
   // Realtime CDC Subscriptions
@@ -208,11 +218,11 @@ class SupabaseService {
   }
 
   /**
-   * Handle realtime INSERT/UPDATE on products/categories with debounce so
+   * Handle realtime INSERT/UPDATE/DELETE on products/categories with debounce so
    * BOM recipes, tusuk metadata, and category mappings remain consistent.
    */
   handleProductChange(payload) {
-    if (!payload || typeof payload !== 'object' || payload.eventType === 'DELETE') return;
+    if (!payload || typeof payload !== 'object') return;
     this._scheduleRealtimeSync('_realtimeMenuTimer', () => this.pullCategoriesAndProducts(), 'pullCategoriesAndProducts');
   }
 
