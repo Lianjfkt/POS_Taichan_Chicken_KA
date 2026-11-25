@@ -197,7 +197,7 @@ class StateManager {
     const price = Number(product.hr) + Number(options.extraPrice || 0);
 
     const existingIndex = this.cart.findIndex(item => 
-      item.id === product.id && item.mod === modifierText
+      String(item.id) === String(product.id) && (item.mod || '') === (modifierText || '')
     );
 
     if (existingIndex > -1) {

@@ -727,7 +727,7 @@ class OrdersView {
 
     // 2. Restore inventory ingredients (BOM)
     (trx.items || []).forEach(item => {
-      const product = (window.State.products || []).find(p => p.id === item.id);
+      const product = (window.State.products || []).find(p => String(p.id) === String(item.id));
       if (product && product.bom && product.bom.length > 0) {
         product.bom.forEach(b => {
           const invItem = (window.State.inventory || []).find(i => i.id === b.invId);

@@ -331,11 +331,17 @@ class SupabaseService {
   }
 
   // Flush queued transactions to Supabase
-  async syncOfflineQueue() {
-    if (this.isFlushing || !this.client || window.State.offlineQueue.length === 0) return;
+  async syncOfflineQueue(options = {}) {
+    const skipStatusUpdate = Boolean(options && options.skipStatusUpdate);
+    if (!this.client || this.isFlushing) return false;
+    if (!Array.isArray(window.State.offlineQueue) || window.State.offlineQueue.length === 0) {
+      return true;
+    }
 
     this.isFlushing = true;
-    this.setStatus('syncing');
+    if (!skipStatusUpdate) {
+      this.setStatus('syncing');
+    }
 
     try {
       while (window.State.offlineQueue.length > 0) {
@@ -365,11 +371,17 @@ class SupabaseService {
         window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
       }
 
-      this.setStatus('online');
+      if (!skipStatusUpdate) {
+        this.setStatus('online');
+      }
       window.State.toast('Semua transaksi offline berhasil disinkronkan ke Cloud!', 'success');
+      return true;
     } catch (err) {
       console.warn('[Supabase] Flush error:', err);
-      this.setStatus('offline');
+      if (!skipStatusUpdate) {
+        this.setStatus('offline');
+      }
+      return false;
     } finally {
       this.isFlushing = false;
     }
@@ -438,6 +450,12 @@ class SupabaseService {
     }
   }
 
+  _normalizeId(id) {
+    if (id === null || id === undefined || id === '') return id;
+    const str = String(id);
+    return /^\d+$/.test(str) ? Number(str) : str;
+  }
+
   /**
    * Pull master categories & products from Supabase Cloud (Cloud-Wins),
    * while preserving local BOM recipes and tusuk metadata.
@@ -477,7 +495,7 @@ class SupabaseService {
           const cat = categories.find(c => c && String(c.id) === String(p.category_id));
           const existing = existingProducts.find(ep => ep && String(ep.id) === String(p.id));
           const mapped = {
-            id: p.id,
+            id: existing && existing.id !== undefined ? existing.id : this._normalizeId(p.id),
             nm: p.name,
             kat: cat ? cat.nm : 'Lainnya',
             hr: Number(p.price || 0),
@@ -520,27 +538,37 @@ class SupabaseService {
       if (!remoteOrders || remoteOrders.length === 0) return true;
 
       const orderIds = remoteOrders.map(o => o.id).filter(Boolean);
-      let remoteItems = [];
-      if (orderIds.length > 0) {
+      const remoteItems = [];
+      const CHUNK_SIZE = 50;
+      for (let i = 0; i < orderIds.length; i += CHUNK_SIZE) {
+        const chunk = orderIds.slice(i, i + CHUNK_SIZE);
         const { data: itemsData, error: itemErr } = await this.client
           .from('order_items')
           .select('*')
-          .in('order_id', orderIds);
+          .in('order_id', chunk);
         if (itemErr) throw itemErr;
-        remoteItems = itemsData || [];
+        if (Array.isArray(itemsData) && itemsData.length > 0) {
+          remoteItems.push(...itemsData);
+        }
       }
 
       const itemsByOrder = {};
       remoteItems.forEach(it => {
         if (!it || !it.order_id) return;
         if (!itemsByOrder[it.order_id]) itemsByOrder[it.order_id] = [];
+        const spice = (it.spice_level != null ? String(it.spice_level) : '').trim();
+        const notes = (it.notes != null ? String(it.notes) : '').trim();
+        const modParts = [];
+        if (spice) modParts.push(spice);
+        if (notes && notes !== spice) modParts.push(notes);
         itemsByOrder[it.order_id].push({
-          id: it.product_id,
+          id: this._normalizeId(it.product_id),
           nm: it.product_name,
           hr: Number(it.price || 0),
           qty: Number(it.quantity || 1),
           level: it.spice_level || '',
           catatan: it.notes || '',
+          mod: modParts.join(', '),
           subtotal: Number(it.subtotal || 0)
         });
       });
@@ -588,7 +616,21 @@ class SupabaseService {
           ? (pendingVoid.voidAt || (existing ? existing.voidAt : undefined))
           : (existing ? existing.voidAt : undefined);
 
-        const items = itemsByOrder[ro.id] || (existing && Array.isArray(existing.items) ? existing.items : []);
+        const rawItems = itemsByOrder[ro.id];
+        const items = rawItems
+          ? rawItems.map((it, idx) => {
+              const existingItems = existing && Array.isArray(existing.items) ? existing.items : [];
+              const existingItem = existingItems[idx] && String(existingItems[idx].id) === String(it.id)
+                ? existingItems[idx]
+                : existingItems.find(ei => ei && String(ei.id) === String(it.id) && (ei.mod || '') === (it.mod || ''))
+                  || existingItems.find(ei => ei && String(ei.id) === String(it.id));
+              const mergedItem = { ...it };
+              if (existingItem && existingItem.emj) {
+                mergedItem.emj = existingItem.emj;
+              }
+              return mergedItem;
+            })
+          : (existing && Array.isArray(existing.items) ? existing.items : []);
         const createdMs = ro.created_at ? new Date(ro.created_at).getTime() : NaN;
         const tgl = !Number.isNaN(createdMs)
           ? createdMs
@@ -709,7 +751,7 @@ class SupabaseService {
     this.setStatus('syncing');
     try {
       // 1. Push pending offline orders / status updates
-      await this.syncOfflineQueue();
+      const queueOk = await this.syncOfflineQueue({ skipStatusUpdate: true });
       // 2. Pull latest catalog menu
       const menuOk = await this.pullCategoriesAndProducts();
       // 3. Pull transactions (from Android & Web)
@@ -718,6 +760,7 @@ class SupabaseService {
       const customersOk = await this.pullCustomers();
 
       const failed = [];
+      if (!queueOk) failed.push('Antrean Offline');
       if (!menuOk) failed.push('Menu');
       if (!ordersOk) failed.push('Transaksi');
       if (!customersOk) failed.push('Pelanggan');
@@ -732,7 +775,7 @@ class SupabaseService {
         return { success: true, message: 'Sinkronisasi 2-arah berhasil!' };
       }
 
-      const someSucceeded = menuOk || ordersOk || customersOk;
+      const someSucceeded = queueOk || menuOk || ordersOk || customersOk;
       window.State.emit('sync:complete', { time: syncTime, success: false, failed });
       return {
         success: false,
