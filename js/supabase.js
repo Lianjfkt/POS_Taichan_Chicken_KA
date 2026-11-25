@@ -9,6 +9,8 @@ class SupabaseService {
     this.isFlushing = false;
     this.channel = null;
     this.lastSyncTime = null;
+    this._realtimeOrderTimer = null;
+    this._realtimeMenuTimer = null;
   }
 
   init() {
@@ -105,15 +107,21 @@ class SupabaseService {
 
     try {
       this.setStatus('syncing');
-      const testClient = window.supabase.createClient(url, key);
+      const testClient = window.supabase.createClient(url, key, {
+        realtime: { params: { eventsPerSecond: 10 } }
+      });
       const { data, error } = await testClient.from('categories').select('id').limit(1);
 
       if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
+      if (this.client && this.channel) {
+        this.cleanup();
+      }
       this.client = testClient;
       this.setStatus('online');
+      this.subscribeRealtime();
       return { success: true, message: 'Berhasil terhubung ke Supabase Cloud!' };
     } catch (err) {
       console.warn('[Supabase] Connection failed:', err);
@@ -123,22 +131,54 @@ class SupabaseService {
     }
   }
 
+  _clearRealtimeTimers() {
+    if (this._realtimeOrderTimer) {
+      clearTimeout(this._realtimeOrderTimer);
+      this._realtimeOrderTimer = null;
+    }
+    if (this._realtimeMenuTimer) {
+      clearTimeout(this._realtimeMenuTimer);
+      this._realtimeMenuTimer = null;
+    }
+  }
+
+  cleanup() {
+    this._clearRealtimeTimers();
+    if (this.client && this.channel) {
+      try {
+        this.client.removeChannel(this.channel);
+      } catch (e) {
+        console.warn('[Supabase] Realtime cleanup error:', e);
+      }
+      this.channel = null;
+    }
+  }
+
   // Realtime CDC Subscriptions
   subscribeRealtime() {
     if (!this.client) return;
 
+    this._clearRealtimeTimers();
+
     try {
       if (this.channel) {
         this.client.removeChannel(this.channel);
+        this.channel = null;
       }
 
-      this.channel = this.client.channel('schema-db-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory_items' }, payload => {
-          this.handleInventoryChange(payload);
+      this.channel = this.client.channel('public-db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+          this.handleOrderChange(payload);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, payload => {
+          this.handleProductChange(payload);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, payload => {
+          this.handleProductChange(payload);
         })
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
-            console.log('[Supabase] Realtime CDC channel active');
+            console.log('[Supabase] Realtime CDC active for orders, products & categories');
           }
         });
     } catch (e) {
@@ -146,16 +186,34 @@ class SupabaseService {
     }
   }
 
-  handleInventoryChange(payload) {
-    if (payload.eventType === 'UPDATE' && payload.new) {
-      const idx = window.State.inventory.findIndex(i => i.id === payload.new.id);
-      if (idx > -1) {
-        window.State.inventory[idx].stok = payload.new.current_stock;
-        // BUG-A fix: gunakan window.LS_KEYS agar tidak ReferenceError
-        window.State.save(window.LS_KEYS.inv, window.State.inventory);
-        window.State.emit('inventory:update', window.State.inventory);
-      }
+  _scheduleRealtimeSync(timerKey, syncFn, label) {
+    if (this[timerKey]) {
+      clearTimeout(this[timerKey]);
     }
+    this[timerKey] = setTimeout(() => {
+      this[timerKey] = null;
+      Promise.resolve(syncFn()).catch(err => {
+        console.warn(`[Supabase] Realtime ${label} error:`, err);
+      });
+    }, 500);
+  }
+
+  /**
+   * Handle realtime INSERT/UPDATE on orders with debounce so order_items
+   * written immediately after the order header are pulled together.
+   */
+  handleOrderChange(payload) {
+    if (!payload || typeof payload !== 'object' || payload.eventType === 'DELETE') return;
+    this._scheduleRealtimeSync('_realtimeOrderTimer', () => this.pullOrders(20), 'pullOrders');
+  }
+
+  /**
+   * Handle realtime INSERT/UPDATE on products/categories with debounce so
+   * BOM recipes, tusuk metadata, and category mappings remain consistent.
+   */
+  handleProductChange(payload) {
+    if (!payload || typeof payload !== 'object' || payload.eventType === 'DELETE') return;
+    this._scheduleRealtimeSync('_realtimeMenuTimer', () => this.pullCategoriesAndProducts(), 'pullCategoriesAndProducts');
   }
 
   _toIsoString(val, fallbackIso) {
