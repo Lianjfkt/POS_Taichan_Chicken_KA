@@ -157,10 +157,30 @@ class SupabaseService {
     }
   }
 
+  _toIsoString(val, fallbackIso) {
+    if (val !== undefined && val !== null && val !== '') {
+      const d = new Date(val);
+      if (!Number.isNaN(d.getTime())) return d.toISOString();
+    }
+    return fallbackIso || new Date().toISOString();
+  }
+
+  _formatVoidReason(reason, by) {
+    const r = (reason != null ? String(reason) : '').trim();
+    const b = (by != null ? String(by) : '').trim();
+    if (r && b) return `${r} (oleh ${b})`;
+    if (r) return r;
+    if (b) return `Void oleh ${b}`;
+    return '';
+  }
+
   _buildOrderPayloads(trx) {
+    if (!trx || typeof trx !== 'object') {
+      throw new Error('Invalid transaction payload');
+    }
     const orderId = trx.no || trx.id || trx._tempId || (trx._tempId = `ORD-${Date.now()}`);
-    const createdIso = new Date(trx.tgl || trx.created_at || Date.now()).toISOString();
-    const nowIso = new Date().toISOString();
+    const createdSource = (trx.tgl != null && trx.tgl !== '') ? trx.tgl : trx.created_at;
+    const createdIso = this._toIsoString(createdSource);
     const isVoid = trx.status === 'void';
 
     const orderPayload = {
@@ -170,24 +190,22 @@ class SupabaseService {
       customer_phone: trx.customerPhone || trx.customer_phone || null,
       order_type: trx.tipe || trx.order_type || 'dine-in',
       table_no: trx.meja || trx.table_no || '',
-      subtotal: Number(trx.subtotal != null ? trx.subtotal : (trx.total || 0)),
-      discount: Number(trx.diskon != null ? trx.diskon : (trx.discount || 0)),
-      total: Number(trx.total || 0),
+      subtotal: Number(trx.subtotal != null ? trx.subtotal : (trx.total || 0)) || 0,
+      discount: Number(trx.diskon != null ? trx.diskon : (trx.discount || 0)) || 0,
+      total: Number(trx.total || 0) || 0,
       payment_method: trx.metode || trx.payment_method || 'cash',
       status: isVoid ? 'void' : (trx.status || 'completed'),
       cashier_id: trx.kasir || trx.cashier_id || 'Kasir',
       notes: trx.catatan || trx.notes || '',
-      void_reason: isVoid ? (trx.voidReason || trx.void_reason || '') : (trx.voidReason || null),
-      void_by: isVoid ? (trx.voidBy || trx.void_by || '') : null,
-      void_at: isVoid ? (trx.voidAt ? new Date(trx.voidAt).toISOString() : nowIso) : null,
-      paid_at: trx.paid_at ? new Date(trx.paid_at).toISOString() : createdIso,
-      created_at: createdIso,
-      updated_at: nowIso
+      void_reason: isVoid ? this._formatVoidReason(trx.voidReason || trx.void_reason, trx.voidBy || trx.void_by) : null,
+      paid_at: this._toIsoString(trx.paid_at, createdIso),
+      created_at: createdIso
     };
 
-    const itemPayloads = (trx.items || []).map((it, idx) => {
-      const unitPrice = Number(it.hr != null ? it.hr : (it.price || 0));
-      const qty = Number(it.qty != null ? it.qty : (it.quantity != null ? it.quantity : 1));
+    const items = Array.isArray(trx.items) ? trx.items.filter(it => it && typeof it === 'object') : [];
+    const itemPayloads = items.map((it, idx) => {
+      const unitPrice = Number(it.hr != null ? it.hr : (it.price || 0)) || 0;
+      const qty = Number(it.qty != null ? it.qty : (it.quantity != null ? it.quantity : 1)) || 0;
       return {
         id: `${orderId}_${idx + 1}`,
         order_id: orderId,
@@ -197,7 +215,7 @@ class SupabaseService {
         quantity: qty,
         spice_level: it.level || it.spiceLevel || it.spice_level || it.spice || '',
         notes: it.catatan || it.notes || it.mod || '',
-        subtotal: Number(it.subtotal != null ? it.subtotal : (unitPrice * qty)),
+        subtotal: Number(it.subtotal != null ? it.subtotal : (unitPrice * qty)) || 0,
         created_at: createdIso
       };
     });
@@ -224,21 +242,32 @@ class SupabaseService {
   async _pushOrderStatusUpdate(orderNo, status, voidData = {}) {
     const updatePayload = {
       status: status,
-      void_reason: voidData.reason || '',
-      void_by: voidData.by || '',
-      void_at: voidData.at ? new Date(voidData.at).toISOString() : new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      void_reason: status === 'void'
+        ? this._formatVoidReason(voidData.reason, voidData.by)
+        : (voidData.reason || null)
     };
 
-    const { error } = await this.client.from('orders').update(updatePayload).eq('id', orderNo);
-    if (error) {
-      const res2 = await this.client.from('orders').update(updatePayload).eq('order_no', orderNo);
+    const { data, error } = await this.client
+      .from('orders')
+      .update(updatePayload)
+      .eq('id', orderNo)
+      .select('id');
+    if (error || !data || data.length === 0) {
+      const res2 = await this.client
+        .from('orders')
+        .update(updatePayload)
+        .eq('order_no', orderNo)
+        .select('id');
       if (res2.error) throw res2.error;
+      if (!res2.data || res2.data.length === 0) {
+        throw new Error(`Order ${orderNo} not found on remote`);
+      }
     }
   }
 
   // BUG-03 fix: langsung upsert relasional (orders + order_items) ke Supabase jika online, queue jika offline
   async queueTransaction(trx) {
+    if (!trx || typeof trx !== 'object') return;
     if (this.status === 'online' && this.client) {
       try {
         await this._upsertOrderAndItems(trx);
@@ -255,11 +284,13 @@ class SupabaseService {
 
   // TASK 4: Sinkronisasi Status Void ke Supabase Cloud
   async updateOrderStatus(orderNo, status, voidData = {}) {
+    if (!orderNo) return { success: false };
+
     // 1. Perbarui transaksi di offlineQueue jika masih antre
     let foundInQueue = false;
     if (window.State.offlineQueue && window.State.offlineQueue.length > 0) {
       window.State.offlineQueue.forEach(item => {
-        if (item.no === orderNo || item.id === orderNo || item.order_no === orderNo) {
+        if (item && (item.no === orderNo || item.id === orderNo || item.order_no === orderNo)) {
           item.status = status;
           item.voidReason = voidData.reason || '';
           item.voidBy = voidData.by || '';
@@ -267,7 +298,9 @@ class SupabaseService {
           foundInQueue = true;
         }
       });
-      window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
+      if (foundInQueue) {
+        window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
+      }
     }
 
     // 2. Jika online, langsung update status nota di Supabase orders table
@@ -306,6 +339,11 @@ class SupabaseService {
     try {
       while (window.State.offlineQueue.length > 0) {
         const item = window.State.offlineQueue[0];
+        if (!item || typeof item !== 'object') {
+          window.State.offlineQueue.shift();
+          window.State.save(window.LS_KEYS.ofq, window.State.offlineQueue);
+          continue;
+        }
 
         // Periksa jika antrean merupakan aksi update status (Void)
         if (item._action === 'update_status') {
