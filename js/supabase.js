@@ -374,41 +374,66 @@ class SupabaseService {
     }
   }
 
-  // Push all local products, categories, and inventory to cloud
+  // Push all local products and categories to cloud
   async pushLocalData() {
     if (!this.client) return { success: false, message: 'Supabase belum terhubung!' };
 
     this.setStatus('syncing');
     try {
+      const categories = Array.isArray(window.State && window.State.categories)
+        ? window.State.categories.filter(c => c && typeof c === 'object')
+        : [];
+      const products = Array.isArray(window.State && window.State.products)
+        ? window.State.products.filter(p => p && typeof p === 'object')
+        : [];
+
       // 1. Categories
-      const catRows = window.State.categories.map(c => ({
-        id: c.id,
-        name: c.nm,
-        icon: c.emj,
-        color: c.col,
-        sort_order: c.ord || 0,
+      const catRows = categories.map(c => ({
+        id: String(c.id),
+        name: c.nm || '',
+        emoji: c.emj || '🍽️',
+        color: c.col || '#0B5C73',
+        sort_order: Number(c.ord) || 0,
         is_active: c.on !== false
       }));
-      await this.client.from('categories').upsert(catRows);
+      if (catRows.length > 0) {
+        const { error: catErr } = (await this.client
+          .from('categories')
+          .upsert(catRows, { onConflict: 'id' })) || {};
+        if (catErr) throw catErr;
+      }
 
       // 2. Products
-      const prodRows = window.State.products.map(p => ({
-        id: p.id,
-        name: p.nm,
-        category: p.kat,
-        price: p.hr,
-        cost_price: p.md || 0,
-        image_emoji: p.emj || '🍢',
-        spice_level: p.lv || '',
-        is_active: p.on !== false
-      }));
-      await this.client.from('products').upsert(prodRows);
+      const prodRows = products.map(p => {
+        // Cari ID kategori dari c.nm jika p.kat berupa nama kategori; null jika tidak cocok agar FK aman
+        const catObj = p.kat != null && p.kat !== ''
+          ? categories.find(c => c.nm === p.kat || String(c.id) === String(p.kat))
+          : null;
+        const catId = catObj && catObj.id != null ? String(catObj.id) : null;
+        return {
+          id: String(p.id),
+          category_id: catId,
+          name: p.nm || '',
+          price: Number(p.hr) || 0,
+          cost_price: Number(p.md) || 0,
+          emoji: p.emj || '🍢',
+          spice_level: p.lv || '',
+          description: p.desc || '',
+          is_active: p.on !== false
+        };
+      });
+      if (prodRows.length > 0) {
+        const { error: prodErr } = (await this.client
+          .from('products')
+          .upsert(prodRows, { onConflict: 'id' })) || {};
+        if (prodErr) throw prodErr;
+      }
 
       this.setStatus('online');
       return { success: true, message: 'Berhasil mengunggah master data ke Supabase Cloud!' };
     } catch (e) {
       this.setStatus('offline');
-      return { success: false, message: `Gagal mengunggah data: ${e.message}` };
+      return { success: false, message: `Gagal mengunggah data: ${e && e.message ? e.message : String(e)}` };
     }
   }
 }
