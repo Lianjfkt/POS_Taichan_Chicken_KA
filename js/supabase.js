@@ -8,6 +8,7 @@ class SupabaseService {
     this.status = 'offline'; // 'online', 'syncing', 'offline'
     this.isFlushing = false;
     this.channel = null;
+    this.lastSyncTime = null;
   }
 
   init() {
@@ -434,6 +435,315 @@ class SupabaseService {
     } catch (e) {
       this.setStatus('offline');
       return { success: false, message: `Gagal mengunggah data: ${e && e.message ? e.message : String(e)}` };
+    }
+  }
+
+  /**
+   * Pull master categories & products from Supabase Cloud (Cloud-Wins),
+   * while preserving local BOM recipes and tusuk metadata.
+   */
+  async pullCategoriesAndProducts() {
+    if (!this.client) return false;
+    try {
+      const { data: cats, error: catErr } = await this.client
+        .from('categories')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (catErr) throw catErr;
+
+      const { data: prods, error: prodErr } = await this.client
+        .from('products')
+        .select('*')
+        .order('name', { ascending: true });
+      if (prodErr) throw prodErr;
+
+      if (Array.isArray(cats) && cats.length > 0) {
+        window.State.categories = cats.map(c => ({
+          id: c.id,
+          nm: c.name,
+          emj: c.emoji || '🍽️',
+          col: c.color || '#0B5C73',
+          ord: Number(c.sort_order) || 0,
+          on: c.is_active !== false
+        }));
+        window.State.save(window.LS_KEYS.kat, window.State.categories);
+        window.State.emit('categories:update', window.State.categories);
+      }
+
+      if (Array.isArray(prods) && prods.length > 0) {
+        const existingProducts = Array.isArray(window.State.products) ? window.State.products : [];
+        const categories = Array.isArray(window.State.categories) ? window.State.categories : [];
+        window.State.products = prods.map(p => {
+          const cat = categories.find(c => c && String(c.id) === String(p.category_id));
+          const existing = existingProducts.find(ep => ep && String(ep.id) === String(p.id));
+          const mapped = {
+            id: p.id,
+            nm: p.name,
+            kat: cat ? cat.nm : 'Lainnya',
+            hr: Number(p.price || 0),
+            md: Number(p.cost_price || 0),
+            emj: p.emoji || '🍢',
+            lv: p.spice_level || '',
+            desc: p.description || '',
+            on: p.is_active !== false,
+            bom: existing && Array.isArray(existing.bom) ? existing.bom : []
+          };
+          if (existing && existing.tusuk !== undefined) {
+            mapped.tusuk = existing.tusuk;
+          }
+          return mapped;
+        });
+        window.State.save(window.LS_KEYS.prod, window.State.products);
+        window.State.emit('products:update', window.State.products);
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('[Supabase] pullCategoriesAndProducts error:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Pull recent orders and order_items from Supabase Cloud, merge with local
+   * transactions without duplicating or overwriting pending offline void updates.
+   */
+  async pullOrders(limit = 200) {
+    if (!this.client) return false;
+    try {
+      const { data: remoteOrders, error: orderErr } = await this.client
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (orderErr) throw orderErr;
+      if (!remoteOrders || remoteOrders.length === 0) return true;
+
+      const orderIds = remoteOrders.map(o => o.id).filter(Boolean);
+      let remoteItems = [];
+      if (orderIds.length > 0) {
+        const { data: itemsData, error: itemErr } = await this.client
+          .from('order_items')
+          .select('*')
+          .in('order_id', orderIds);
+        if (itemErr) throw itemErr;
+        remoteItems = itemsData || [];
+      }
+
+      const itemsByOrder = {};
+      remoteItems.forEach(it => {
+        if (!it || !it.order_id) return;
+        if (!itemsByOrder[it.order_id]) itemsByOrder[it.order_id] = [];
+        itemsByOrder[it.order_id].push({
+          id: it.product_id,
+          nm: it.product_name,
+          hr: Number(it.price || 0),
+          qty: Number(it.quantity || 1),
+          level: it.spice_level || '',
+          catatan: it.notes || '',
+          subtotal: Number(it.subtotal || 0)
+        });
+      });
+
+      let mergedList = Array.isArray(window.State.transactions) ? [...window.State.transactions] : [];
+      const queue = Array.isArray(window.State.offlineQueue) ? window.State.offlineQueue : [];
+
+      remoteOrders.forEach(ro => {
+        if (!ro) return;
+        const key = ro.order_no || ro.id;
+        const matchKeys = [key, ro.id]
+          .filter(v => v !== undefined && v !== null && v !== '')
+          .map(String);
+
+        const isMatchingLocal = (t) => {
+          if (!t || typeof t !== 'object') return false;
+          const tNo = t.no !== undefined && t.no !== null && t.no !== '' ? String(t.no) : null;
+          const tId = t.id !== undefined && t.id !== null && t.id !== '' ? String(t.id) : null;
+          return (tNo !== null && matchKeys.includes(tNo)) || (tId !== null && matchKeys.includes(tId));
+        };
+
+        const existingIdx = mergedList.findIndex(isMatchingLocal);
+        const existing = existingIdx > -1 ? mergedList[existingIdx] : null;
+
+        const pendingVoid = queue.find(q => {
+          if (!q || typeof q !== 'object') return false;
+          if (q._action !== 'update_status' && q.status !== 'void') return false;
+          const qVals = [q.no, q.id, q.order_no]
+            .filter(v => v !== undefined && v !== null && v !== '')
+            .map(String);
+          return qVals.some(v => matchKeys.includes(v));
+        });
+
+        const hasPendingStatusUpdate = Boolean(pendingVoid);
+        const resolvedStatus = hasPendingStatusUpdate
+          ? (pendingVoid.status || (existing && existing.status) || 'void')
+          : (ro.status || 'completed');
+        const resolvedVoidReason = hasPendingStatusUpdate
+          ? (pendingVoid.voidReason || (existing && existing.voidReason) || ro.void_reason || '')
+          : (ro.void_reason || (existing ? existing.voidReason : '') || '');
+        const resolvedVoidBy = hasPendingStatusUpdate
+          ? (pendingVoid.voidBy || (existing && existing.voidBy) || '')
+          : (existing && existing.voidBy ? existing.voidBy : '');
+        const resolvedVoidAt = hasPendingStatusUpdate
+          ? (pendingVoid.voidAt || (existing ? existing.voidAt : undefined))
+          : (existing ? existing.voidAt : undefined);
+
+        const items = itemsByOrder[ro.id] || (existing && Array.isArray(existing.items) ? existing.items : []);
+        const createdMs = ro.created_at ? new Date(ro.created_at).getTime() : NaN;
+        const tgl = !Number.isNaN(createdMs)
+          ? createdMs
+          : (existing && existing.tgl ? existing.tgl : Date.now());
+
+        const mergedTrx = {
+          id: ro.id,
+          no: key,
+          tgl,
+          pelanggan: ro.customer_name || 'Pelanggan Umum',
+          customerPhone: ro.customer_phone || '',
+          tipe: ro.order_type || 'dine-in',
+          meja: ro.table_no || '',
+          subtotal: Number(ro.subtotal != null ? ro.subtotal : (ro.total || 0)) || 0,
+          diskon: Number(ro.discount || 0) || 0,
+          total: Number(ro.total || 0) || 0,
+          bayar: Number(existing && existing.bayar != null ? existing.bayar : (ro.total || 0)) || 0,
+          kembali: Number(existing && existing.kembali != null ? existing.kembali : 0) || 0,
+          metode: ro.payment_method || 'cash',
+          status: resolvedStatus,
+          kasir: ro.cashier_id || 'Kasir',
+          catatan: ro.notes || (existing ? existing.catatan : '') || '',
+          voidReason: resolvedVoidReason,
+          voidBy: resolvedVoidBy,
+          items
+        };
+        if (resolvedVoidAt !== undefined) {
+          mergedTrx.voidAt = resolvedVoidAt;
+        }
+        if (existing && existing.voidNotes) {
+          mergedTrx.voidNotes = existing.voidNotes;
+        }
+
+        if (existingIdx > -1) {
+          mergedList[existingIdx] = mergedTrx;
+          mergedList = mergedList.filter((t, idx) => idx === existingIdx || !isMatchingLocal(t));
+        } else {
+          mergedList.push(mergedTrx);
+        }
+      });
+
+      const updatedTransactions = mergedList
+        .filter(Boolean)
+        .sort((a, b) => (b.tgl || 0) - (a.tgl || 0));
+
+      window.State.transactions = updatedTransactions;
+      window.State.save(window.LS_KEYS.trx, updatedTransactions);
+      window.State.emit('transactions:update', updatedTransactions);
+      return true;
+    } catch (err) {
+      console.warn('[Supabase] pullOrders error:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Pull customers from Supabase Cloud and merge into window.State.customers
+   * by id (with phone fallback), preserving local-only records.
+   */
+  async pullCustomers() {
+    if (!this.client) return false;
+    try {
+      const { data: remoteCustomers, error } = await this.client
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      if (!remoteCustomers || remoteCustomers.length === 0) return true;
+
+      const localCustomers = Array.isArray(window.State.customers) ? window.State.customers : [];
+      const merged = localCustomers.map(c => ({ ...c }));
+
+      remoteCustomers.forEach(rc => {
+        if (!rc) return;
+        const remotePhone = (rc.phone || '').trim();
+        const existingIdx = merged.findIndex(lc => {
+          if (!lc) return false;
+          if (rc.id != null && lc.id != null && String(lc.id) === String(rc.id)) return true;
+          if (remotePhone && remotePhone !== '-' && (lc.hp || '').trim() === remotePhone) return true;
+          return false;
+        });
+        const existing = existingIdx > -1 ? merged[existingIdx] : null;
+        const createdMs = rc.created_at ? new Date(rc.created_at).getTime() : NaN;
+
+        const mapped = {
+          id: rc.id || (existing ? existing.id : `CUST-${Date.now()}`),
+          nm: rc.name || (existing ? existing.nm : 'Pelanggan'),
+          hp: rc.phone || (existing ? existing.hp : '-'),
+          poin: Number(rc.points != null ? rc.points : (existing ? existing.poin : 0)) || 0,
+          trxCount: Number(rc.visit_count != null ? rc.visit_count : (existing ? existing.trxCount : 0)) || 0,
+          totalSpend: Number(rc.total_spent != null ? rc.total_spent : (existing ? existing.totalSpend : 0)) || 0,
+          joined: !Number.isNaN(createdMs) ? createdMs : (existing && existing.joined ? existing.joined : Date.now())
+        };
+
+        if (existingIdx > -1) {
+          merged[existingIdx] = { ...existing, ...mapped };
+        } else {
+          merged.push(mapped);
+        }
+      });
+
+      window.State.customers = merged;
+      window.State.save(window.LS_KEYS.cust, merged);
+      window.State.emit('customers:updated', merged);
+      return true;
+    } catch (err) {
+      console.warn('[Supabase] pullCustomers error:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Orchestrate full 2-way sync: flush pending offline queue, then pull
+   * categories/products, orders, and customers from Supabase Cloud.
+   */
+  async syncAll() {
+    if (!this.client) return { success: false, message: 'Supabase belum terhubung.' };
+    this.setStatus('syncing');
+    try {
+      // 1. Push pending offline orders / status updates
+      await this.syncOfflineQueue();
+      // 2. Pull latest catalog menu
+      const menuOk = await this.pullCategoriesAndProducts();
+      // 3. Pull transactions (from Android & Web)
+      const ordersOk = await this.pullOrders();
+      // 4. Pull customers
+      const customersOk = await this.pullCustomers();
+
+      const failed = [];
+      if (!menuOk) failed.push('Menu');
+      if (!ordersOk) failed.push('Transaksi');
+      if (!customersOk) failed.push('Pelanggan');
+
+      const isNetOnline = typeof navigator === 'undefined' || navigator.onLine !== false;
+      this.setStatus(isNetOnline ? 'online' : 'offline');
+
+      const syncTime = Date.now();
+      if (failed.length === 0) {
+        this.lastSyncTime = syncTime;
+        window.State.emit('sync:complete', { time: syncTime, success: true });
+        return { success: true, message: 'Sinkronisasi 2-arah berhasil!' };
+      }
+
+      const someSucceeded = menuOk || ordersOk || customersOk;
+      window.State.emit('sync:complete', { time: syncTime, success: false, failed });
+      return {
+        success: false,
+        message: someSucceeded
+          ? `Sinkronisasi sebagian gagal (${failed.join(', ')}).`
+          : `Sinkronisasi gagal (${failed.join(', ')}).`
+      };
+    } catch (err) {
+      const isNetOnline = typeof navigator === 'undefined' || navigator.onLine !== false;
+      this.setStatus(isNetOnline ? 'online' : 'offline');
+      return { success: false, message: `Sinkronisasi gagal: ${err && err.message ? err.message : String(err)}` };
     }
   }
 }
