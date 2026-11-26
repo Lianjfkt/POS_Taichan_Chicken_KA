@@ -462,10 +462,10 @@ class SupabaseService {
     this.setStatus('syncing');
     try {
       const categories = Array.isArray(window.State && window.State.categories)
-        ? window.State.categories.filter(c => c && typeof c === 'object')
+        ? window.State.categories.filter(c => c && typeof c === 'object' && c.id != null && c.id !== '')
         : [];
       const products = Array.isArray(window.State && window.State.products)
-        ? window.State.products.filter(p => p && typeof p === 'object')
+        ? window.State.products.filter(p => p && typeof p === 'object' && p.id != null && p.id !== '')
         : [];
 
       // 1. Categories

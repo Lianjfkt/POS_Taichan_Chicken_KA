@@ -545,6 +545,12 @@ class PrinterService {
     const btnPrint = document.getElementById('btn-receipt-modal-print');
     const btnSystemPrint = document.getElementById('btn-receipt-modal-system-print');
     const btnWa = document.getElementById('btn-receipt-modal-wa');
+    const waPhoneInput = document.getElementById('receipt-wa-phone');
+
+    if (waPhoneInput) {
+      const custPhone = this._lookupCustomerPhone(trx);
+      waPhoneInput.value = custPhone || '';
+    }
     
     if (btnPrint) {
       btnPrint.onclick = () => this.printReceipt(trx);
@@ -554,7 +560,7 @@ class PrinterService {
       btnSystemPrint.onclick = () => this.printSystemReceipt(trx);
     }
     if (btnWa) {
-      btnWa.onclick = () => this.shareWhatsApp(trx);
+      btnWa.onclick = () => this.shareWhatsApp(trx, waPhoneInput ? waPhoneInput.value : '');
     }
   }
 
@@ -569,6 +575,8 @@ class PrinterService {
     const btnPrint = document.getElementById('btn-receipt-modal-print');
     const btnSystemPrint = document.getElementById('btn-receipt-modal-system-print');
     const btnWa = document.getElementById('btn-receipt-modal-wa');
+    const waPhoneInput = document.getElementById('receipt-wa-phone');
+    if (waPhoneInput) waPhoneInput.value = '';
     
     if (btnPrint) {
       btnPrint.onclick = () => this.printShiftReport(report, type);
@@ -582,7 +590,23 @@ class PrinterService {
     }
   }
 
-  shareWhatsApp(trx) {
+  _normalizeWaPhone(raw) {
+    const digits = String(raw || '').replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.startsWith('0')) return '62' + digits.slice(1);
+    return digits;
+  }
+
+  _lookupCustomerPhone(trx) {
+    if (trx && (trx.customerPhone || trx.phone)) return trx.customerPhone || trx.phone;
+    const custs = (window.State && Array.isArray(window.State.customers)) ? window.State.customers : [];
+    const targetName = trx && trx.pelanggan ? String(trx.pelanggan).trim().toLowerCase() : '';
+    if (!targetName || targetName === 'umum') return '';
+    const found = custs.find(c => c && c.nm && c.nm.trim().toLowerCase() === targetName);
+    return (found && (found.hp || found.phone || found.telp)) || '';
+  }
+
+  shareWhatsApp(trx, phoneOverride = '') {
     const s = window.State.settings;
     let text = `*STRUK PEMBAYARAN ${s.nm || 'KA POS'}*\n`;
     text += `No. Nota: ${trx.no}\n`;
@@ -599,12 +623,21 @@ class PrinterService {
     text += `--------------------------------\n`;
     text += `*TOTAL   : ${window.State.formatRp(trx.total)}*\n`;
     text += `Bayar   : ${window.State.formatRp(trx.bayar || trx.total)} (${(trx.metode || 'cash').toUpperCase()})\n`;
+    if (Array.isArray(trx.payments) && trx.payments.length > 1) {
+      trx.payments.forEach(p => {
+        text += `  • ${String(p.method || '').toUpperCase()}: ${window.State.formatRp(p.amount)}\n`;
+      });
+    }
     if (trx.kembali > 0) text += `Kembali : ${window.State.formatRp(trx.kembali)}\n`;
     text += `--------------------------------\n`;
     text += `${s.footer || 'Terima kasih!'}\n`;
 
-    const encoded = encodeURI(text);
-    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    const encoded = encodeURIComponent(text);
+    const phone = this._normalizeWaPhone(phoneOverride || this._lookupCustomerPhone(trx));
+    const url = phone
+      ? `https://api.whatsapp.com/send?phone=${phone}&text=${encoded}`
+      : `https://api.whatsapp.com/send?text=${encoded}`;
+    window.open(url, '_blank');
   }
 
   shareShiftWhatsApp(report, type = 'Z') {
@@ -632,7 +665,7 @@ class PrinterService {
     text += `--------------------------------\n`;
     text += `Dicetak via KA POS v3.0`;
 
-    const encoded = encodeURI(text);
+    const encoded = encodeURIComponent(text);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
   }
 }

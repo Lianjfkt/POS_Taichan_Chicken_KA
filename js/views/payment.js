@@ -38,6 +38,27 @@ class PaymentView {
       };
     }
 
+    // Split Payment Inputs
+    const splitAmt1 = document.getElementById('split-amount-1');
+    const splitAmt2 = document.getElementById('split-amount-2');
+    if (splitAmt1) {
+      splitAmt1.oninput = (e) => {
+        const v1 = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
+        const remaining = Math.max(0, this.getFinalTotal() - v1);
+        if (splitAmt2) splitAmt2.value = remaining;
+        this.paidAmount = v1 + remaining;
+        this.updateCalculations();
+      };
+    }
+    if (splitAmt2) {
+      splitAmt2.oninput = (e) => {
+        const v1 = Number((splitAmt1?.value || '').replace(/[^0-9]/g, '')) || 0;
+        const v2 = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
+        this.paidAmount = v1 + v2;
+        this.updateCalculations();
+      };
+    }
+
     // Quick Cash Chips (Pas, 20k, 50k, 100k, 200k)
     document.querySelectorAll('.quick-cash-chip').forEach(chip => {
       chip.onclick = () => {
@@ -162,8 +183,15 @@ class PaymentView {
       discDisplayEl.parentElement.style.display = totalDisc > 0 ? 'flex' : 'none';
     }
 
-    // Update paid amount default if cash exact
-    if (this.selectedMethod !== 'cash') {
+    // Update paid amount default if non-cash exact
+    if (this.selectedMethod === 'split') {
+      const splitAmt1 = document.getElementById('split-amount-1');
+      const splitAmt2 = document.getElementById('split-amount-2');
+      const v1 = Number((splitAmt1?.value || '').replace(/[^0-9]/g, '')) || 0;
+      const v2 = Math.max(0, finalTotal - v1);
+      if (splitAmt2) splitAmt2.value = v2;
+      this.paidAmount = v1 + v2;
+    } else if (this.selectedMethod !== 'cash') {
       this.paidAmount = finalTotal;
     }
     this.updateCalculations();
@@ -269,18 +297,44 @@ class PaymentView {
   }
 
   togglePaymentSections() {
-    const cashSection = document.getElementById('pay-section-cash');
-    const qrisSection = document.getElementById('pay-section-qris');
-    const tfSection   = document.getElementById('pay-section-transfer');
+    const cashSection  = document.getElementById('pay-section-cash');
+    const qrisSection  = document.getElementById('pay-section-qris');
+    const tfSection    = document.getElementById('pay-section-transfer');
+    const splitSection = document.getElementById('pay-section-split');
 
-    if (cashSection) cashSection.style.display = this.selectedMethod === 'cash' ? 'block' : 'none';
-    if (qrisSection) qrisSection.style.display = this.selectedMethod === 'qris' ? 'block' : 'none';
-    if (tfSection)   tfSection.style.display   = this.selectedMethod === 'transfer' ? 'block' : 'none';
+    if (cashSection)  cashSection.style.display  = this.selectedMethod === 'cash' ? 'block' : 'none';
+    if (qrisSection)  qrisSection.style.display  = this.selectedMethod === 'qris' ? 'block' : 'none';
+    if (tfSection)    tfSection.style.display    = this.selectedMethod === 'transfer' ? 'block' : 'none';
+    if (splitSection) splitSection.style.display = this.selectedMethod === 'split' ? 'block' : 'none';
 
-    if (this.selectedMethod !== 'cash') {
-      this.paidAmount = this.getFinalTotal();
+    const finalTotal = this.getFinalTotal();
+    if (this.selectedMethod === 'split') {
+      const splitAmt1 = document.getElementById('split-amount-1');
+      const splitAmt2 = document.getElementById('split-amount-2');
+      const half = Math.floor(finalTotal / 2);
+      if (splitAmt1) splitAmt1.value = half;
+      if (splitAmt2) splitAmt2.value = finalTotal - half;
+      this.paidAmount = finalTotal;
+      this.updateCalculations();
+    } else if (this.selectedMethod !== 'cash') {
+      this.paidAmount = finalTotal;
+      this.updateCalculations();
+    } else {
+      const paidInput = document.getElementById('payment-cash-input');
+      this.paidAmount = paidInput ? (Number(paidInput.value.replace(/[^0-9]/g, '')) || 0) : finalTotal;
       this.updateCalculations();
     }
+  }
+
+  _getSplitPaymentData() {
+    const m1 = document.getElementById('split-method-1')?.value || 'cash';
+    const m2 = document.getElementById('split-method-2')?.value || 'qris';
+    const a1 = Number((document.getElementById('split-amount-1')?.value || '').replace(/[^0-9]/g, '')) || 0;
+    const a2 = Number((document.getElementById('split-amount-2')?.value || '').replace(/[^0-9]/g, '')) || 0;
+    return [
+      { method: m1, amount: a1 },
+      { method: m2, amount: a2 }
+    ];
   }
 
   updateCalculations() {
@@ -288,6 +342,42 @@ class PaymentView {
     const btnSubmit = document.getElementById('btn-submit-payment');
 
     const finalTotal = this.getFinalTotal();
+
+    if (this.selectedMethod === 'split') {
+      const splits = this._getSplitPaymentData();
+      const totalSplit = splits[0].amount + splits[1].amount;
+      this.paidAmount = totalSplit;
+      const diff = totalSplit - finalTotal;
+
+      const labelEl = document.getElementById('split-status-label');
+      const amtEl = document.getElementById('split-status-amount');
+      if (labelEl && amtEl) {
+        if (diff < 0) {
+          labelEl.textContent = 'Kurang Bayar:';
+          amtEl.textContent = window.State.formatRp(Math.abs(diff));
+          amtEl.style.color = 'var(--error)';
+        } else {
+          labelEl.textContent = 'Kembalian:';
+          amtEl.textContent = window.State.formatRp(diff);
+          amtEl.style.color = 'var(--tertiary)';
+        }
+      }
+
+      if (btnSubmit) {
+        if (totalSplit < finalTotal) {
+          btnSubmit.disabled = true;
+          btnSubmit.textContent = 'Nominal Split Kurang';
+        } else if (splits[0].amount <= 0 || splits[1].amount <= 0) {
+          btnSubmit.disabled = true;
+          btnSubmit.textContent = 'Isi Kedua Nominal Split';
+        } else {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Konfirmasi & Selesaikan Pembayaran';
+        }
+      }
+      return;
+    }
+
     const change = Math.max(0, this.paidAmount - finalTotal);
 
     if (changeEl) {
@@ -332,8 +422,20 @@ class PaymentView {
 
   processPayment() {
     const finalTotal = this.getFinalTotal();
+    let splitPayments = null;
 
-    if (this.selectedMethod === 'cash' && this.paidAmount < finalTotal) {
+    if (this.selectedMethod === 'split') {
+      splitPayments = this._getSplitPaymentData();
+      this.paidAmount = splitPayments[0].amount + splitPayments[1].amount;
+      if (this.paidAmount < finalTotal) {
+        window.State.toast('Nominal pembayaran split kurang dari total tagihan!', 'error');
+        return;
+      }
+      if (splitPayments[0].amount <= 0 || splitPayments[1].amount <= 0) {
+        window.State.toast('Kedua nominal split payment harus lebih dari Rp 0!', 'error');
+        return;
+      }
+    } else if (this.selectedMethod === 'cash' && this.paidAmount < finalTotal) {
       window.State.toast('Nominal pembayaran kurang dari total tagihan!', 'error');
       return;
     }
@@ -364,6 +466,7 @@ class PaymentView {
       bayar: this.paidAmount,
       kembali: change,
       metode: this.selectedMethod,
+      payments: splitPayments,
       tipe: window.State.orderType,
       pelanggan: customerName,
       kasir: cashierName
@@ -399,15 +502,25 @@ class PaymentView {
       window.SupabaseService.queueTransaction(transaction);
     }
 
-    // 5. Update Cash Drawer Log if Cash
+    // 5. Update Cash Drawer Log if Cash (or cash portion of Split Payment)
+    let cashDrawerIn = 0;
     if (this.selectedMethod === 'cash') {
+      cashDrawerIn = finalTotal;
+    } else if (this.selectedMethod === 'split' && Array.isArray(splitPayments)) {
+      const cashGross = splitPayments.filter(p => p.method === 'cash').reduce((s, p) => s + p.amount, 0);
+      const nonCashGross = splitPayments.filter(p => p.method !== 'cash').reduce((s, p) => s + p.amount, 0);
+      if (cashGross > 0) {
+        cashDrawerIn = Math.min(cashGross, Math.max(0, finalTotal - nonCashGross));
+      }
+    }
+    if (cashDrawerIn > 0) {
       window.State.cashLog.unshift({
         id: Date.now(),
         tgl: Date.now(),
         tipe: 'masuk',
         kat: 'Penjualan POS',
-        jml: finalTotal,
-        ket: `Nota ${orderNumber}`,
+        jml: cashDrawerIn,
+        ket: `Nota ${orderNumber}${this.selectedMethod === 'split' ? ' (Split Tunai)' : ''}`,
         staf: cashierName
       });
       window.State.save(LS_KEYS.kas, window.State.cashLog);

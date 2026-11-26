@@ -188,6 +188,12 @@ class ReportsView {
     }
 
     try {
+      this.renderStockVariance(validTrxs);
+    } catch (e) {
+      console.error('[ReportsView] renderStockVariance error:', e);
+    }
+
+    try {
       this.renderRecentTransactions(trxs);
     } catch (e) {
       console.error('[ReportsView] renderRecentTransactions error:', e);
@@ -641,13 +647,23 @@ class ReportsView {
     };
 
     trxs.forEach(t => {
-      const m = t.metode || 'cash';
-      if (methods[m]) {
-        methods[m].count++;
-        methods[m].total += (t.total || 0);
+      if (Array.isArray(t.payments) && t.payments.length > 0) {
+        t.payments.forEach(p => {
+          const pm = p.method || 'cash';
+          if (methods[pm]) {
+            methods[pm].count++;
+            methods[pm].total += (Number(p.amount) || 0);
+          }
+        });
       } else {
-        methods.cash.count++;
-        methods.cash.total += (t.total || 0);
+        const m = t.metode || 'cash';
+        if (methods[m]) {
+          methods[m].count++;
+          methods[m].total += (t.total || 0);
+        } else {
+          methods.cash.count++;
+          methods.cash.total += (t.total || 0);
+        }
       }
     });
 
@@ -1000,6 +1016,189 @@ class ReportsView {
       </html>
     `);
     printWin.document.close();
+  }
+
+  _isInActivePeriod(ts) {
+    if (!ts) return false;
+    const now = new Date();
+    const todayStr = window.State.formatDateShort(now);
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const yesterdayStr = window.State.formatDateShort(yesterday);
+
+    if (this.activePeriod === 'today') return window.State.formatDateShort(ts) === todayStr;
+    if (this.activePeriod === 'yesterday') return window.State.formatDateShort(ts) === yesterdayStr;
+    if (this.activePeriod === 'week') {
+      const d = new Date(now);
+      d.setDate(now.getDate() - 7);
+      return new Date(ts) >= d;
+    }
+    if (this.activePeriod === 'month') {
+      const d = new Date(now);
+      d.setDate(now.getDate() - 30);
+      return new Date(ts) >= d;
+    }
+    return true;
+  }
+
+  renderStockVariance(trxs) {
+    const container = document.getElementById('stock-variance-container');
+    const badge = document.getElementById('stock-variance-badge');
+    if (!container) return;
+
+    const products = window.State.products || [];
+    const inventory = window.State.inventory || [];
+    const mutations = (window.State.stockMutations || []).filter(m => this._isInActivePeriod(m.tgl));
+
+    // 1. Pemakaian teoritis dari BOM transaksi POS
+    const theoreticalMap = {};
+    let taichanSoldTusuk = 0;
+
+    (trxs || []).forEach(t => {
+      (t.items || []).forEach(item => {
+        const prod = products.find(p => String(p.id) === String(item.id));
+        const qty = Number(item.qty) || 1;
+        if (prod && prod.kat === 'Taichan') {
+          taichanSoldTusuk += qty * (Number(prod.tusuk) || 1);
+        }
+        if (prod && Array.isArray(prod.bom)) {
+          prod.bom.forEach(b => {
+            const key = String(b.invId);
+            theoreticalMap[key] = (theoreticalMap[key] || 0) + (Number(b.qty) || 0) * qty;
+          });
+        }
+      });
+    });
+
+    // 2. Pemakaian aktual dari mutasi stok keluar
+    const actualMap = {};
+    mutations.forEach(m => {
+      if (m.tipe === 'keluar') {
+        const key = String(m.invId);
+        actualMap[key] = (actualMap[key] || 0) + (Number(m.jml) || 0);
+      }
+    });
+
+    // 3. Data Stock Tracker harian (Taichan Tusuk)
+    let taichanFried = 0;
+    try {
+      const stRaw = localStorage.getItem('ka_daily_stock');
+      const stData = stRaw ? JSON.parse(stRaw) : null;
+      if (stData && Array.isArray(stData.taichan)) {
+        stData.taichan.forEach(b => {
+          if (this._isInActivePeriod(b.date + 'T12:00:00')) {
+            taichanFried += Number(b.fried) || 0;
+          }
+        });
+      }
+    } catch (_) {
+      // Ignore storage parse error
+    }
+
+    const taichanDiff = taichanFried - taichanSoldTusuk;
+    const taichanVarPct = taichanSoldTusuk > 0 ? ((taichanDiff / taichanSoldTusuk) * 100) : 0;
+
+    // 4. Gabungkan per bahan baku
+    const rows = [];
+    let alertCount = 0;
+
+    inventory.forEach(inv => {
+      const key = String(inv.id);
+      const theo = +(theoreticalMap[key] || 0).toFixed(3);
+      const act = +(actualMap[key] || 0).toFixed(3);
+      if (theo === 0 && act === 0) return;
+
+      const diff = +(act - theo).toFixed(3);
+      const pct = theo > 0 ? ((diff / theo) * 100) : (act > 0 ? 100 : 0);
+      const absPct = Math.abs(pct);
+      let statusLabel = 'AMAN';
+      let statusColor = 'var(--tertiary)';
+      if (absPct > 15) {
+        statusLabel = 'SHRINKAGE';
+        statusColor = 'var(--error)';
+        alertCount++;
+      } else if (absPct > 5) {
+        statusLabel = 'WASPADA';
+        statusColor = 'var(--warning)';
+      }
+
+      rows.push({
+        nm: inv.nm,
+        sat: inv.sat || '',
+        theo,
+        act,
+        diff,
+        pct,
+        statusLabel,
+        statusColor
+      });
+    });
+
+    if (badge) {
+      badge.textContent = alertCount > 0 ? `${alertCount} Selisih Tinggi` : 'Stok Terkendali';
+      badge.className = alertCount > 0 ? 'badge error' : 'badge tertiary';
+    }
+
+    const taichanSummaryHtml = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px;">
+        <div style="background:var(--surface-container-low);padding:12px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:11px;color:var(--secondary);">Taichan Terjual (POS)</div>
+          <div class="font-mono" style="font-size:18px;font-weight:800;color:var(--on-surface);margin-top:2px;">${taichanSoldTusuk} tusuk</div>
+        </div>
+        <div style="background:var(--surface-container-low);padding:12px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:11px;color:var(--secondary);">Taichan Digoreng (Tracker)</div>
+          <div class="font-mono" style="font-size:18px;font-weight:800;color:var(--primary);margin-top:2px;">${taichanFried} tusuk</div>
+        </div>
+        <div style="background:var(--surface-container-low);padding:12px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:11px;color:var(--secondary);">Selisih Taichan</div>
+          <div class="font-mono" style="font-size:18px;font-weight:800;color:${Math.abs(taichanVarPct) > 15 ? 'var(--error)' : 'var(--tertiary)'};margin-top:2px;">
+            ${taichanDiff >= 0 ? '+' : ''}${taichanDiff} tusuk (${taichanVarPct.toFixed(1)}%)
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (rows.length === 0) {
+      container.innerHTML = taichanSummaryHtml + `
+        <div style="text-align:center;padding:20px;color:var(--secondary);font-size:12px;">
+          Belum ada data pemakaian bahan baku (BOM / mutasi stok) pada periode <strong>${this.getPeriodLabel()}</strong>.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = taichanSummaryHtml + `
+      <div style="overflow-x:auto;">
+        <table class="data-table" style="width:100%;">
+          <thead>
+            <tr>
+              <th>Bahan Baku</th>
+              <th style="text-align:right;">Teoritis (POS)</th>
+              <th style="text-align:right;">Aktual (Mutasi)</th>
+              <th style="text-align:right;">Selisih</th>
+              <th style="text-align:center;">Varians</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td style="font-weight:700;">${window.State.escapeHtml ? window.State.escapeHtml(r.nm) : r.nm}</td>
+                <td style="text-align:right;font-family:var(--font-mono);">${r.theo} ${r.sat}</td>
+                <td style="text-align:right;font-family:var(--font-mono);">${r.act} ${r.sat}</td>
+                <td style="text-align:right;font-family:var(--font-mono);color:${r.statusColor};font-weight:700;">
+                  ${r.diff > 0 ? '+' : ''}${r.diff} ${r.sat}
+                </td>
+                <td style="text-align:center;">
+                  <span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;color:${r.statusColor};border:1px solid ${r.statusColor};">
+                    ${r.pct > 0 ? '+' : ''}${r.pct.toFixed(1)}% (${r.statusLabel})
+                  </span>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
   }
 }
 

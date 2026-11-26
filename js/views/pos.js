@@ -39,7 +39,10 @@ class POSView {
 
     // Listen to transactions & inventory
     window.State.on(LS_KEYS.trx, () => this.updateHeaderMetrics());
-    window.State.on(LS_KEYS.inv, () => this.updateHeaderMetrics());
+    window.State.on(LS_KEYS.inv, () => {
+      this.renderProducts();
+      this.updateHeaderMetrics();
+    });
     window.State.on('notifications:updated', () => this.updateHeaderMetrics());
   }
 
@@ -98,6 +101,12 @@ class POSView {
     const btnHold = document.getElementById('btn-hold-cart');
     if (btnHold) {
       btnHold.onclick = () => this.saveCurrentOrder();
+    }
+
+    // Clear Cart button (with confirmation)
+    const btnClearCart = document.getElementById('btn-clear-cart');
+    if (btnClearCart) {
+      btnClearCart.onclick = () => this.confirmClearCart();
     }
 
     // Customer name sync between desktop and mobile
@@ -221,6 +230,20 @@ class POSView {
     this.renderProducts();
   }
 
+  isProductOutOfStock(product) {
+    if (!product || product.on === false || product.habis === true) return true;
+    const inv = (window.State && Array.isArray(window.State.inventory)) ? window.State.inventory : [];
+    if (Array.isArray(product.bom) && product.bom.length > 0 && inv.length > 0) {
+      for (const b of product.bom) {
+        const invItem = inv.find(i => String(i.id) === String(b.invId));
+        if (invItem && (Number(invItem.stok) <= 0 || Number(invItem.stok) < Number(b.qty || 0))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   renderProducts() {
     const grid = document.getElementById('pos-product-grid');
     if (!grid) return;
@@ -250,8 +273,8 @@ class POSView {
     }
 
     grid.innerHTML = list.map(p => {
-      // BUG-J fix: gunakan p.on === false konsisten dengan handleProductClick & State
-      const isUnavailable = p.on === false || p.habis === true;
+      // BUG-J fix: gunakan p.on === false & cek stok bahan baku BOM secara real-time
+      const isUnavailable = this.isProductOutOfStock(p);
       const katLabel = p.kat ? `<span class="product-cat-label">${p.kat}</span>` : '';
 
       // Hitung kuantitas produk ini yang ada di keranjang untuk badge ala Android app
@@ -261,7 +284,7 @@ class POSView {
         ? `<span class="product-card-qty-badge">${totalQtyInCart}</span>` 
         : '';
       const safePidAttr = window.State.escapeHtml ? window.State.escapeHtml(String(p.id)) : String(p.id);
-      const safePidJs = String(p.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      const safePidJs = String(p.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
       return `
         <div class="product-card ${isUnavailable ? 'unavailable' : ''} ${totalQtyInCart > 0 ? 'in-cart' : ''}" 
@@ -323,8 +346,11 @@ class POSView {
     const product = window.State.products.find(p => String(p.id) === String(productId));
     if (!product) return;
 
-    // BUG-J fix: cek konsisten dengan render — produk nonaktif atau habis tidak bisa diklik
-    if (product.on === false || product.habis === true) return;
+    // BUG-J fix: cek konsisten dengan render — produk nonaktif atau bahan baku habis tidak bisa diklik
+    if (this.isProductOutOfStock(product)) {
+      window.State.toast(`Stok bahan baku untuk ${product.nm} sedang habis!`, 'warning');
+      return;
+    }
 
     // BUG-22 fix: buka modifier hanya jika ada sambal aktif ATAU produk punya level
     const hasActiveSambal = (window.State.sambalList || []).some(s => s.aktif !== false);
@@ -502,6 +528,7 @@ class POSView {
     ];
     const btnCheckout = document.getElementById('btn-pos-checkout');
     const btnHold = document.getElementById('btn-hold-cart');
+    const btnClearCart = document.getElementById('btn-clear-cart');
     const btnDrawerCheckout = document.getElementById('btn-drawer-checkout');
     const btnDrawerHold = document.getElementById('btn-hold-cart-mobile');
     const drawerBadge = document.getElementById('mobile-drawer-badge-count');
@@ -514,6 +541,7 @@ class POSView {
 
     if (btnCheckout) btnCheckout.disabled = cart.length === 0;
     if (btnHold) btnHold.disabled = cart.length === 0;
+    if (btnClearCart) btnClearCart.disabled = cart.length === 0;
     if (btnDrawerCheckout) btnDrawerCheckout.disabled = cart.length === 0;
     if (btnDrawerHold) btnDrawerHold.disabled = cart.length === 0;
 
@@ -537,6 +565,16 @@ class POSView {
     window.State.currentCustomerName = '';
     if (nameDesktop) nameDesktop.value = '';
     if (nameMobile) nameMobile.value = '';
+  }
+
+  confirmClearCart() {
+    if (!window.State.cart || window.State.cart.length === 0) return;
+    if (confirm('Kosongkan semua item di keranjang?')) {
+      window.State.clearCart();
+      this.clearCustomerNameInputs();
+      this.closeMobileCartDrawer();
+      window.State.toast('Keranjang dikosongkan', 'info');
+    }
   }
 
   saveCurrentOrder() {
@@ -704,11 +742,15 @@ class POSView {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'F2') {
         e.preventDefault();
-        const custInput = document.getElementById('pos-customer-name');
-        if (custInput) custInput.focus();
+        const searchInput = document.getElementById('pos-search-input');
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
       } else if (e.key === 'F4') {
         e.preventDefault();
         if (window.State.cart.length > 0 && window.PaymentView) {
+          this.syncCustomerName();
           window.PaymentView.openPaymentModal();
         } else {
           window.State.toast('Keranjang masih kosong!', 'warning');

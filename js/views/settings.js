@@ -217,8 +217,17 @@ class SettingsView {
     return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${timeStr}`;
   }
 
+  _parseTimestamp(val) {
+    if (!val) return 0;
+    if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+    const str = String(val).trim();
+    if (/^\d+$/.test(str)) return Number(str);
+    const parsed = Date.parse(str);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
   updateSyncLastTime(timestamp) {
-    let ts = timestamp;
+    let ts = timestamp ? this._parseTimestamp(timestamp) : 0;
     if (ts) {
       try {
         if (typeof localStorage !== 'undefined') {
@@ -228,11 +237,11 @@ class SettingsView {
         // Ignore storage errors in restricted environments
       }
     } else {
-      const serviceTs = Number(window.SupabaseService && window.SupabaseService.lastSyncTime) || 0;
+      const serviceTs = this._parseTimestamp(window.SupabaseService && window.SupabaseService.lastSyncTime);
       let storedTs = 0;
       try {
         if (typeof localStorage !== 'undefined') {
-          storedTs = Number(localStorage.getItem(this._lastSyncStorageKey)) || 0;
+          storedTs = this._parseTimestamp(localStorage.getItem(this._lastSyncStorageKey));
         }
       } catch (_) {
         // Ignore storage errors in restricted environments

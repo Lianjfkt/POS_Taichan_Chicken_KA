@@ -509,14 +509,17 @@
                   <span>TOTAL TAGIHAN</span>
                   <span class="font-mono" style="color:var(--primary);" id="pos-cart-total">Rp 0</span>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
-                  <button type="button" class="btn-checkout" id="btn-pos-checkout" disabled>
+                <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;">
+                  <button type="button" class="btn-checkout" id="btn-pos-checkout" title="Bayar (F4)" disabled>
                     <span class="material-symbols-outlined">payments</span>
                     <span>Bayar</span>
                   </button>
-                  <button type="button" id="btn-hold-cart" title="Simpan Order (Hold)" disabled style="background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:0 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--warning);white-space:nowrap;">
+                  <button type="button" id="btn-hold-cart" title="Simpan Order (F8)" disabled style="background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:0 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--warning);white-space:nowrap;">
                     <span class="material-symbols-outlined" style="font-size:18px;">bookmark_add</span>
                     <span class="hidden-sm">Hold</span>
+                  </button>
+                  <button type="button" id="btn-clear-cart" title="Kosongkan Keranjang" disabled style="background:var(--surface-container-high);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:0 10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--error);">
+                    <span class="material-symbols-outlined" style="font-size:18px;">delete_sweep</span>
                   </button>
                 </div>
               </div>
@@ -1189,6 +1192,24 @@
 
           </div>
 
+          <!-- Stock Variance / Food Cost Audit Card -->
+          <div class="section-card">
+            <div class="section-card-header" data-toggle-target="#stock-variance-container">
+              <div>
+                <div class="section-card-title">
+                  <span class="material-symbols-outlined" style="font-size:20px;color:var(--warning);">analytics</span>
+                  Analisa Varians Stok (Food Cost Variance)
+                </div>
+                <div style="font-size:12px;color:var(--secondary);">Perbandingan pemakaian bahan teoritis (BOM POS) vs aktual (Mutasi &amp; Stock Tracker)</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="badge warning" id="stock-variance-badge" style="font-size:11px;font-weight:700;">Audit Selisih</span>
+                <span class="material-symbols-outlined accordion-icon" style="font-size:22px;color:var(--secondary);">expand_more</span>
+              </div>
+            </div>
+            <div id="stock-variance-container" style="padding:18px 20px;"></div>
+          </div>
+
           <!-- Recent Transactions -->
           <div class="section-card" style="display:flex;flex-direction:column;">
             <div class="section-card-header" style="flex-wrap:wrap;gap:10px;">
@@ -1203,6 +1224,7 @@
                   <option value="cash">Tunai (Cash)</option>
                   <option value="qris">QRIS</option>
                   <option value="transfer">Transfer</option>
+                  <option value="split">Split Payment</option>
                 </select>
                 <select id="report-filter-type" class="form-input" style="height:32px;font-size:11px;padding:4px 8px;">
                   <option value="all">Semua Tipe</option>
@@ -1929,18 +1951,22 @@
 
         <!-- Payment Method Tabs -->
         <label class="form-label">Metode Pembayaran</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:18px;">
-          <button type="button" class="btn btn-secondary btn-pay-method active" data-method="cash" style="flex-direction:column;padding:12px 8px;gap:4px;height:auto;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:18px;">
+          <button type="button" class="btn btn-secondary btn-pay-method active" data-method="cash" style="flex-direction:column;padding:12px 6px;gap:4px;height:auto;">
             <span class="material-symbols-outlined" style="font-size:22px;">payments</span>
             <span style="font-size:11px;font-weight:700;">TUNAI</span>
           </button>
-          <button type="button" class="btn btn-secondary btn-pay-method" data-method="qris" style="flex-direction:column;padding:12px 8px;gap:4px;height:auto;">
+          <button type="button" class="btn btn-secondary btn-pay-method" data-method="qris" style="flex-direction:column;padding:12px 6px;gap:4px;height:auto;">
             <span class="material-symbols-outlined" style="font-size:22px;">qr_code_2</span>
             <span style="font-size:11px;font-weight:700;">QRIS</span>
           </button>
-          <button type="button" class="btn btn-secondary btn-pay-method" data-method="transfer" style="flex-direction:column;padding:12px 8px;gap:4px;height:auto;">
+          <button type="button" class="btn btn-secondary btn-pay-method" data-method="transfer" style="flex-direction:column;padding:12px 6px;gap:4px;height:auto;">
             <span class="material-symbols-outlined" style="font-size:22px;">account_balance</span>
             <span style="font-size:11px;font-weight:700;">TRANSFER</span>
+          </button>
+          <button type="button" class="btn btn-secondary btn-pay-method" data-method="split" style="flex-direction:column;padding:12px 6px;gap:4px;height:auto;">
+            <span class="material-symbols-outlined" style="font-size:22px;">call_split</span>
+            <span style="font-size:11px;font-weight:700;">SPLIT</span>
           </button>
         </div>
 
@@ -1981,6 +2007,36 @@
             <div style="font-size:11px;color:var(--secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Rekening Tujuan Transfer:</div>
             <div style="font-weight:800;font-size:16px;">BCA — 1234567890</div>
             <div style="font-size:12px;color:var(--primary);margin-top:2px;">a.n. Taichan &amp; Chicken KA</div>
+          </div>
+        </div>
+
+        <!-- Split Payment Section -->
+        <div id="pay-section-split" style="display:none;padding:4px 0;">
+          <div style="background:var(--surface-container-low);padding:12px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;">
+            <div style="font-size:11px;color:var(--secondary);font-weight:700;text-transform:uppercase;margin-bottom:8px;">Pembayaran ke-1</div>
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;">
+              <select id="split-method-1" class="form-input" style="height:40px;font-size:12px;">
+                <option value="cash" selected>Tunai</option>
+                <option value="qris">QRIS</option>
+                <option value="transfer">Transfer</option>
+              </select>
+              <input type="text" id="split-amount-1" class="form-input font-mono" placeholder="Nominal 1 (Rp)" style="height:40px;font-size:15px;font-weight:700;">
+            </div>
+          </div>
+          <div style="background:var(--surface-container-low);padding:12px;border-radius:var(--radius-md);border:1px solid rgba(255,255,255,0.06);margin-bottom:12px;">
+            <div style="font-size:11px;color:var(--secondary);font-weight:700;text-transform:uppercase;margin-bottom:8px;">Pembayaran ke-2</div>
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;">
+              <select id="split-method-2" class="form-input" style="height:40px;font-size:12px;">
+                <option value="qris" selected>QRIS</option>
+                <option value="transfer">Transfer</option>
+                <option value="cash">Tunai</option>
+              </select>
+              <input type="text" id="split-amount-2" class="form-input font-mono" placeholder="Nominal 2 (Rp)" style="height:40px;font-size:15px;font-weight:700;">
+            </div>
+          </div>
+          <div style="background:var(--surface-container-high);padding:12px 16px;border-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;font-size:13px;" id="split-status-label">Sisa / Kembalian:</span>
+            <span class="font-mono" style="font-size:18px;font-weight:800;color:var(--tertiary);" id="split-status-amount">Rp 0</span>
           </div>
         </div>
       </div>
@@ -2062,6 +2118,9 @@
         </button>
       </div>
       <div class="modal-body" id="receipt-preview-content" style="padding:12px;background:var(--surface-container-lowest);font-family:monospace;"></div>
+      <div style="padding:8px 16px 0;background:var(--surface-container);">
+        <input type="tel" id="receipt-wa-phone" class="form-input" placeholder="No. WA pelanggan (opsional, cth: 0812...)" style="height:34px;font-size:12px;width:100%;">
+      </div>
       <div class="modal-footer" style="flex-wrap:wrap;gap:8px;">
         <button class="btn btn-secondary" id="btn-receipt-modal-wa">
           <span class="material-symbols-outlined" style="font-size:16px;">share</span>

@@ -49,12 +49,9 @@
 
 ---
 
-### [TASK 9] Perbaikan WhatsApp Struk & URL Encoding
-- **Lokasi:** `js/printer.js` (`shareWhatsApp`, `shareShiftWhatsApp`)
-- **Temuan Bug:** Fungsi WhatsApp menggunakan `encodeURI(text)` yang tidak meng-encode karakter `&`, `+`, atau `#`. Akibatnya jika nama outlet, item, atau catatan mengandung tanda tersebut, isi pesan WhatsApp terpotong.
-- **Solusi Rekomendasi:**
-  - Ganti `encodeURI` menjadi `encodeURIComponent`.
-  - Tambahkan input nomor WhatsApp pelanggan agar bisa langsung dikirim ke nomor pelanggan (misal: `https://api.whatsapp.com/send?phone=...&text=...`).
+### [TASK 9] [SELESAI ✅] Perbaikan WhatsApp Struk & URL Encoding
+- **Lokasi:** `js/printer.js` (`shareWhatsApp`, `shareShiftWhatsApp`, `_normalizeWaPhone`), `index.html` (`#receipt-wa-phone`)
+- **Status:** **Tuntas.** `encodeURI` diganti menjadi `encodeURIComponent` agar karakter `&`, `+`, dan `#` aman. Ditambahkan input opsional nomor WhatsApp pelanggan di modal pratinjau struk (auto-fill dari CRM & normalisasi `08xx` ke `628xx`).
 
 ---
 
@@ -64,20 +61,15 @@
 
 ---
 
-### [TASK 11] Indikator Stok Habis Real-time pada Menu POS
-- **Lokasi:** `js/views/pos.js` (`renderProducts`), `js/state.js`
-- **Temuan Masalah:** Di katalog POS, jika stok bahan baku suatu menu habis (berdasarkan resep BOM), tombol menu masih bisa diklik dan dipesan oleh kasir. Kasir baru menyadari stok minus setelah pesanan dibuat.
-- **Solusi Rekomendasi:**
-  - Periksa ketersediaan bahan resep BOM secara real-time saat me-render menu di POS.
-  - Tampilkan label `[HABIS]` atau disable kartu produk dengan opacity jika bahan baku utamanya 0.
+### [TASK 11] [SELESAI ✅] Indikator Stok Habis Real-time pada Menu POS
+- **Lokasi:** `js/views/pos.js` (`isProductOutOfStock`, `renderProducts`, `handleProductClick`)
+- **Status:** **Tuntas.** Katalog POS kini memeriksa ketersediaan bahan baku resep BOM secara real-time, me-render label `HABIS` + kartu nonaktif saat bahan baku utama habis, dan me-refresh otomatis saat `LS_KEYS.inv` berubah.
 
 ---
 
-### [TASK 12] Konfirmasi Batal / Reset Keranjang (Mencegah Salah Sentuh)
-- **Lokasi:** `js/views/pos.js`
-- **Temuan Masalah:** Tombol batal/hapus keranjang bisa tertekan tanpa konfirmasi saat antrean sedang ramai, menyebabkan kasir harus menginput ulang semua menu pesanan dari awal.
-- **Solusi Rekomendasi:**
-  - Tambahkan dialog konfirmasi cepat (atau undo toast) saat tombol "Reset / Kosongkan Keranjang" ditekan.
+### [TASK 12] [SELESAI ✅] Konfirmasi Batal / Reset Keranjang (Mencegah Salah Sentuh)
+- **Lokasi:** `js/views/pos.js` (`confirmClearCart`), `index.html` (`#btn-clear-cart`)
+- **Status:** **Tuntas.** Ditambahkan tombol **Kosongkan Keranjang** (`#btn-clear-cart`) dengan dialog konfirmasi agar kasir tidak tidak sengaja menghapus pesanan saat antrean ramai.
 
 ---
 
@@ -100,17 +92,15 @@
 
 ---
 
-### [TASK 15] Fitur Split Payment (Multi-Metode Pembayaran)
-- **Deskripsi:** Memungkinkan pelanggan membayar menggunakan 2 metode sekaligus dalam 1 nota (misal: Rp 20.000 Tunai + sisa Rp 30.000 QRIS).
-- **Manfaat:** Sering terjadi di lapangan ketika uang tunai pelanggan kurang dan sisanya dibayar transfer.
+### [TASK 15] [SELESAI ✅] Fitur Split Payment (Multi-Metode Pembayaran)
+- **Lokasi:** `index.html` (`#pay-section-split`), `js/views/payment.js`, `js/views/shift.js`, `js/views/reports.js`, `js/printer.js`
+- **Status:** **Tuntas.** Pelanggan kini dapat membayar dengan 2 metode sekaligus dalam 1 nota (misal Tunai + QRIS/Transfer), lengkap dengan pencatatan laci kasir khusus porsi tunai, pemisahan laporan & shift, serta rincian di struk WhatsApp.
 
 ---
 
-### [TASK 16] Analisa Varians Stok (Food Cost Variance / Audit Selisih)
-- **Deskripsi:** Tab laporan khusus untuk Owner yang membandingkan:
-  - Jumlah bahan terpakai menurut sistem penjualan POS (teoritis)
-  - Jumlah stok fisik yang dilaporkan kasir lewat Stock Tracker (aktual)
-  - Menampilkan persentase selisih (shrinkage / pemborosan).
+### [TASK 16] [SELESAI ✅] Analisa Varians Stok (Food Cost Variance / Audit Selisih)
+- **Lokasi:** `index.html` (`#stock-variance-container`), `js/views/reports.js` (`renderStockVariance`)
+- **Status:** **Tuntas.** Ditambahkan kartu laporan **Analisa Varians Stok** untuk Owner yang membandingkan pemakaian teoritis (POS BOM) vs aktual (mutasi keluar & Stock Tracker Taichan) beserta persentase selisih & status `AMAN` / `WASPADA` / `SHRINKAGE`.
 
 ---
 
@@ -120,12 +110,9 @@
 
 ---
 
-### [TASK 18] Shortcut Tombol Keyboard untuk Kasir Cepat (Desktop POS)
-- **Deskripsi:** Tambahkan tombol shortcut keyboard standar POS:
-  - `F2`: Fokus pencarian menu
-  - `F4`: Bayar / Buka Pembayaran
-  - `F8`: Simpan / Antrikan Pesanan
-  - `Esc`: Tutup modal aktif
+### [TASK 18] [SELESAI ✅] Shortcut Tombol Keyboard untuk Kasir Cepat (Desktop POS)
+- **Lokasi:** `js/views/pos.js` (`setupKeyboardShortcuts`)
+- **Status:** **Tuntas.** Shortcut `F2` (fokus pencarian menu), `F4` (buka pembayaran), `F8` (simpan/hold order), `F9` (cetak struk terakhir), dan `Esc` (tutup modal aktif) aktif di Desktop POS.
 
 ---
 

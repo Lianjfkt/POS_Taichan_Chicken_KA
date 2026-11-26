@@ -188,7 +188,12 @@ class ShiftView {
     const shiftTrxValid = shiftTrx.filter(t => t.status !== 'void');
 
     const cashSales = shiftLogs.filter(l => l.kat === 'Penjualan POS').reduce((s, l) => s + l.jml, 0);
-    const nonCashSales = shiftTrxValid.filter(t => t.metode !== 'cash').reduce((s, t) => s + (t.total || 0), 0);
+    const nonCashSales = shiftTrxValid.reduce((s, t) => {
+      if (Array.isArray(t.payments) && t.payments.length > 0) {
+        return s + t.payments.filter(p => p.method !== 'cash').reduce((ps, p) => ps + (Number(p.amount) || 0), 0);
+      }
+      return s + (t.metode !== 'cash' ? (t.total || 0) : 0);
+    }, 0);
     const cashInOther = shiftLogs.filter(l => l.tipe === 'masuk' && l.kat !== 'Modal Awal Kasir' && l.kat !== 'Penjualan POS').reduce((s, l) => s + l.jml, 0);
     const cashOut = shiftLogs.filter(l => l.tipe === 'keluar').reduce((s, l) => s + l.jml, 0);
 
