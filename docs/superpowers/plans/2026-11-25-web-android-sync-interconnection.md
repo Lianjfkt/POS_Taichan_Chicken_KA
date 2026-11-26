@@ -512,3 +512,4 @@ Tandai Task 8 (Cetak Struk Fallback) dan Task 10 (Hash PIN) sebagai selesai di `
 git -C "/media/lian/Ubuntu/POS KA" add DO_NEXT.md
 git -C "/media/lian/Ubuntu/POS KA" commit -m "docs: update DO_NEXT.md with completed sync and security tasks"
 ```
+

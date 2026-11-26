@@ -175,3 +175,4 @@ Saat order dibuat (`queueTransaction`) atau antrean offline dikirim (`syncOfflin
    - Pengujian offline fallback: jika offline, order tersimpan di `offlineQueue` dan sukses di-flush saat online.
 4. **Pembersihan KDS**:
    - Verifikasi tidak ada error di konsol terkait ketiadaan layar dapur.
+
