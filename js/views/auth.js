@@ -112,13 +112,24 @@ class AuthView {
       return;
     }
 
+    // Migrate legacy plaintext PIN to SHA-256 hash on login
+    let pinForSession = userRecord.pin || '1234';
+    if (window.State.isSha256Hex && !window.State.isSha256Hex(pinForSession)) {
+      const hashedPin = await window.State.hashPin(pinForSession);
+      if (window.State.isSha256Hex(hashedPin)) {
+        userRecord.pin = hashedPin;
+        pinForSession = hashedPin;
+        window.State.save(window.LS_KEYS.st, window.State.staff);
+      }
+    }
+
     if (errBox) errBox.style.display = 'none';
     this.loginSuccess({
       id: userRecord.id,
       nm: userRecord.nm,
       user: userRecord.user,
       role: userRecord.role,
-      pin: userRecord.pin || '1234'
+      pin: pinForSession
     });
   }
 
@@ -257,12 +268,14 @@ class AuthView {
     });
   }
 
-  verifyPin() {
+  async verifyPin() {
     const activeUser = window.State.currentUser;
-    const targetPin = (activeUser && activeUser.pin) ? activeUser.pin : '1234';
+    const targetPin = (activeUser && activeUser.pin) ? String(activeUser.pin).trim() : '1234';
+    const entered = String(this.pinBuffer || '').trim();
+    const hashedInput = await window.State.hashPin(entered);
 
     // BUG-04 fix: hapus master PIN bypass '9999' — celah keamanan
-    if (this.pinBuffer === targetPin) {
+    if (entered && (targetPin === hashedInput || targetPin === entered)) {
       // Unlocked
       const lockScreen = document.getElementById('screen-lock');
       if (lockScreen) lockScreen.style.display = 'none';
@@ -271,6 +284,7 @@ class AuthView {
       this.updatePinDots();
       window.State.toast('Layar berhasil dibuka', 'success');
       this.resetInactivityTimer();
+      return true;
     } else {
       // Wrong PIN animation
       window.State.toast('PIN Salah!', 'error');
@@ -281,6 +295,7 @@ class AuthView {
       }
       this.pinBuffer = '';
       setTimeout(() => this.updatePinDots(), 300);
+      return false;
     }
   }
 

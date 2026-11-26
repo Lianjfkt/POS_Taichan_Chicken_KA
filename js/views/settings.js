@@ -338,7 +338,7 @@ class SettingsView {
     `).join('');
   }
 
-  handleAddStaff() {
+  async handleAddStaff() {
     const nameInput = document.getElementById('staff-name');
     const userInput = document.getElementById('staff-user');
     const passInput = document.getElementById('staff-pass');
@@ -365,12 +365,15 @@ class SettingsView {
       window.State.toast('PIN harus 4 digit angka!', 'error'); return;
     }
 
+    const hashedPw = await window.State.hashPassword(pw);
+    const hashedPin = await window.State.hashPin(pin);
+
     const newStaff = {
       id: Date.now(),
       nm,
       user,
-      pw,
-      pin,
+      pw: hashedPw,
+      pin: hashedPin,
       role: roleSelect ? roleSelect.value : 'kasir',
       on: true
     };
