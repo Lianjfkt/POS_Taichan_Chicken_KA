@@ -43,12 +43,9 @@
 
 ---
 
-### [TASK 8] Cetak Struk via Standar Browser / USB Printer (Fallback Non-Bluetooth)
-- **Lokasi:** `js/printer.js`
-- **Temuan Masalah:** Sistem saat ini hanya mengandalkan Web Bluetooth API (`navigator.bluetooth`). Jika kasir menggunakan PC kasir desktop dengan printer thermal USB/LAN atau browser tidak mendukung Bluetooth, kasir tidak bisa mencetak struk fisik sama sekali karena tombol cetak di modal pratinjau kembali memicu pencarian Bluetooth.
-- **Solusi Rekomendasi:**
-  - Tambahkan tombol **"Cetak via Komputer (System Print)"** yang memicu `window.print()` dengan CSS khusus struk 58mm/80mm (`@media print`).
-  - Kasir dapat memilih mode cetak: *Bluetooth Direct* atau *Driver USB/Sistem*.
+### [TASK 8] [SELESAI ✅] Cetak Struk via Standar Browser / USB Printer (Fallback Non-Bluetooth)
+- **Lokasi:** `js/printer.js` (`printSystemReceipt`), `css/design-system.css` (`@media print`), `index.html` (`#btn-receipt-modal-system-print`)
+- **Status:** **Tuntas.** Ditambahkan metode `printSystemReceipt(trx)` yang memicu `window.print()` ke `#receipt-print-frame` dengan styling `@media print` 58mm/80mm (`--receipt-width`), tombol **"Cetak via Komputer / USB"** di modal pratinjau struk, serta fallback otomatis dari `printReceipt()` saat Web Bluetooth tidak tersedia.
 
 ---
 
@@ -61,12 +58,9 @@
 
 ---
 
-### [TASK 10] Proteksi Password & PIN dari Penyimpanan Plaintext
-- **Lokasi:** `js/state.js`, `js/views/auth.js`, `js/views/settings.js`
-- **Temuan Masalah:** Password dan PIN staf disimpan di `localStorage` (`ka_st`) dalam bentuk string yang dapat dibaca siapa saja melalui Console DevTools.
-- **Solusi Rekomendasi:**
-  - Pastikan semua password disimpan dalam format hash SHA-256 sebelum disimpan ke `localStorage`.
-  - PIN kasir/owner di-hash atau di-encode sehingga tidak terbaca langsung.
+### [TASK 10] [SELESAI ✅] Proteksi Password & PIN dari Penyimpanan Plaintext
+- **Lokasi:** `js/state.js` (`hashPassword`, `hashPin`, `isSha256Hex`, `verifyOwnerPin`), `js/views/auth.js` (`verifyPin`), `js/views/orders.js` (`submitVoid`), `js/views/settings.js` (`handleAddStaff`)
+- **Status:** **Tuntas.** Password dan PIN staf kini di-hash dengan SHA-256 (`hashPassword` / `hashPin`) saat penambahan staf di `settings.js`, dengan migrasi otomatis PIN plaintext lama ke SHA-256 saat login di `auth.js` maupun verifikasi PIN Owner di `verifyOwnerPin()`.
 
 ---
 
@@ -144,6 +138,8 @@
 - [x] **TASK 5:** Sanitasi input XSS (escapeHtml) & perbaikan script injection cart buttons.
 - [x] **TASK 6:** Kelengkapan backup & restore database (mutasi, stok harian, antrean offline, piutang, order tersimpan).
 - [x] **TASK 7:** Pembatasan akses kasir pada CRM Pelanggan & proteksi saldo poin loyalty.
+- [x] **TASK 8:** Cetak struk fallback via browser / printer USB (`printSystemReceipt` + `@media print` + tombol modal pratinjau).
+- [x] **TASK 10:** Proteksi password & PIN staf dengan hash SHA-256 (`hashPin` + migrasi otomatis PIN plaintext).
 - [x] Semua icon makanan diganti dari emoji ke SVG vector (FoodIcons system).
 - [x] Pemisahan arsitektur stylesheet `web.css` dan `mobile.css`.
 - [x] Desktop sidebar diperlebar (220px) dengan label teks horizontal & identitas outlet.

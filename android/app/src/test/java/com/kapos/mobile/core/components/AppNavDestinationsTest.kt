@@ -19,8 +19,9 @@ class AppNavDestinationsTest {
         val ownerDestinations = getBottomNavDestinations(UserRole.OWNER)
         val routes = ownerDestinations.map { it.route }
         assertTrue("Owner destinations must include 'shift'", routes.contains("shift"))
+        assertTrue("Owner destinations must include 'dashboard'", routes.contains("dashboard"))
         assertEquals(
-            listOf("pos", "transactions", "shift", "stock", "analytics", "settings"),
+            listOf("dashboard", "pos", "transactions", "shift", "stock", "settings"),
             routes
         )
     }

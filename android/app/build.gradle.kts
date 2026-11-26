@@ -1,3 +1,11 @@
+import java.util.Properties
+
+// Baca local.properties untuk credentials & signing config
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
+}
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -20,15 +28,63 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Credentials dibaca dari local.properties → tidak hardcoded di source code
+        buildConfigField(
+            "String", "SUPABASE_URL",
+            "\"${localProps.getProperty("SUPABASE_URL", "")}\""
+        )
+        buildConfigField(
+            "String", "SUPABASE_ANON_KEY",
+            "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\""
+        )
+
+        // Room schema export — simpan schema ke folder /schemas/ untuk version control
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+            arg("room.incremental", "true")
+        }
+    }
+
+    // Signing config untuk release build
+    signingConfigs {
+        create("release") {
+            val storeFile = localProps.getProperty("RELEASE_STORE_FILE")
+            val storePass = localProps.getProperty("RELEASE_STORE_PASSWORD")
+            val keyAlias = localProps.getProperty("RELEASE_KEY_ALIAS")
+            val keyPass = localProps.getProperty("RELEASE_KEY_PASSWORD")
+
+            // Hanya aktif jika semua nilai sudah diisi di local.properties
+            if (!storeFile.isNullOrBlank() && !storePass.isNullOrBlank() &&
+                !keyAlias.isNullOrBlank() && !keyPass.isNullOrBlank() &&
+                !storePass.startsWith("GANTI_")
+            ) {
+                this.storeFile = rootProject.file(storeFile)
+                this.storePassword = storePass
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPass
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            isDebuggable = true
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Gunakan release signing jika keystore sudah dikonfigurasi
+            val releaseSigningConfig = signingConfigs.getByName("release")
+            if (releaseSigningConfig.storeFile?.exists() == true) {
+                signingConfig = releaseSigningConfig
+            }
         }
     }
     compileOptions {
@@ -40,6 +96,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true   // Aktifkan BuildConfig generation
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.8"
@@ -80,6 +137,12 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // WorkManager for guaranteed background sync
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Security Crypto for secure settings storage
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     // Tooling & Tests
     debugImplementation("androidx.compose.ui:ui-tooling")

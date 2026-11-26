@@ -255,16 +255,18 @@ class POSView {
       const katLabel = p.kat ? `<span class="product-cat-label">${p.kat}</span>` : '';
 
       // Hitung kuantitas produk ini yang ada di keranjang untuk badge ala Android app
-      const inCartItems = (window.State.cart || []).filter(c => c.id === p.id);
+      const inCartItems = (window.State.cart || []).filter(c => String(c.id) === String(p.id));
       const totalQtyInCart = inCartItems.reduce((sum, item) => sum + (item.qty || 1), 0);
       const cartBadge = totalQtyInCart > 0 
         ? `<span class="product-card-qty-badge">${totalQtyInCart}</span>` 
         : '';
+      const safePidAttr = window.State.escapeHtml ? window.State.escapeHtml(String(p.id)) : String(p.id);
+      const safePidJs = String(p.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
       return `
         <div class="product-card ${isUnavailable ? 'unavailable' : ''} ${totalQtyInCart > 0 ? 'in-cart' : ''}" 
-             data-product-id="${p.id}"
-             onclick="window.POSView.handleProductClick(${p.id})" 
+             data-product-id="${safePidAttr}"
+             onclick="window.POSView.handleProductClick('${safePidJs}')" 
              style="${isUnavailable ? 'opacity:0.45;cursor:not-allowed;' : ''}">
           ${cartBadge}
           <div class="product-card-top">
@@ -292,13 +294,14 @@ class POSView {
     const cart = window.State.cart || [];
     const qtyMap = {};
     cart.forEach(item => {
-      qtyMap[item.id] = (qtyMap[item.id] || 0) + (item.qty || 1);
+      const key = String(item.id);
+      qtyMap[key] = (qtyMap[key] || 0) + (item.qty || 1);
     });
 
     cards.forEach(card => {
-      const pid = Number(card.getAttribute('data-product-id'));
+      const pid = card.getAttribute('data-product-id');
       if (!pid) return;
-      const qty = qtyMap[pid] || 0;
+      const qty = qtyMap[String(pid)] || 0;
 
       let badge = card.querySelector('.product-card-qty-badge');
       if (qty > 0) {
@@ -317,7 +320,7 @@ class POSView {
   }
 
   handleProductClick(productId) {
-    const product = window.State.products.find(p => p.id === productId);
+    const product = window.State.products.find(p => String(p.id) === String(productId));
     if (!product) return;
 
     // BUG-J fix: cek konsisten dengan render — produk nonaktif atau habis tidak bisa diklik

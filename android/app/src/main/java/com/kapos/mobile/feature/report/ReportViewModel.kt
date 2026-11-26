@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kapos.mobile.core.data.repository.PosRepository
+import com.kapos.mobile.domain.model.ReportPeriod
 import com.kapos.mobile.core.data.repository.SettingsRepository
 import com.kapos.mobile.core.data.repository.ShiftRepository
 import com.kapos.mobile.core.printer.BluetoothPrinterService
@@ -66,17 +67,13 @@ class ReportViewModel(
     }
 
     fun onPeriodChange(period: ReportPeriod) {
-        val preset = when (period) {
-            ReportPeriod.TODAY -> com.kapos.mobile.domain.model.DateFilterPreset.TODAY
-            ReportPeriod.WEEK -> com.kapos.mobile.domain.model.DateFilterPreset.LAST_7_DAYS
-            ReportPeriod.MONTH -> com.kapos.mobile.domain.model.DateFilterPreset.THIS_MONTH
-            ReportPeriod.ALL -> com.kapos.mobile.domain.model.DateFilterPreset.ALL
-        }
-        onDatePresetChange(preset)
+        val preset = period.toDateFilterPreset()
+        _uiState.update { it.copy(selectedPeriod = period, dateFilter = it.dateFilter.copy(preset = preset)) }
     }
 
     fun onDatePresetChange(preset: com.kapos.mobile.domain.model.DateFilterPreset) {
-        _uiState.update { it.copy(dateFilter = it.dateFilter.copy(preset = preset)) }
+        val period = ReportPeriod.fromDateFilterPreset(preset) ?: _uiState.value.selectedPeriod
+        _uiState.update { it.copy(selectedPeriod = period, dateFilter = it.dateFilter.copy(preset = preset)) }
     }
 
     fun onCustomDateRangeSelected(startMillis: Long, endMillis: Long) {

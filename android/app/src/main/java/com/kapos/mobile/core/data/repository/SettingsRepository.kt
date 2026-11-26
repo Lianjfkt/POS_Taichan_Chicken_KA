@@ -2,6 +2,10 @@ package com.kapos.mobile.core.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import com.kapos.mobile.core.config.AppConfig
+import com.kapos.mobile.core.utils.PinHasher
 import com.kapos.mobile.domain.model.AuthSession
 import com.kapos.mobile.domain.model.UserRole
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,8 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class AppSettings(
-    val supabaseUrl: String = "",
-    val supabaseAnonKey: String = "",
+    val supabaseUrl: String = AppConfig.DEFAULT_SUPABASE_URL,
+    val supabaseAnonKey: String = AppConfig.DEFAULT_SUPABASE_ANON_KEY,
     val storeName: String = "Taichan & Chicken KA",
     val storeAddress: String = "Bandar Lampung",
     val storePhone: String = "081234567890",
@@ -20,12 +24,14 @@ data class AppSettings(
     val printerName: String = "",
     val paperWidth: Int = 58,
     val autoPrintCheckout: Boolean = true,
-    val cashierPin: String = "1111",
-    val ownerPin: String = "1234",
+    // PIN disimpan sebagai SHA-256 hash, bukan plaintext
+    val cashierPin: String = PinHasher.hash("1111"),
+    val ownerPin: String = PinHasher.hash("1234"),
     val dailyFixedCost: Double = 350000.0,
     val dailyRevenueTarget: Double = 1500000.0,
     val staffList: String = "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
     val autoLockMinutes: Int = 2,
+    val autoSyncIntervalMinutes: Int = 5,
     val currentSession: AuthSession = AuthSession(
         isLoggedIn = false,
         role = UserRole.CASHIER,
@@ -34,7 +40,26 @@ data class AppSettings(
 )
 
 class SettingsRepository(context: Context? = null) {
-    private val prefs: SharedPreferences? = context?.getSharedPreferences("ka_pos_settings", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences? = context?.let { ctx ->
+        try {
+            val masterKey = MasterKey.Builder(ctx)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            val securePrefs = EncryptedSharedPreferences.create(
+                ctx,
+                "ka_pos_secure_settings",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+            // One-time migration: copy existing plain prefs into secure prefs
+            migrateFromPlainPrefsIfNeeded(ctx, securePrefs)
+            securePrefs
+        } catch (e: Throwable) {
+            // Fallback for unit tests or devices where Keystore is unavailable
+            ctx.getSharedPreferences("ka_pos_settings", Context.MODE_PRIVATE)
+        }
+    }
 
     private val _settingsFlow = MutableStateFlow(loadSettings())
     val settingsFlow: StateFlow<AppSettings> = _settingsFlow.asStateFlow()
@@ -48,9 +73,20 @@ class SettingsRepository(context: Context? = null) {
         val sessionRole = try { UserRole.valueOf(sessionRoleStr) } catch (e: Exception) { UserRole.CASHIER }
         val sessionCashierName = prefs.getString("session_cashier_name", "Kasir Utama") ?: "Kasir Utama"
 
+        val storedUrl = prefs.getString("supabase_url", null)
+        val storedKey = prefs.getString("supabase_anon_key", null)
+        val finalUrl = if (storedUrl.isNullOrBlank()) AppConfig.DEFAULT_SUPABASE_URL else storedUrl
+        val finalKey = if (storedKey.isNullOrBlank()) AppConfig.DEFAULT_SUPABASE_ANON_KEY else storedKey
+
+        // Migrasi otomatis: jika PIN lama masih plaintext, hash sekarang & simpan
+        val rawCashierPin = prefs.getString("cashier_pin", "1111") ?: "1111"
+        val rawOwnerPin = prefs.getString("owner_pin", "1234") ?: "1234"
+        val cashierPin = migratePinIfPlaintext("cashier_pin", rawCashierPin)
+        val ownerPin = migratePinIfPlaintext("owner_pin", rawOwnerPin)
+
         return AppSettings(
-            supabaseUrl = prefs.getString("supabase_url", "") ?: "",
-            supabaseAnonKey = prefs.getString("supabase_anon_key", "") ?: "",
+            supabaseUrl = finalUrl,
+            supabaseAnonKey = finalKey,
             storeName = prefs.getString("store_name", "Taichan & Chicken KA") ?: "Taichan & Chicken KA",
             storeAddress = prefs.getString("store_address", "Bandar Lampung") ?: "Bandar Lampung",
             storePhone = prefs.getString("store_phone", "081234567890") ?: "081234567890",
@@ -60,18 +96,33 @@ class SettingsRepository(context: Context? = null) {
             printerName = prefs.getString("printer_name", "") ?: "",
             paperWidth = prefs.getInt("paper_width", 58),
             autoPrintCheckout = prefs.getBoolean("auto_print_checkout", true),
-            cashierPin = prefs.getString("cashier_pin", "1111") ?: "1111",
-            ownerPin = prefs.getString("owner_pin", "1234") ?: "1234",
+            cashierPin = cashierPin,
+            ownerPin = ownerPin,
             dailyFixedCost = prefs.getFloat("daily_fixed_cost", 350000f).toDouble(),
             dailyRevenueTarget = prefs.getFloat("daily_revenue_target", 1500000f).toDouble(),
             staffList = prefs.getString("staff_list", "Kasir Utama,Kasir Pagi,Kasir Malam,Manager") ?: "Kasir Utama,Kasir Pagi,Kasir Malam,Manager",
             autoLockMinutes = prefs.getInt("auto_lock_minutes", 2),
+            autoSyncIntervalMinutes = prefs.getInt("auto_sync_interval_minutes", 5),
             currentSession = AuthSession(
                 isLoggedIn = isSessionActive,
                 role = sessionRole,
                 cashierName = sessionCashierName
             )
         )
+    }
+
+    /**
+     * Jika PIN tersimpan masih plaintext (bukan hash), hash sekarang dan simpan ulang.
+     * Ini memastikan upgrade seamless — user lama tidak perlu reset PIN.
+     */
+    private fun migratePinIfPlaintext(key: String, storedValue: String): String {
+        return if (PinHasher.isHashed(storedValue)) {
+            storedValue  // Sudah hash, tidak perlu migrasi
+        } else {
+            val hashed = PinHasher.hash(storedValue)
+            prefs?.edit()?.putString(key, hashed)?.apply()
+            hashed
+        }
     }
 
     fun saveSettings(settings: AppSettings) {
@@ -87,12 +138,14 @@ class SettingsRepository(context: Context? = null) {
             ?.putString("printer_name", settings.printerName)
             ?.putInt("paper_width", settings.paperWidth)
             ?.putBoolean("auto_print_checkout", settings.autoPrintCheckout)
-            ?.putString("cashier_pin", settings.cashierPin)
-            ?.putString("owner_pin", settings.ownerPin)
+            // PIN selalu disimpan sebagai hash — jika user input plaintext baru, hash dulu
+            ?.putString("cashier_pin", if (PinHasher.isHashed(settings.cashierPin)) settings.cashierPin else PinHasher.hash(settings.cashierPin))
+            ?.putString("owner_pin", if (PinHasher.isHashed(settings.ownerPin)) settings.ownerPin else PinHasher.hash(settings.ownerPin))
             ?.putFloat("daily_fixed_cost", settings.dailyFixedCost.toFloat())
             ?.putFloat("daily_revenue_target", settings.dailyRevenueTarget.toFloat())
             ?.putString("staff_list", settings.staffList)
             ?.putInt("auto_lock_minutes", settings.autoLockMinutes)
+            ?.putInt("auto_sync_interval_minutes", settings.autoSyncIntervalMinutes)
             ?.apply()
         _settingsFlow.value = settings
     }
@@ -147,8 +200,44 @@ class SettingsRepository(context: Context? = null) {
     fun verifyPin(role: UserRole, pin: String): Boolean {
         val current = _settingsFlow.value
         return when (role) {
-            UserRole.CASHIER -> pin == current.cashierPin
-            UserRole.OWNER -> pin == current.ownerPin
+            // Gunakan PinHasher.verify untuk constant-time comparison
+            UserRole.CASHIER -> PinHasher.verify(pin, current.cashierPin)
+            UserRole.OWNER -> PinHasher.verify(pin, current.ownerPin)
+        }
+    }
+
+    companion object {
+        private const val MIGRATION_KEY = "encrypted_migration_done"
+
+        /**
+         * One-time migration: copies all keys from the old plain SharedPreferences file
+         * ("ka_pos_settings") to the new EncryptedSharedPreferences, then marks it done.
+         * Safe to call repeatedly — only runs if migration flag is not set.
+         */
+        private fun migrateFromPlainPrefsIfNeeded(context: Context, securePrefs: SharedPreferences) {
+            if (securePrefs.getBoolean(MIGRATION_KEY, false)) return
+            try {
+                val legacy = context.getSharedPreferences("ka_pos_settings", Context.MODE_PRIVATE)
+                if (legacy.all.isNotEmpty()) {
+                    val editor = securePrefs.edit()
+                    for ((key, value) in legacy.all) {
+                        when (value) {
+                            is String -> editor.putString(key, value)
+                            is Boolean -> editor.putBoolean(key, value)
+                            is Int -> editor.putInt(key, value)
+                            is Float -> editor.putFloat(key, value)
+                            is Long -> editor.putLong(key, value)
+                            else -> {} // skip unknown types
+                        }
+                    }
+                    editor.putBoolean(MIGRATION_KEY, true)
+                    editor.apply()
+                } else {
+                    securePrefs.edit().putBoolean(MIGRATION_KEY, true).apply()
+                }
+            } catch (e: Exception) {
+                // Migration failure is non-fatal; app continues with fresh secure prefs
+            }
         }
     }
 }

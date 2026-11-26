@@ -74,8 +74,21 @@ data class Product(
     val spiceLevel: String = "",
     val description: String = "",
     val isActive: Boolean = true,
-    val isSoldOut: Boolean = false
-) : Serializable
+    val isSoldOut: Boolean = false,
+    val allowSpiceLevel: Boolean = false,
+    val allowSambal: Boolean = false,
+    val allowComplimentary: Boolean = false,
+    val allowToppings: Boolean = false
+) : Serializable {
+    val hasModifiers: Boolean
+        get() = allowSpiceLevel || allowSambal || allowComplimentary || allowToppings
+
+    fun calculateProfitMargin(): Double = (price - costPrice).coerceAtLeast(0.0)
+    fun calculateMarginPercentage(): Double {
+        if (price <= 0.0) return 0.0
+        return ((price - costPrice) / price * 100.0).coerceAtLeast(0.0)
+    }
+}
 
 data class CartItem(
     val product: Product,
@@ -112,6 +125,36 @@ data class Order(
     val voidedAt: Long? = null,
     val items: List<OrderItem> = emptyList()
 ) : Serializable
+
+data class PaymentSplit(
+    val cashTotal: Double = 0.0,
+    val qrisTotal: Double = 0.0,
+    val transferTotal: Double = 0.0,
+    val totalRevenue: Double = 0.0
+) {
+    val nonCashTotal: Double get() = qrisTotal + transferTotal
+}
+
+fun Iterable<Order>.calculatePaymentSplit(): PaymentSplit {
+    var cash = 0.0
+    var qris = 0.0
+    var transfer = 0.0
+    for (order in this) {
+        if (order.paymentStatus == PaymentStatus.PAID) {
+            when (order.paymentMethod) {
+                PaymentMethod.CASH -> cash += order.total
+                PaymentMethod.QRIS -> qris += order.total
+                PaymentMethod.TRANSFER -> transfer += order.total
+            }
+        }
+    }
+    return PaymentSplit(
+        cashTotal = cash,
+        qrisTotal = qris,
+        transferTotal = transfer,
+        totalRevenue = cash + qris + transfer
+    )
+}
 
 data class OrderItem(
     val id: String,
@@ -162,7 +205,9 @@ data class RawMaterial(
     val currentStock: Double = 0.0,
     val minStock: Double = 100.0,
     val costPerUnit: Double = 0.0,
-    val lastRestockedAt: Long = System.currentTimeMillis()
+    val lastRestockedAt: Long = System.currentTimeMillis(),
+    val earliestExpiryDate: Long? = null,
+    val hasExpiredBatch: Boolean = false
 ) : Serializable {
     val isLowStock: Boolean
         get() = currentStock <= minStock
@@ -181,7 +226,8 @@ enum class StockMovementType(val displayName: String) {
     RESTOCK("Stok Masuk / Pembelian"),
     ORDER_DEDUCTION("Potong Otomatis (BOM)"),
     WASTE("Stok Rusak / Terbuang"),
-    ADJUSTMENT("Penyesuaian Opname")
+    ADJUSTMENT("Penyesuaian Opname"),
+    VOID_RESTORATION("Pengembalian Void")
 }
 
 data class StockMovement(

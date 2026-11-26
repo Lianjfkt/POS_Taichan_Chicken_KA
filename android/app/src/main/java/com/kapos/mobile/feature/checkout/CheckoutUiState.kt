@@ -35,7 +35,11 @@ data class CheckoutUiState(
     val splitNonCashMethod: PaymentMethod = PaymentMethod.QRIS,
     // Marketing Promotion support
     val availablePromotions: List<Promotion> = emptyList(),
-    val selectedPromotion: Promotion? = null
+    val selectedPromotion: Promotion? = null,
+    // SECURITY: PIN Otorisasi Owner untuk diskon manual besar (>10% dari subtotal)
+    val discountPinInput: String = "",
+    val discountPinError: String? = null,
+    val showDiscountPinDialog: Boolean = false
 ) {
     val subtotal: Double
         get() = cartItems.sumOf { it.subtotal }
@@ -47,6 +51,15 @@ data class CheckoutUiState(
             } else {
                 discountInput.coerceAtLeast(0.0)
             }
+        }
+
+    // SECURITY: Diskon manual > 10% dari subtotal memerlukan otorisasi PIN Owner
+    val DISCOUNT_AUTH_THRESHOLD_PERCENT: Double = 10.0
+    val requiresDiscountAuthorization: Boolean
+        get() {
+            if (subtotal <= 0) return false
+            val discountPercent = (manualDiscount / subtotal) * 100.0
+            return discountPercent > DISCOUNT_AUTH_THRESHOLD_PERCENT
         }
 
     val pointRate: Double = 500.0 // 10 Poin = Rp 5.000 (1 Poin = Rp 500)

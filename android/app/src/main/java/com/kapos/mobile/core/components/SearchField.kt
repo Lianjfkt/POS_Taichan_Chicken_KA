@@ -41,11 +41,11 @@ fun SearchField(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(42.dp)
             .clip(AppShapes.Sm)
             .background(SurfaceTint)
             .border(1.dp, OutlineSoft, AppShapes.Sm)
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 10.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -56,7 +56,7 @@ fun SearchField(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search",
                 tint = TextSecondary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Box(modifier = Modifier.weight(1f)) {

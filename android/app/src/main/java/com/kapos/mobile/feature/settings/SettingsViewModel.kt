@@ -18,7 +18,9 @@ class SettingsViewModel(
     private val supabaseClient: SupabaseClient,
     private val posRepository: PosRepository,
     private val bluetoothPrinterService: com.kapos.mobile.core.printer.BluetoothPrinterService,
-    database: AppDatabase
+    private val database: AppDatabase,
+    private val stockRepository: com.kapos.mobile.core.data.repository.StockRepository? = null,
+    private val savedOrderRepository: com.kapos.mobile.core.data.repository.SavedOrderRepository? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -40,12 +42,11 @@ class SettingsViewModel(
                         printerName = settings.printerName,
                         paperWidth = settings.paperWidth,
                         autoPrintCheckout = settings.autoPrintCheckout,
-                        cashierPin = settings.cashierPin,
-                        ownerPin = settings.ownerPin,
                         dailyFixedCost = settings.dailyFixedCost,
                         dailyRevenueTarget = settings.dailyRevenueTarget,
                         staffList = settingsRepository.getStaffNames(),
-                        autoLockMinutes = settings.autoLockMinutes
+                        autoLockMinutes = settings.autoLockMinutes,
+                        autoSyncIntervalMinutes = settings.autoSyncIntervalMinutes
                     )
                 }
             }
@@ -58,6 +59,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             posRepository.isSyncing.collect { syncing ->
                 _uiState.update { it.copy(isSyncing = syncing) }
+            }
+        }
+        viewModelScope.launch {
+            posRepository.lastSyncTime.collect { ts ->
+                _uiState.update { it.copy(lastSyncTime = ts) }
             }
         }
         loadPairedPrinters()
@@ -113,11 +119,15 @@ class SettingsViewModel(
     }
 
     fun onCashierPinChange(pin: String) {
-        _uiState.update { it.copy(cashierPin = pin) }
+        if (pin.length <= 6 && pin.all { it.isDigit() }) {
+            _uiState.update { it.copy(cashierPin = pin) }
+        }
     }
 
     fun onOwnerPinChange(pin: String) {
-        _uiState.update { it.copy(ownerPin = pin) }
+        if (pin.length <= 6 && pin.all { it.isDigit() }) {
+            _uiState.update { it.copy(ownerPin = pin) }
+        }
     }
 
     fun onDailyFixedCostChange(cost: Double) {
@@ -130,6 +140,18 @@ class SettingsViewModel(
 
     fun saveSettings() {
         val state = _uiState.value
+        val current = settingsRepository.settingsFlow.value
+        val finalCashierPin = if (state.cashierPin.isNotBlank() && state.cashierPin.length >= 4) {
+            state.cashierPin
+        } else {
+            current.cashierPin
+        }
+        val finalOwnerPin = if (state.ownerPin.isNotBlank() && state.ownerPin.length >= 4) {
+            state.ownerPin
+        } else {
+            current.ownerPin
+        }
+
         settingsRepository.saveSettings(
             AppSettings(
                 supabaseUrl = state.supabaseUrl,
@@ -143,13 +165,16 @@ class SettingsViewModel(
                 printerName = state.printerName,
                 paperWidth = state.paperWidth,
                 autoPrintCheckout = state.autoPrintCheckout,
-                cashierPin = state.cashierPin,
-                ownerPin = state.ownerPin,
+                cashierPin = finalCashierPin,
+                ownerPin = finalOwnerPin,
                 dailyFixedCost = state.dailyFixedCost,
                 dailyRevenueTarget = state.dailyRevenueTarget,
-                autoLockMinutes = state.autoLockMinutes
+                autoLockMinutes = state.autoLockMinutes,
+                autoSyncIntervalMinutes = state.autoSyncIntervalMinutes
             )
         )
+        // Reset local pin input buffers after save
+        _uiState.update { it.copy(cashierPin = "", ownerPin = "") }
     }
 
     fun testPrintReceipt() {
@@ -235,8 +260,18 @@ class SettingsViewModel(
 
     fun syncNow() {
         saveSettings()
+        _uiState.update { it.copy(syncResultMessage = null, isSyncSuccess = null) }
         viewModelScope.launch {
-            posRepository.refreshFromSupabase()
+            val success = posRepository.syncAll()
+            _uiState.update {
+                it.copy(
+                    isSyncSuccess = success,
+                    syncResultMessage = if (success)
+                        "Sinkronisasi berhasil! Data lokal & cloud sudah sinkron."
+                    else
+                        "Sinkronisasi gagal. Cek koneksi internet atau konfigurasi Supabase."
+                )
+            }
         }
     }
 
@@ -254,6 +289,11 @@ class SettingsViewModel(
 
     fun onAutoLockMinutesChange(minutes: Int) {
         _uiState.update { it.copy(autoLockMinutes = minutes) }
+        saveSettings()
+    }
+
+    fun onAutoSyncIntervalChange(minutes: Int) {
+        _uiState.update { it.copy(autoSyncIntervalMinutes = minutes) }
         saveSettings()
     }
 
@@ -303,6 +343,51 @@ class SettingsViewModel(
                         backupStatusMessage = "Gagal impor: ${result.exceptionOrNull()?.message}"
                     )
                 }
+            }
+        }
+    }
+
+    fun resetDatabase(ownerPin: String, onComplete: (Boolean) -> Unit = {}) {
+        if (!settingsRepository.verifyPin(com.kapos.mobile.domain.model.UserRole.OWNER, ownerPin)) {
+            _uiState.update {
+                it.copy(
+                    isResettingDatabase = false,
+                    isResetSuccess = false,
+                    resetDatabaseStatusMessage = "PIN Owner salah! Reset database dibatalkan."
+                )
+            }
+            onComplete(false)
+            return
+        }
+
+        _uiState.update { it.copy(isResettingDatabase = true, resetDatabaseStatusMessage = null) }
+        viewModelScope.launch {
+            try {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    database.clearAllTables()
+                    stockRepository?.clearAllBatches()
+                    savedOrderRepository?.clearAll()
+                    if (supabaseClient.isConfigured()) {
+                        supabaseClient.clearAllRemoteData()
+                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        isResettingDatabase = false,
+                        isResetSuccess = true,
+                        resetDatabaseStatusMessage = "Database berhasil dikosongkan total! Seluruh data transaksi, menu & bahan telah bersih."
+                    )
+                }
+                onComplete(true)
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isResettingDatabase = false,
+                        isResetSuccess = false,
+                        resetDatabaseStatusMessage = "Gagal mengosongkan database: ${e.message}"
+                    )
+                }
+                onComplete(false)
             }
         }
     }

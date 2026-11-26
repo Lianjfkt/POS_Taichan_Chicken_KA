@@ -191,6 +191,11 @@ class PrinterService {
   }
 
   async printReceipt(trx) {
+    const settings = (window.State && window.State.settings) || {};
+    if (settings.pc === 'usb' || settings.pc === 'system') {
+      return this.printSystemReceipt(trx);
+    }
+
     if (!this.isConnected || !this.characteristic) {
       const connected = await this.connectBluetooth();
       if (!connected) {
@@ -217,6 +222,144 @@ class PrinterService {
       this.openReceiptModal(trx);
       return false;
     }
+  }
+
+  /**
+   * Fallback cetak struk menggunakan dialog print sistem (USB / Komputer / OS Printer).
+   * Mendukung lebar kertas 58mm atau 80mm sesuai pengaturan State.settings.
+   */
+  printSystemReceipt(trx) {
+    if (!trx || typeof document === 'undefined') return false;
+
+    const s = (window.State && window.State.settings) || {};
+    const rawWidth = String(s.paperWidth || s.pw || '58').toLowerCase();
+    const paperWidth = rawWidth.includes('80') ? '80mm' : '58mm';
+
+    const esc = (val) => {
+      if (window.State && typeof window.State.escapeHtml === 'function') {
+        return window.State.escapeHtml(val);
+      }
+      if (val === null || val === undefined) return '';
+      return String(val)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
+    const fmtRp = (n) => (window.State && window.State.formatRp)
+      ? window.State.formatRp(n)
+      : `Rp ${Number(n || 0).toLocaleString('id-ID')}`;
+    const fmtDate = (d) => (window.State && window.State.formatDate)
+      ? window.State.formatDate(d)
+      : new Date(d || Date.now()).toLocaleString('id-ID');
+
+    let styleEl = document.getElementById('receipt-print-style');
+    if (!styleEl && document.head) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'receipt-print-style';
+      document.head.appendChild(styleEl);
+    }
+    if (styleEl) {
+      styleEl.textContent = `
+        @media print {
+          @page { margin: 0; }
+          body > *:not(#receipt-print-frame) { display: none !important; }
+          #receipt-print-frame {
+            display: block !important;
+            width: ${paperWidth} !important;
+            max-width: ${paperWidth} !important;
+            margin: 0 !important;
+            padding: 4mm 3mm !important;
+            font-family: 'Space Mono', monospace !important;
+            font-size: ${paperWidth === '80mm' ? '12px' : '11px'} !important;
+            line-height: 1.35 !important;
+            color: #000 !important;
+            background: #fff !important;
+            box-sizing: border-box !important;
+          }
+        }
+      `;
+    }
+
+    let frame = document.getElementById('receipt-print-frame');
+    if (!frame && document.body) {
+      frame = document.createElement('div');
+      frame.id = 'receipt-print-frame';
+      frame.style.display = 'none';
+      document.body.appendChild(frame);
+    }
+    if (!frame) return false;
+
+    frame.setAttribute('data-paper-width', paperWidth);
+    if (frame.style && typeof frame.style.setProperty === 'function') {
+      frame.style.setProperty('--receipt-width', paperWidth);
+    }
+
+    const itemsHtml = (trx.items || []).map(i => `
+      <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:3px;">
+        <div style="flex:1;min-width:0;">
+          <div>${esc(i.nm)} x${Number(i.qty || 0)}</div>
+          ${i.mod ? `<div style="font-size:10px;">* ${esc(i.mod)}</div>` : ''}
+        </div>
+        <div style="font-weight:700;white-space:nowrap;">${esc(fmtRp((i.hr || 0) * (i.qty || 0)))}</div>
+      </div>
+    `).join('');
+
+    frame.innerHTML = `
+      <div style="width:100%;color:#000;background:#fff;">
+        <div style="text-align:center;border-bottom:1px dashed #000;padding-bottom:6px;margin-bottom:6px;">
+          <div style="font-size:14px;font-weight:700;">${esc(s.nm || 'KA POS')}</div>
+          ${s.addr ? `<div style="font-size:10px;">${esc(s.addr)}</div>` : ''}
+          <div style="font-size:10px;">Telp: ${esc(s.hp || '-')}</div>
+        </div>
+        <div style="font-size:10px;margin-bottom:6px;">
+          <div>Nota  : <strong>${esc(trx.no)}</strong></div>
+          <div>Waktu : ${esc(fmtDate(trx.tgl))}</div>
+          <div>Kasir : ${esc(trx.kasir || 'Kasir')}</div>
+          <div>Tipe  : ${esc(trx.tipe || 'Dine-In')}</div>
+          ${trx.customerName ? `<div>Plg   : ${esc(trx.customerName)}</div>` : ''}
+        </div>
+        <div style="border-top:1px dashed #000;border-bottom:1px dashed #000;padding:6px 0;margin-bottom:6px;">
+          ${itemsHtml}
+        </div>
+        <div style="font-size:11px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span>Subtotal</span>
+            <span>${esc(fmtRp(trx.subtotal || trx.total))}</span>
+          </div>
+          ${trx.diskon ? `
+            <div style="display:flex;justify-content:space-between;">
+              <span>Diskon</span>
+              <span>-${esc(fmtRp(trx.diskon))}</span>
+            </div>
+          ` : ''}
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;border-top:1px solid #000;padding-top:3px;margin-top:3px;">
+            <span>TOTAL</span>
+            <span>${esc(fmtRp(trx.total))}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;">
+            <span>Bayar (${esc(String(trx.metode || 'CASH').toUpperCase())})</span>
+            <span>${esc(fmtRp(trx.bayar || trx.total))}</span>
+          </div>
+          ${trx.kembali > 0 ? `
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;">
+              <span>Kembali</span>
+              <span>${esc(fmtRp(trx.kembali))}</span>
+            </div>
+          ` : ''}
+        </div>
+        <div style="text-align:center;font-size:10px;border-top:1px dashed #000;padding-top:6px;">
+          ${esc(s.footer || 'Terima kasih atas kunjungannya!')}
+        </div>
+      </div>
+    `;
+
+    if (typeof window !== 'undefined' && typeof window.print === 'function') {
+      window.print();
+    }
+    return true;
   }
 
   async printShiftReport(report, type = 'X') {
@@ -400,10 +543,15 @@ class PrinterService {
 
     // Attach actions
     const btnPrint = document.getElementById('btn-receipt-modal-print');
+    const btnSystemPrint = document.getElementById('btn-receipt-modal-system-print');
     const btnWa = document.getElementById('btn-receipt-modal-wa');
     
     if (btnPrint) {
       btnPrint.onclick = () => this.printReceipt(trx);
+    }
+    if (btnSystemPrint) {
+      btnSystemPrint.style.display = '';
+      btnSystemPrint.onclick = () => this.printSystemReceipt(trx);
     }
     if (btnWa) {
       btnWa.onclick = () => this.shareWhatsApp(trx);
@@ -419,10 +567,15 @@ class PrinterService {
     modal.classList.add('open');
 
     const btnPrint = document.getElementById('btn-receipt-modal-print');
+    const btnSystemPrint = document.getElementById('btn-receipt-modal-system-print');
     const btnWa = document.getElementById('btn-receipt-modal-wa');
     
     if (btnPrint) {
       btnPrint.onclick = () => this.printShiftReport(report, type);
+    }
+    if (btnSystemPrint) {
+      btnSystemPrint.style.display = 'none';
+      btnSystemPrint.onclick = null;
     }
     if (btnWa) {
       btnWa.onclick = () => this.shareShiftWhatsApp(report, type);

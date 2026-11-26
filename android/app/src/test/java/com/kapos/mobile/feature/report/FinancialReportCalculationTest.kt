@@ -8,6 +8,7 @@ import com.kapos.mobile.domain.model.OrderType
 import com.kapos.mobile.domain.model.PaymentMethod
 import com.kapos.mobile.domain.model.PaymentStatus
 import com.kapos.mobile.domain.model.Product
+import com.kapos.mobile.domain.model.ReportPeriod
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

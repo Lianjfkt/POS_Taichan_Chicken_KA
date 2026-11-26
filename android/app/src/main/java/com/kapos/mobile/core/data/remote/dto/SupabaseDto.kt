@@ -23,7 +23,11 @@ data class SupabaseProductDto(
     val emoji: String? = "🍢",
     @SerialName("spice_level") val spiceLevel: String? = "",
     val description: String? = "",
-    @SerialName("is_active") val isActive: Boolean? = true
+    @SerialName("is_active") val isActive: Boolean? = true,
+    @SerialName("allow_spice_level") val allowSpiceLevel: Boolean? = false,
+    @SerialName("allow_sambal") val allowSambal: Boolean? = false,
+    @SerialName("allow_complimentary") val allowComplimentary: Boolean? = false,
+    @SerialName("allow_toppings") val allowToppings: Boolean? = false
 )
 
 @Serializable
@@ -58,3 +62,96 @@ data class SupabaseOrderItemPayload(
     val notes: String? = "",
     val subtotal: Double
 )
+
+@Serializable
+data class SupabaseShiftPayload(
+    val id: String,
+    @SerialName("cashier_name") val cashierName: String,
+    @SerialName("start_time") val startTime: String,
+    @SerialName("end_time") val endTime: String? = null,
+    @SerialName("starting_cash") val startingCash: Double = 0.0,
+    @SerialName("expected_cash") val expectedCash: Double? = null,
+    @SerialName("actual_cash") val actualCash: Double? = null,
+    @SerialName("cash_difference") val cashDifference: Double? = null,
+    @SerialName("total_transactions") val totalTransactions: Int? = 0,
+    val notes: String? = null,
+    @SerialName("is_open") val isOpen: Boolean = true,
+    @SerialName("created_at") val createdAt: String? = null
+)
+
+@Serializable
+data class SupabaseCashMovementPayload(
+    val id: String,
+    @SerialName("shift_id") val shiftId: String,
+    val type: String,
+    val category: String,
+    val amount: Double,
+    val notes: String? = "",
+    @SerialName("created_at") val createdAt: String? = null
+)
+
+@Serializable
+data class SupabaseModifierDto(
+    val id: String,
+    val name: String,
+    val price: Double = 0.0,
+    val category: String,
+    @SerialName("is_default") val isDefault: Boolean? = false,
+    @SerialName("is_active") val isActive: Boolean? = true,
+    @SerialName("sort_order") val sortOrder: Int? = 0
+)
+
+@Serializable
+data class SupabaseRawMaterialDto(
+    val id: String,
+    val name: String,
+    val sku: String? = null,
+    val unit: String = "gram",
+    @SerialName("current_stock") val currentStock: Double = 0.0,
+    @SerialName("minimum_stock") val minimumStock: Double = 0.0,
+    @SerialName("cost_per_unit") val costPerUnit: Double = 0.0,
+    @SerialName("is_active") val isActive: Boolean? = true
+)
+
+@Serializable
+data class SupabaseMaterialBatchDto(
+    val id: String,
+    @SerialName("material_id") val materialId: String,
+    @SerialName("batch_number") val batchNumber: String,
+    @SerialName("initial_quantity") val initialQuantity: Double,
+    @SerialName("remaining_quantity") val remainingQuantity: Double,
+    @SerialName("cost_per_unit") val costPerUnit: Double = 0.0,
+    @SerialName("received_at") val receivedAt: String? = null,
+    @SerialName("expiry_date") val expiryDate: String? = null
+)
+
+@Serializable
+data class SupabaseRecipeDto(
+    val id: String,
+    @SerialName("product_id") val productId: String,
+    @SerialName("product_name") val productName: String,
+    @SerialName("yield_qty") val yieldQty: Int = 1,
+    val instructions: String? = "",
+    @SerialName("is_active") val isActive: Boolean? = true
+)
+
+@Serializable
+data class SupabaseRecipeItemDto(
+    val id: String,
+    @SerialName("recipe_id") val recipeId: String,
+    @SerialName("raw_material_id") val rawMaterialId: String,
+    @SerialName("quantity_required") val quantityRequired: Double,
+    val unit: String = "gram",
+    val notes: String? = ""
+)
+
+@Serializable
+data class SupabaseCustomerDto(
+    val id: String,
+    val name: String,
+    val phone: String,
+    val points: Int? = 0,
+    @SerialName("total_spent") val totalSpent: Double? = 0.0,
+    @SerialName("visit_count") val visitCount: Int? = 0
+)
+

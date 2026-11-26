@@ -4,7 +4,6 @@ import com.kapos.mobile.core.data.local.AppDatabase
 import com.kapos.mobile.core.data.local.entity.RawMaterialEntity
 import com.kapos.mobile.core.data.local.entity.RecipeItemEntity
 import com.kapos.mobile.core.data.local.entity.StockMovementEntity
-import com.kapos.mobile.core.data.mock.SampleData
 import com.kapos.mobile.domain.model.CartItem
 import com.kapos.mobile.domain.model.RawMaterial
 import com.kapos.mobile.domain.model.RawMaterialCategory
@@ -17,45 +16,28 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.kapos.mobile.core.data.local.entity.MaterialBatchEntity
+import com.kapos.mobile.core.data.remote.SupabaseClient
+import com.kapos.mobile.core.data.remote.dto.SupabaseMaterialBatchDto
+import com.kapos.mobile.core.data.remote.dto.SupabaseRawMaterialDto
+import com.kapos.mobile.core.data.remote.dto.SupabaseRecipeDto
+import com.kapos.mobile.core.data.remote.dto.SupabaseRecipeItemDto
+import com.kapos.mobile.domain.model.MaterialBatch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 class InventoryRepository(
     private val database: AppDatabase,
+    private val supabaseClient: SupabaseClient? = null,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
     private val rawMaterialDao = database.rawMaterialDao()
     private val recipeDao = database.recipeDao()
     private val stockMovementDao = database.stockMovementDao()
-
-    init {
-        scope.launch {
-            seedInitialDataIfEmpty()
-        }
-    }
-
-    private suspend fun seedInitialDataIfEmpty() = withContext(Dispatchers.IO) {
-        val existingMaterials = rawMaterialDao.getAll()
-        if (existingMaterials.isEmpty()) {
-            val entities = SampleData.rawMaterials.map {
-                RawMaterialEntity(
-                    id = it.id,
-                    name = it.name,
-                    category = it.category.name,
-                    unit = it.unit,
-                    currentStock = it.currentStock,
-                    minStock = it.minStock,
-                    costPerUnit = it.costPerUnit,
-                    lastRestockedAt = it.lastRestockedAt
-                )
-            }
-            rawMaterialDao.upsertAll(entities)
-        }
-
-        val existingRecipes = recipeDao.getAll()
-        if (existingRecipes.isEmpty()) {
-            recipeDao.upsertAll(SampleData.recipeItems)
-        }
-    }
+    private val materialBatchDao = database.materialBatchDao()
+    private val productDao = database.productDao()
 
     fun observeRawMaterials(): Flow<List<RawMaterial>> {
         return rawMaterialDao.observeAll().map { list ->
@@ -114,11 +96,34 @@ class InventoryRepository(
             lastRestockedAt = material.lastRestockedAt
         )
         rawMaterialDao.upsert(entity)
+
+        if (supabaseClient?.isConfigured() == true) {
+            scope.launch {
+                supabaseClient.upsertRawMaterials(listOf(
+                    SupabaseRawMaterialDto(
+                        id = entity.id,
+                        name = entity.name,
+                        sku = entity.category,
+                        unit = entity.unit,
+                        currentStock = entity.currentStock,
+                        minimumStock = entity.minStock,
+                        costPerUnit = entity.costPerUnit,
+                        isActive = true
+                    )
+                ))
+            }
+        }
+
         entity.toDomain()
     }
 
     suspend fun deleteRawMaterial(id: String) = withContext(Dispatchers.IO) {
         rawMaterialDao.deleteById(id)
+        if (supabaseClient?.isConfigured() == true) {
+            scope.launch {
+                supabaseClient.deleteRawMaterial(id)
+            }
+        }
     }
 
     suspend fun restockMaterial(
@@ -127,20 +132,132 @@ class InventoryRepository(
         cost: Double = 0.0,
         notes: String = ""
     ) = withContext(Dispatchers.IO) {
-        if (quantity <= 0) return@withContext
+        restockMaterialWithBatch(
+            materialId = materialId,
+            quantity = quantity,
+            costTotal = cost,
+            expiryDate = null,
+            notes = notes
+        )
+    }
+
+    suspend fun restockMaterialWithBatch(
+        materialId: String,
+        quantity: Double,
+        costTotal: Double,
+        expiryDate: Long? = null,
+        notes: String = "",
+        receivedDate: Long = System.currentTimeMillis()
+    ): MaterialBatch = withContext(Dispatchers.IO) {
+        if (quantity <= 0.0) throw IllegalArgumentException("Jumlah masuk harus > 0")
         val now = System.currentTimeMillis()
-        rawMaterialDao.adjustStock(materialId, quantity, now)
+        val sevenDaysAgo = now - (7L * 24 * 60 * 60 * 1000)
+        require(receivedDate in sevenDaysAgo..(now + 60_000L)) {
+            "Tanggal penerimaan tidak valid (maksimal 7 hari ke belakang dan tidak boleh di masa depan)"
+        }
+
+        val material = rawMaterialDao.getById(materialId) ?: throw IllegalArgumentException("Bahan tidak ditemukan")
+
+        val unitCost = if (quantity > 0) costTotal / quantity else 0.0
+        val batchId = UUID.randomUUID().toString()
+        val batchNumber = "B-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.getDefault()).format(Date(receivedDate))
+
+        // Generate Anti-Fraud Audit Watermark
+        val dayFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val isBackdated = dayFormat.format(Date(receivedDate)) != dayFormat.format(Date(now))
+        val finalNotes = if (isBackdated) {
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val timeFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            val watermark = "[BACKDATED: Diterima ${dateFormat.format(Date(receivedDate))} | Diinput ${timeFormat.format(Date(now))}]"
+            if (notes.isNotBlank()) "${notes.trim()} $watermark" else watermark
+        } else {
+            notes.trim()
+        }
+
+        val batchEntity = MaterialBatchEntity(
+            id = batchId,
+            materialId = materialId,
+            batchNumber = batchNumber,
+            initialQuantity = quantity,
+            remainingQuantity = quantity,
+            costTotal = costTotal,
+            costPerUnit = unitCost,
+            receivedDate = receivedDate,
+            expiryDate = expiryDate,
+            isUsable = true,
+            notes = finalNotes
+        )
+        materialBatchDao.insert(batchEntity)
+
+        // Moving Weighted Average Calculation:
+        val oldStock = material.currentStock.coerceAtLeast(0.0)
+        val oldCost = material.costPerUnit.coerceAtLeast(0.0)
+        val newTotalStock = oldStock + quantity
+        val newAvgCost = if (newTotalStock > 0.0) {
+            ((oldStock * oldCost) + costTotal) / newTotalStock
+        } else {
+            unitCost
+        }
+
+        rawMaterialDao.upsert(
+            material.copy(
+                currentStock = newTotalStock,
+                costPerUnit = newAvgCost,
+                lastRestockedAt = maxOf(material.lastRestockedAt, receivedDate)
+            )
+        )
+
+        updateMaterialExpiryState(materialId)
+
+        // Record Stock Movement with backdated timestamp and audit watermark
         stockMovementDao.insert(
             StockMovementEntity(
                 id = UUID.randomUUID().toString(),
                 materialId = materialId,
                 type = StockMovementType.RESTOCK.name,
                 quantity = quantity,
-                costTotal = cost,
-                notes = notes,
-                timestamp = now
+                costTotal = costTotal,
+                notes = "Restock $batchNumber: $finalNotes (Harga Beli: Rp ${unitCost.toInt()}/${material.unit})",
+                timestamp = receivedDate
             )
         )
+
+        // Cascade update BOP to all products with this material in Recipe BOM
+        recalculateAllProductsBopForMaterial(materialId)
+
+        if (supabaseClient?.isConfigured() == true) {
+            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            scope.launch {
+                supabaseClient.upsertMaterialBatches(listOf(
+                    SupabaseMaterialBatchDto(
+                        id = batchEntity.id,
+                        materialId = batchEntity.materialId,
+                        batchNumber = batchEntity.batchNumber,
+                        initialQuantity = batchEntity.initialQuantity,
+                        remainingQuantity = batchEntity.remainingQuantity,
+                        costPerUnit = batchEntity.costPerUnit,
+                        receivedAt = isoFormat.format(Date(batchEntity.receivedDate)),
+                        expiryDate = batchEntity.expiryDate?.let { isoFormat.format(Date(it)) }
+                    )
+                ))
+                supabaseClient.upsertRawMaterials(listOf(
+                    SupabaseRawMaterialDto(
+                        id = material.id,
+                        name = material.name,
+                        sku = material.category,
+                        unit = material.unit,
+                        currentStock = newTotalStock,
+                        minimumStock = material.minStock,
+                        costPerUnit = newAvgCost,
+                        isActive = true
+                    )
+                ))
+            }
+        }
+
+        batchEntity.toDomain()
     }
 
     suspend fun recordWaste(
@@ -148,20 +265,95 @@ class InventoryRepository(
         quantity: Double,
         notes: String = ""
     ) = withContext(Dispatchers.IO) {
-        if (quantity <= 0) return@withContext
+        // Find active batches for this material to deduct
+        val batches = materialBatchDao.getActiveBatchesForFIFO(materialId)
+        val targetBatch = batches.firstOrNull()
+        if (targetBatch != null) {
+            recordBatchWaste(targetBatch.id, quantity, notes)
+        } else {
+            if (quantity <= 0) return@withContext
+            val now = System.currentTimeMillis()
+            rawMaterialDao.adjustStock(materialId, -quantity, now)
+            stockMovementDao.insert(
+                StockMovementEntity(
+                    id = UUID.randomUUID().toString(),
+                    materialId = materialId,
+                    type = StockMovementType.WASTE.name,
+                    quantity = -quantity,
+                    costTotal = 0.0,
+                    notes = notes,
+                    timestamp = now
+                )
+            )
+            updateMaterialExpiryState(materialId)
+        }
+    }
+
+    suspend fun recordBatchWaste(
+        batchId: String,
+        quantity: Double,
+        notes: String = ""
+    ) = withContext(Dispatchers.IO) {
+        if (quantity <= 0.0) return@withContext
+        val batch = materialBatchDao.getById(batchId) ?: return@withContext
         val now = System.currentTimeMillis()
-        rawMaterialDao.adjustStock(materialId, -quantity, now)
+
+        val actualDeduct = minOf(batch.remainingQuantity, quantity)
+        val newRemaining = (batch.remainingQuantity - actualDeduct).coerceAtLeast(0.0)
+        materialBatchDao.updateRemainingQuantity(batchId, newRemaining)
+
+        // Deduct raw material master stock
+        rawMaterialDao.adjustStock(batch.materialId, -actualDeduct, now)
+
+        // Monetary loss calculation
+        val lossCost = actualDeduct * batch.costPerUnit
+
         stockMovementDao.insert(
             StockMovementEntity(
                 id = UUID.randomUUID().toString(),
-                materialId = materialId,
+                materialId = batch.materialId,
                 type = StockMovementType.WASTE.name,
-                quantity = -quantity,
-                costTotal = 0.0,
-                notes = notes,
+                quantity = -actualDeduct,
+                costTotal = lossCost,
+                notes = "Pemusnahan Batch ${batch.batchNumber}: $notes (Rugi: Rp ${lossCost.toInt()})",
                 timestamp = now
             )
         )
+
+        updateMaterialExpiryState(batch.materialId)
+    }
+
+    suspend fun toggleBatchUsability(batchId: String, isUsable: Boolean) = withContext(Dispatchers.IO) {
+        val batch = materialBatchDao.getById(batchId) ?: return@withContext
+        materialBatchDao.setUsable(batchId, isUsable)
+        updateMaterialExpiryState(batch.materialId)
+    }
+
+    private suspend fun updateMaterialExpiryState(materialId: String) {
+        val material = rawMaterialDao.getById(materialId) ?: return
+        val now = System.currentTimeMillis()
+        val allBatches = materialBatchDao.getByMaterial(materialId).filter { it.remainingQuantity > 0 && it.isUsable }
+        val earliestExp = allBatches.mapNotNull { it.expiryDate }.minOrNull()
+        val hasExpired = allBatches.any { it.expiryDate != null && it.expiryDate <= now }
+
+        rawMaterialDao.upsert(
+            material.copy(
+                earliestExpiryDate = earliestExp,
+                hasExpiredBatch = hasExpired
+            )
+        )
+    }
+
+    fun observeBatchesForMaterial(materialId: String): Flow<List<MaterialBatch>> {
+        return materialBatchDao.observeByMaterial(materialId).map { list ->
+            list.map { it.toDomain() }
+        }
+    }
+
+    fun observeAllBatches(): Flow<List<MaterialBatch>> {
+        return materialBatchDao.observeAll().map { list ->
+            list.map { it.toDomain() }
+        }
     }
 
     suspend fun adjustStock(
@@ -239,7 +431,8 @@ class InventoryRepository(
     }
 
     suspend fun saveRecipeItem(productId: String, materialId: String, quantityRequired: Double) = withContext(Dispatchers.IO) {
-        val id = UUID.randomUUID().toString()
+        val existing = recipeDao.getByProduct(productId).firstOrNull { it.materialId == materialId }
+        val id = existing?.id ?: UUID.randomUUID().toString()
         recipeDao.upsert(
             RecipeItemEntity(
                 id = id,
@@ -248,14 +441,71 @@ class InventoryRepository(
                 quantityRequired = quantityRequired.coerceAtLeast(0.01)
             )
         )
+        recalculateProductBop(productId)
+
+        if (supabaseClient?.isConfigured() == true) {
+            val prod = productDao.getById(productId)
+            scope.launch {
+                supabaseClient.upsertRecipes(listOf(
+                    SupabaseRecipeDto(
+                        id = productId,
+                        productId = productId,
+                        productName = prod?.name ?: "Recipe",
+                        yieldQty = 1,
+                        isActive = true
+                    )
+                ))
+                supabaseClient.upsertRecipeItems(listOf(
+                    SupabaseRecipeItemDto(
+                        id = id,
+                        recipeId = productId,
+                        rawMaterialId = materialId,
+                        quantityRequired = quantityRequired.coerceAtLeast(0.01)
+                    )
+                ))
+            }
+        }
     }
 
     suspend fun deleteRecipeItem(id: String) = withContext(Dispatchers.IO) {
+        val item = recipeDao.getAll().firstOrNull { it.id == id }
         recipeDao.deleteById(id)
+        if (item != null) {
+            recalculateProductBop(item.productId)
+            if (supabaseClient?.isConfigured() == true) {
+                scope.launch {
+                    supabaseClient.deleteRecipeItemsByRecipe(item.productId)
+                }
+            }
+        }
+    }
+
+    suspend fun recalculateAllProductsBopForMaterial(materialId: String) = withContext(Dispatchers.IO) {
+        val affectedRecipes = recipeDao.getAll().filter { it.materialId == materialId }
+        val productIds = affectedRecipes.map { it.productId }.distinct()
+        for (prodId in productIds) {
+            recalculateProductBop(prodId)
+        }
+    }
+
+    suspend fun recalculateProductBop(productId: String) = withContext(Dispatchers.IO) {
+        val product = productDao.getById(productId) ?: return@withContext
+        val recipes = recipeDao.getByProduct(productId)
+        if (recipes.isEmpty()) return@withContext
+
+        val allMaterials = rawMaterialDao.getAll().associateBy { it.id }
+        val totalBop = recipes.sumOf { r ->
+            val mat = allMaterials[r.materialId]
+            val unitCost = mat?.costPerUnit ?: 0.0
+            r.quantityRequired * unitCost
+        }
+
+        productDao.upsert(product.copy(costPrice = totalBop))
     }
 
     /**
      * Automatic BOM stock deduction when checkout / sale is confirmed.
+     * Deducts using FIFO across active batches.
      */
     suspend fun deductStockForOrderItems(cartItems: List<CartItem>) = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
@@ -264,9 +514,29 @@ class InventoryRepository(
 
         for (cart in cartItems) {
             val recipesForProduct = allRecipes.filter { it.productId == cart.product.id }
-            for (recipe in recipesForProduct) {
+            val modifierRecipes = cart.selectedModifiers.flatMap { mod ->
+                allRecipes.filter { it.productId == mod.id }
+            }
+            val allItemRecipes = recipesForProduct + modifierRecipes
+
+            for (recipe in allItemRecipes) {
                 val totalDeduction = recipe.quantityRequired * cart.quantity
+                
+                // 1. Deduct master raw material stock
                 rawMaterialDao.adjustStock(recipe.materialId, -totalDeduction, now)
+                
+                // 2. FIFO deduction across active batches
+                val activeBatches = materialBatchDao.getActiveBatchesForFIFO(recipe.materialId)
+                var remainingToDeduct = totalDeduction
+                for (b in activeBatches) {
+                    if (remainingToDeduct <= 0.0) break
+                    val deductFromBatch = minOf(b.remainingQuantity, remainingToDeduct)
+                    val newRemaining = (b.remainingQuantity - deductFromBatch).coerceAtLeast(0.0)
+                    materialBatchDao.updateRemainingQuantity(b.id, newRemaining)
+                    remainingToDeduct -= deductFromBatch
+                }
+
+                val isModifier = recipe.productId != cart.product.id
                 movementsToInsert.add(
                     StockMovementEntity(
                         id = UUID.randomUUID().toString(),
@@ -274,10 +544,12 @@ class InventoryRepository(
                         type = StockMovementType.ORDER_DEDUCTION.name,
                         quantity = -totalDeduction,
                         costTotal = 0.0,
-                        notes = "Auto BOM: ${cart.quantity}x ${cart.product.name}",
+                        notes = "Auto BOM: ${cart.quantity}x ${cart.product.name}" + (if (isModifier) " [Add-on]" else ""),
                         timestamp = now
                     )
                 )
+                
+                updateMaterialExpiryState(recipe.materialId)
             }
         }
 
@@ -303,18 +575,113 @@ class InventoryRepository(
                     StockMovementEntity(
                         id = UUID.randomUUID().toString(),
                         materialId = recipe.materialId,
-                        type = StockMovementType.ADJUSTMENT.name,
+                        type = StockMovementType.VOID_RESTORATION.name,
                         quantity = totalRestoration,
                         costTotal = 0.0,
                         notes = "Void Order Restoration: ${item.quantity}x ${item.productName}",
                         timestamp = now
                     )
                 )
+                updateMaterialExpiryState(recipe.materialId)
             }
         }
 
         if (movementsToInsert.isNotEmpty()) {
             stockMovementDao.insertAll(movementsToInsert)
+        }
+    }
+
+    /**
+     * Sinkronisasi 2 arah Inventaris Bahan Baku, Batch, dan Resep BOM dengan Supabase.
+     * Dipanggil saat startup atau Sync Now.
+     */
+    suspend fun syncInventory(): Boolean = withContext(Dispatchers.IO) {
+        val client = supabaseClient ?: return@withContext false
+        if (!client.isConfigured()) return@withContext false
+        try {
+            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+
+            // 1. SYNC RAW MATERIALS
+            val localMaterials = rawMaterialDao.getAll()
+            if (localMaterials.isNotEmpty()) {
+                client.upsertRawMaterials(localMaterials.map {
+                    SupabaseRawMaterialDto(
+                        id = it.id,
+                        name = it.name,
+                        sku = it.category,
+                        unit = it.unit,
+                        currentStock = it.currentStock,
+                        minimumStock = it.minStock,
+                        costPerUnit = it.costPerUnit,
+                        isActive = true
+                    )
+                })
+            }
+            val remoteMaterials = client.fetchRawMaterials()
+            if (remoteMaterials.isNotEmpty()) {
+                rawMaterialDao.upsertAll(remoteMaterials.map { rem ->
+                    val cat = try {
+                        RawMaterialCategory.valueOf(rem.sku ?: "BUMBU_SAMBAL").name
+                    } catch (_: Exception) {
+                        "BUMBU_SAMBAL"
+                    }
+                    RawMaterialEntity(
+                        id = rem.id,
+                        name = rem.name,
+                        category = cat,
+                        unit = rem.unit.ifBlank { "gram" },
+                        currentStock = rem.currentStock,
+                        minStock = rem.minimumStock,
+                        costPerUnit = rem.costPerUnit,
+                        lastRestockedAt = System.currentTimeMillis()
+                    )
+                })
+            }
+
+            // 2. SYNC MATERIAL BATCHES
+            val remoteBatches = client.fetchMaterialBatches()
+            if (remoteBatches.isNotEmpty()) {
+                materialBatchDao.upsertAll(remoteBatches.map { b ->
+                    val received = b.receivedAt?.let {
+                        try { isoFormat.parse(it.take(19))?.time } catch (_: Exception) { System.currentTimeMillis() }
+                    } ?: System.currentTimeMillis()
+                    val expiry = b.expiryDate?.let {
+                        try { isoFormat.parse(it.take(19))?.time } catch (_: Exception) { null }
+                    }
+                    MaterialBatchEntity(
+                        id = b.id,
+                        materialId = b.materialId,
+                        batchNumber = b.batchNumber,
+                        initialQuantity = b.initialQuantity,
+                        remainingQuantity = b.remainingQuantity,
+                        costTotal = b.initialQuantity * b.costPerUnit,
+                        costPerUnit = b.costPerUnit,
+                        receivedDate = received,
+                        expiryDate = expiry,
+                        isUsable = b.remainingQuantity > 0.0,
+                        notes = ""
+                    )
+                })
+            }
+
+            // 3. SYNC RECIPES & RECIPE ITEMS
+            val remoteRecipeItems = client.fetchRecipeItems()
+            if (remoteRecipeItems.isNotEmpty()) {
+                recipeDao.upsertAll(remoteRecipeItems.map { r ->
+                    RecipeItemEntity(
+                        id = r.id,
+                        productId = r.recipeId,
+                        materialId = r.rawMaterialId,
+                        quantityRequired = r.quantityRequired
+                    )
+                })
+            }
+
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 
@@ -326,6 +693,8 @@ class InventoryRepository(
         currentStock = currentStock,
         minStock = minStock,
         costPerUnit = costPerUnit,
-        lastRestockedAt = lastRestockedAt
+        lastRestockedAt = lastRestockedAt,
+        earliestExpiryDate = earliestExpiryDate,
+        hasExpiredBatch = hasExpiredBatch
     )
 }

@@ -117,4 +117,8 @@ class SavedOrderRepository(context: Context) {
     fun clearAll() {
         persistOrders(emptyList())
     }
+
+    fun clearAllSavedOrders() {
+        clearAll()
+    }
 }

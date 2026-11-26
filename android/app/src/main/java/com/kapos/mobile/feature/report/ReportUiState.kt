@@ -9,13 +9,9 @@ import com.kapos.mobile.domain.model.OrderItem
 import com.kapos.mobile.domain.model.PaymentMethod
 import com.kapos.mobile.domain.model.PaymentStatus
 import com.kapos.mobile.domain.model.Product
-
-enum class ReportPeriod(val displayName: String) {
-    TODAY("Hari Ini"),
-    WEEK("7 Hari"),
-    MONTH("Bulan Ini"),
-    ALL("Semua")
-}
+import com.kapos.mobile.domain.model.ReportPeriod
+import com.kapos.mobile.domain.model.PaymentSplit
+import com.kapos.mobile.domain.model.calculatePaymentSplit
 
 data class ProductSalesStat(
     val productName: String,
@@ -25,12 +21,7 @@ data class ProductSalesStat(
 
 data class ReportUiState(
     val selectedPeriod: ReportPeriod = ReportPeriod.TODAY,
-    val dateFilter: DateRangeFilter = when (selectedPeriod) {
-        ReportPeriod.TODAY -> DateRangeFilter(DateFilterPreset.TODAY)
-        ReportPeriod.WEEK -> DateRangeFilter(DateFilterPreset.LAST_7_DAYS)
-        ReportPeriod.MONTH -> DateRangeFilter(DateFilterPreset.THIS_MONTH)
-        ReportPeriod.ALL -> DateRangeFilter(DateFilterPreset.ALL)
-    },
+    val dateFilter: DateRangeFilter = DateRangeFilter(selectedPeriod.toDateFilterPreset()),
     val showDatePickerDialog: Boolean = false,
     val orders: List<Order> = emptyList(),
     val orderItems: List<OrderItem> = emptyList(),
@@ -42,12 +33,7 @@ data class ReportUiState(
 ) {
     val activeDateFilter: DateRangeFilter
         get() = if (dateFilter.preset == DateFilterPreset.TODAY && selectedPeriod != ReportPeriod.TODAY) {
-            when (selectedPeriod) {
-                ReportPeriod.TODAY -> DateRangeFilter(DateFilterPreset.TODAY)
-                ReportPeriod.WEEK -> DateRangeFilter(DateFilterPreset.LAST_7_DAYS)
-                ReportPeriod.MONTH -> DateRangeFilter(DateFilterPreset.THIS_MONTH)
-                ReportPeriod.ALL -> DateRangeFilter(DateFilterPreset.ALL)
-            }
+            DateRangeFilter(selectedPeriod.toDateFilterPreset())
         } else {
             dateFilter
         }
@@ -124,17 +110,20 @@ data class ReportUiState(
     val voidTransactionsCount: Int
         get() = periodVoidOrders.size
 
+    val paymentSplit: PaymentSplit
+        get() = periodOrders.calculatePaymentSplit()
+
     val cashTotal: Double
-        get() = periodOrders.filter { it.paymentMethod == PaymentMethod.CASH }.sumOf { it.total }
+        get() = paymentSplit.cashTotal
 
     val qrisTotal: Double
-        get() = periodOrders.filter { it.paymentMethod == PaymentMethod.QRIS }.sumOf { it.total }
+        get() = paymentSplit.qrisTotal
 
     val transferTotal: Double
-        get() = periodOrders.filter { it.paymentMethod == PaymentMethod.TRANSFER }.sumOf { it.total }
+        get() = paymentSplit.transferTotal
 
     val nonCashTotal: Double
-        get() = qrisTotal + transferTotal
+        get() = paymentSplit.nonCashTotal
 
     val averageOrderValue: Double
         get() = if (totalTransactionsCount > 0) netRevenue / totalTransactionsCount else 0.0

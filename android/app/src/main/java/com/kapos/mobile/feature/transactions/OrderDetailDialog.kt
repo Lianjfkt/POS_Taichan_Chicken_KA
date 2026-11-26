@@ -20,7 +20,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -219,7 +219,7 @@ fun OrderDetailDialog(
                     }
                 }
 
-                Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+                HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
 
                 // Subtotal & Total
                 Row(

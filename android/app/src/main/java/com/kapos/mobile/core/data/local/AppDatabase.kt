@@ -22,7 +22,12 @@ import com.kapos.mobile.core.data.local.entity.ProductEntity
 import com.kapos.mobile.core.data.local.entity.RawMaterialEntity
 import com.kapos.mobile.core.data.local.entity.RecipeItemEntity
 import com.kapos.mobile.core.data.local.entity.ShiftEntity
+import com.kapos.mobile.core.data.local.dao.MaterialBatchDao
+import com.kapos.mobile.core.data.local.entity.MaterialBatchEntity
 import com.kapos.mobile.core.data.local.entity.StockMovementEntity
+
+import com.kapos.mobile.core.data.local.dao.ModifierDao
+import com.kapos.mobile.core.data.local.entity.ModifierEntity
 
 @Database(
     entities = [
@@ -35,10 +40,12 @@ import com.kapos.mobile.core.data.local.entity.StockMovementEntity
         CustomerEntity::class,
         RawMaterialEntity::class,
         RecipeItemEntity::class,
-        StockMovementEntity::class
+        StockMovementEntity::class,
+        MaterialBatchEntity::class,
+        ModifierEntity::class
     ],
-    version = 4,
-    exportSchema = false
+    version = 7,          // Dinaikkan dari 6 → 7 bersama dengan penambahan AppMigrations
+    exportSchema = true   // Ekspor schema ke /schemas/ untuk audit & debug migration
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
@@ -50,6 +57,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rawMaterialDao(): RawMaterialDao
     abstract fun recipeDao(): RecipeDao
     abstract fun stockMovementDao(): StockMovementDao
+    abstract fun materialBatchDao(): MaterialBatchDao
+    abstract fun modifierDao(): ModifierDao
 
     companion object {
         @Volatile
@@ -62,7 +71,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "ka_pos_database.db"
                 )
-                    .fallbackToDestructiveMigration()
+                    // Migrations eksplisit — tidak ada data loss saat update app
+                    .addMigrations(*AppMigrations.ALL)
                     .build()
                 INSTANCE = instance
                 instance

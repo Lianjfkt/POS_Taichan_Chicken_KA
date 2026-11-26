@@ -24,4 +24,10 @@ interface ShiftDao {
 
     @Update
     suspend fun updateShift(shift: ShiftEntity)
+
+    @Query("SELECT * FROM shifts WHERE syncStatus = 'PENDING_SYNC' ORDER BY openedAt ASC")
+    suspend fun getPendingShifts(): List<ShiftEntity>
+
+    @Query("UPDATE shifts SET syncStatus = :status WHERE id = :id")
+    suspend fun updateSyncStatus(id: String, status: String)
 }

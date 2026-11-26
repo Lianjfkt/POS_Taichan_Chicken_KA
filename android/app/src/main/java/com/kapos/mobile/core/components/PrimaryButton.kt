@@ -46,18 +46,18 @@ fun PrimaryButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp)
-            .clip(AppShapes.Lg)
+            .height(44.dp)
+            .clip(AppShapes.Sm)
             .background(bg)
             .clickable(enabled = enabled && !isLoading, onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 14.dp),
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
             CircularProgressIndicator(
                 color = contentColor,
                 strokeWidth = 2.dp,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
             )
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -66,9 +66,9 @@ fun PrimaryButton(
                         imageVector = icon,
                         contentDescription = null,
                         tint = contentColor,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                 }
                 Text(
                     text = text,
@@ -94,19 +94,19 @@ fun SecondaryButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp)
-            .clip(AppShapes.Lg)
+            .height(44.dp)
+            .clip(AppShapes.Sm)
             .background(SurfaceWhite)
-            .border(1.dp, OutlineSoft, AppShapes.Lg)
+            .border(1.dp, OutlineSoft, AppShapes.Sm)
             .clickable(enabled = enabled && !isLoading, onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 14.dp),
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
             CircularProgressIndicator(
                 color = TextPrimary,
                 strokeWidth = 2.dp,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
             )
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -115,9 +115,9 @@ fun SecondaryButton(
                         imageVector = icon,
                         contentDescription = null,
                         tint = TextPrimary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                 }
                 Text(
                     text = text,

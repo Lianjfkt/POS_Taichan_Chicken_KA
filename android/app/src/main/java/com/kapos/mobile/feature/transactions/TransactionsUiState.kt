@@ -5,6 +5,7 @@ import com.kapos.mobile.domain.model.DateRangeFilter
 import com.kapos.mobile.domain.model.Order
 import com.kapos.mobile.domain.model.OrderItem
 import com.kapos.mobile.domain.model.PaymentStatus
+import com.kapos.mobile.domain.model.Product
 
 enum class TransactionFilter {
     ALL,
@@ -22,6 +23,7 @@ data class TransactionsUiState(
     val selectedOrderItems: List<OrderItem> = emptyList(),
     val isLoadingDetail: Boolean = false,
     val isSyncing: Boolean = false,
+    val isOwner: Boolean = false,
     // VOID with PIN & Reason
     val showVoidPinDialog: Boolean = false,
     val orderToVoid: Order? = null,
@@ -31,6 +33,14 @@ data class TransactionsUiState(
     val voidReasonNotes: String = "",
     val voidReasonError: String? = null,
     val isVoiding: Boolean = false,
+    // Backdated Order (Owner) states
+    val showBackdatedOrderDialog: Boolean = false,
+    val showOwnerAuthPinDialog: Boolean = false,
+    val ownerAuthPinInput: String = "",
+    val ownerAuthPinError: String? = null,
+    val availableProducts: List<Product> = emptyList(),
+    val isSubmittingBackdated: Boolean = false,
+    val actionSuccessMessage: String? = null,
     val printFeedbackMessage: String? = null,
     val storeName: String = "🍢 Taichan & Chicken KA",
     val storeAddress: String = "Bandar Lampung"

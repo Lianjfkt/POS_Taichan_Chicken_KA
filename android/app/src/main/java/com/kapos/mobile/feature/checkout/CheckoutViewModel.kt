@@ -185,7 +185,38 @@ class CheckoutViewModel(
     }
 
     fun onDiscountInputChange(amount: Double) {
-        _uiState.update { it.copy(discountInput = amount) }
+        // Reset PIN otorisasi jika nominal diskon berubah
+        _uiState.update { it.copy(discountInput = amount, discountPinInput = "", discountPinError = null) }
+    }
+
+    fun onDiscountPinChange(pin: String) {
+        if (pin.length <= 6 && pin.all { it.isDigit() }) {
+            _uiState.update { it.copy(discountPinInput = pin, discountPinError = null) }
+        }
+    }
+
+    fun onShowDiscountPinDialog() {
+        _uiState.update { it.copy(showDiscountPinDialog = true, discountPinInput = "", discountPinError = null) }
+    }
+
+    fun onDismissDiscountPinDialog() {
+        _uiState.update { it.copy(showDiscountPinDialog = false, discountPinInput = "", discountPinError = null) }
+    }
+
+    fun confirmDiscountPin() {
+        val state = _uiState.value
+        val isPinValid = settingsRepository.verifyPin(com.kapos.mobile.domain.model.UserRole.OWNER, state.discountPinInput)
+        if (isPinValid) {
+            // PIN valid: tutup dialog, tandai diskon sudah terotorisasi
+            _uiState.update {
+                it.copy(
+                    showDiscountPinDialog = false,
+                    discountPinError = null
+                )
+            }
+        } else {
+            _uiState.update { it.copy(discountPinError = "PIN Owner salah. Diskon besar tidak dapat disetujui.") }
+        }
     }
 
     fun onPaymentMethodChange(method: PaymentMethod) {
@@ -230,6 +261,21 @@ class CheckoutViewModel(
     fun submitOrder(onSuccess: (Order) -> Unit) {
         val state = _uiState.value
         if (state.cartItems.isEmpty() || !state.isCashSufficient) return
+
+        // SECURITY: Cek otorisasi diskon besar sebelum memproses order
+        if (state.requiresDiscountAuthorization) {
+            // Verifikasi apakah PIN Owner sudah diberikan untuk sesi ini
+            val isPinVerified = settingsRepository.verifyPin(com.kapos.mobile.domain.model.UserRole.OWNER, state.discountPinInput)
+            if (!isPinVerified) {
+                _uiState.update {
+                    it.copy(
+                        showDiscountPinDialog = true,
+                        discountPinError = if (state.discountPinInput.isBlank()) null else "PIN Owner salah. Otorisasi diskon diperlukan."
+                    )
+                }
+                return
+            }
+        }
 
         _uiState.update { it.copy(isSubmitting = true) }
 

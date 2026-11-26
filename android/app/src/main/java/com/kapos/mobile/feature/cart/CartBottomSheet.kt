@@ -22,7 +22,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,6 +62,7 @@ fun CartBottomSheet(
     onClearCart: () -> Unit,
     onHoldOrderClick: () -> Unit = {},
     onCheckoutClick: () -> Unit,
+    onAddCustomItemClick: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -92,18 +93,33 @@ fun CartBottomSheet(
                     )
                 )
 
-                TextButton(onClick = onClearCart) {
-                    Text(
-                        text = "Kosongkan",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = Danger,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (onAddCustomItemClick != null) {
+                        TextButton(onClick = onAddCustomItemClick) {
+                            Text(
+                                text = "+ Menu Manual",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
+                    if (cartItems.isNotEmpty()) {
+                        TextButton(onClick = onClearCart) {
+                            Text(
+                                text = "Kosongkan",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Danger,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
                 }
             }
 
-            Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
 
             // Item List
             LazyColumn(
@@ -122,7 +138,7 @@ fun CartBottomSheet(
                 }
             }
 
-            Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
+            HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
 
             // Subtotal Row
             Row(

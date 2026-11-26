@@ -1,14 +1,17 @@
 package com.kapos.mobile.core.data.repository
 
 import com.kapos.mobile.core.data.local.AppDatabase
+import androidx.room.withTransaction
 import com.kapos.mobile.core.data.local.entity.CategoryEntity
 import com.kapos.mobile.core.data.local.entity.OrderEntity
 import com.kapos.mobile.core.data.local.entity.OrderItemEntity
 import com.kapos.mobile.core.data.local.entity.ProductEntity
-import com.kapos.mobile.core.data.mock.SampleData
 import com.kapos.mobile.core.data.remote.SupabaseClient
+import com.kapos.mobile.core.data.remote.dto.SupabaseCategoryDto
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderItemPayload
 import com.kapos.mobile.core.data.remote.dto.SupabaseOrderPayload
+import com.kapos.mobile.core.data.remote.dto.SupabaseProductDto
+
 import com.kapos.mobile.domain.model.CartItem
 import com.kapos.mobile.domain.model.Category
 import com.kapos.mobile.domain.model.Order
@@ -20,26 +23,33 @@ import com.kapos.mobile.domain.model.Product
 import com.kapos.mobile.domain.model.SyncStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.kapos.mobile.core.data.local.entity.ModifierEntity
+import com.kapos.mobile.domain.model.ModifierOption
 import com.kapos.mobile.core.data.repository.CustomerRepository
 import java.util.UUID
 
 class PosRepository(
-    private val database: AppDatabase,
+    private val database: AppDatabase? = null,
     private val supabaseClient: SupabaseClient,
     private val inventoryRepository: InventoryRepository? = null,
     private val customerRepository: CustomerRepository? = null,
+    private val settingsRepository: com.kapos.mobile.core.data.repository.SettingsRepository? = null,
+    private val shiftRepository: ShiftRepository? = null,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ) {
-    private val categoryDao = database.categoryDao()
-    private val productDao = database.productDao()
-    private val orderDao = database.orderDao()
+    private val categoryDao = database?.categoryDao()
+    private val productDao = database?.productDao()
+    private val orderDao = database?.orderDao()
+    private val modifierDao = database?.modifierDao()
 
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
@@ -47,117 +57,226 @@ class PosRepository(
     private val _isOnline = MutableStateFlow(true)
     val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
 
+    private val _lastSyncTime = MutableStateFlow<Long?>(null)
+    val lastSyncTime: StateFlow<Long?> = _lastSyncTime.asStateFlow()
+
     init {
-        // Seed default sample data if local database is empty
         scope.launch {
-            seedInitialDataIfEmpty()
-            refreshFromSupabase()
+            syncAll()
+        }
+        // Auto-sync periodik selama app aktif
+        scope.launch {
+            startPeriodicSync()
         }
     }
 
-    private suspend fun seedInitialDataIfEmpty() = withContext(Dispatchers.IO) {
-        val existingCats = categoryDao.getAll()
-        if (existingCats.isEmpty()) {
-            val catEntities = SampleData.categories.map {
-                CategoryEntity(
-                    id = it.id,
-                    name = it.name,
-                    emoji = it.emoji,
-                    color = it.color,
-                    sortOrder = it.sortOrder,
-                    isActive = it.isActive
-                )
+    /**
+     * Loop sinkronisasi otomatis di background.
+     * Membaca interval dari settings setiap iterasi agar langsung berlaku saat setting diubah.
+     */
+    private suspend fun startPeriodicSync() {
+        while (true) {
+            val intervalMinutes = settingsRepository?.settingsFlow?.value?.autoSyncIntervalMinutes ?: 5
+            // Interval 0 = nonaktif
+            if (intervalMinutes > 0) {
+                delay(intervalMinutes * 60 * 1000L)
+                if (supabaseClient.isConfigured()) {
+                    syncAll()
+                }
+            } else {
+                // Jika nonaktif, cukup periksa setiap 1 menit apakah diaktifkan kembali
+                delay(60 * 1000L)
             }
-            categoryDao.upsertAll(catEntities)
-        }
-
-        val existingProds = productDao.getAll()
-        if (existingProds.isEmpty()) {
-            val prodEntities = SampleData.products.map {
-                ProductEntity(
-                    id = it.id,
-                    categoryId = it.categoryId,
-                    name = it.name,
-                    price = it.price,
-                    costPrice = it.costPrice,
-                    emoji = it.emoji,
-                    spiceLevel = it.spiceLevel,
-                    description = it.description,
-                    isActive = it.isActive
-                )
-            }
-            productDao.upsertAll(prodEntities)
         }
     }
 
     fun observeCategories(): Flow<List<Category>> {
-        return categoryDao.observeAll().map { list ->
+        return categoryDao?.observeAll()?.map { list ->
             list.map { it.toDomain() }
-        }
+        } ?: flowOf(emptyList())
     }
 
     fun observeAllCategories(includeInactive: Boolean = true): Flow<List<Category>> {
-        val flow = if (includeInactive) categoryDao.observeAllIncludeInactive() else categoryDao.observeAll()
-        return flow.map { list -> list.map { it.toDomain() } }
+        val flow = if (includeInactive) categoryDao?.observeAllIncludeInactive() else categoryDao?.observeAll()
+        return flow?.map { list -> list.map { it.toDomain() } } ?: flowOf(emptyList())
     }
 
     suspend fun saveCategory(category: Category) = withContext(Dispatchers.IO) {
         val id = if (category.id.isBlank()) UUID.randomUUID().toString() else category.id
-        categoryDao.upsert(
-            CategoryEntity(
-                id = id,
-                name = category.name.trim(),
-                emoji = category.emoji.ifBlank { "🍽️" },
-                color = category.color.ifBlank { "#0B5C73" },
-                sortOrder = category.sortOrder,
-                isActive = category.isActive
-            )
+        val entity = CategoryEntity(
+            id = id,
+            name = category.name.trim(),
+            emoji = category.emoji.ifBlank { "🍽️" },
+            color = category.color.ifBlank { "#0B5C73" },
+            sortOrder = category.sortOrder,
+            isActive = category.isActive
         )
+        // 1. Simpan ke Room lokal → langsung muncul di UI
+        categoryDao?.upsert(entity)
+        // 2. Upload ke Supabase DULU sebelum sync, agar cloud-wins tidak menghapusnya kembali
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.upsertCategories(listOf(
+                SupabaseCategoryDto(
+                    id = entity.id, name = entity.name, emoji = entity.emoji,
+                    color = entity.color, sortOrder = entity.sortOrder, isActive = entity.isActive
+                )
+            ))
+        }
+        // 3. Sync untuk pull perubahan lain dari cloud
+        scope.launch { syncMenu() }
     }
 
     suspend fun deleteCategory(id: String) = withContext(Dispatchers.IO) {
-        categoryDao.deleteById(id)
-    }
-
-    suspend fun toggleCategoryActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
-        categoryDao.toggleActive(id, isActive)
-    }
-
-    fun observeProducts(): Flow<List<Product>> {
-        return productDao.observeAll().map { list ->
-            list.map { it.toDomain() }
+        categoryDao?.deleteById(id)
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.deleteCategory(id)
         }
     }
 
+    suspend fun toggleCategoryActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
+        categoryDao?.toggleActive(id, isActive)
+        // Upload perubahan ke Supabase sebelum sync
+        if (supabaseClient.isConfigured()) {
+            val entity = categoryDao?.getById(id)
+            if (entity != null) {
+                supabaseClient.upsertCategories(listOf(
+                    SupabaseCategoryDto(
+                        id = entity.id, name = entity.name, emoji = entity.emoji,
+                        color = entity.color, sortOrder = entity.sortOrder, isActive = entity.isActive
+                    )
+                ))
+            }
+        }
+        scope.launch { syncMenu() }
+    }
+
+    fun observeProducts(): Flow<List<Product>> {
+        return productDao?.observeAll()?.map { list ->
+            list.map { it.toDomain() }
+        } ?: flowOf(emptyList())
+    }
+
     fun observeAllProducts(includeInactive: Boolean = true): Flow<List<Product>> {
-        val flow = if (includeInactive) productDao.observeAllIncludeInactive() else productDao.observeAll()
-        return flow.map { list -> list.map { it.toDomain() } }
+        val flow = if (includeInactive) productDao?.observeAllIncludeInactive() else productDao?.observeAll()
+        return flow?.map { list -> list.map { it.toDomain() } } ?: flowOf(emptyList())
     }
 
     suspend fun saveProduct(product: Product) = withContext(Dispatchers.IO) {
         val id = if (product.id.isBlank()) UUID.randomUUID().toString() else product.id
-        productDao.upsert(
-            ProductEntity(
-                id = id,
-                categoryId = product.categoryId,
-                name = product.name.trim(),
-                price = product.price.coerceAtLeast(0.0),
-                costPrice = product.costPrice.coerceAtLeast(0.0),
-                emoji = product.emoji.ifBlank { "🍢" },
-                spiceLevel = product.spiceLevel,
-                description = product.description.trim(),
-                isActive = product.isActive
-            )
+        val entity = ProductEntity(
+            id = id,
+            categoryId = product.categoryId,
+            name = product.name.trim(),
+            price = product.price.coerceAtLeast(0.0),
+            costPrice = product.costPrice.coerceAtLeast(0.0),
+            emoji = product.emoji.ifBlank { "🍢" },
+            spiceLevel = product.spiceLevel,
+            description = product.description.trim(),
+            isActive = product.isActive,
+            allowSpiceLevel = product.allowSpiceLevel,
+            allowSambal = product.allowSambal,
+            allowComplimentary = product.allowComplimentary,
+            allowToppings = product.allowToppings
         )
+        // 1. Simpan ke Room lokal → langsung muncul di UI
+        productDao?.upsert(entity)
+        // 2. Upload ke Supabase DULU sebelum sync, agar cloud-wins tidak menghapusnya kembali
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.upsertProducts(listOf(
+                SupabaseProductDto(
+                    id = entity.id, categoryId = entity.categoryId, name = entity.name,
+                    price = entity.price, costPrice = entity.costPrice, emoji = entity.emoji,
+                    spiceLevel = entity.spiceLevel, description = entity.description,
+                    isActive = entity.isActive, allowSpiceLevel = entity.allowSpiceLevel,
+                    allowSambal = entity.allowSambal, allowComplimentary = entity.allowComplimentary,
+                    allowToppings = entity.allowToppings
+                )
+            ))
+        }
+        // 3. Sync untuk pull perubahan lain dari cloud
+        scope.launch { syncMenu() }
     }
 
     suspend fun deleteProduct(id: String) = withContext(Dispatchers.IO) {
-        productDao.deleteById(id)
+        productDao?.deleteById(id)
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.deleteProduct(id)
+        }
     }
 
     suspend fun toggleProductActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
-        productDao.toggleActive(id, isActive)
+        productDao?.toggleActive(id, isActive)
+        // Upload perubahan ke Supabase sebelum sync
+        if (supabaseClient.isConfigured()) {
+            val entity = productDao?.getById(id)
+            if (entity != null) {
+                supabaseClient.upsertProducts(listOf(
+                    SupabaseProductDto(
+                        id = entity.id, categoryId = entity.categoryId, name = entity.name,
+                        price = entity.price, costPrice = entity.costPrice, emoji = entity.emoji,
+                        spiceLevel = entity.spiceLevel, description = entity.description,
+                        isActive = entity.isActive, allowSpiceLevel = entity.allowSpiceLevel,
+                        allowSambal = entity.allowSambal, allowComplimentary = entity.allowComplimentary,
+                        allowToppings = entity.allowToppings
+                    )
+                ))
+            }
+        }
+        scope.launch { syncMenu() }
     }
+
+    fun observeAllModifiers(): Flow<List<ModifierOption>> {
+        return modifierDao?.observeAll()?.map { list -> list.map { it.toDomain() } } ?: flowOf(emptyList())
+    }
+
+    fun observeActiveModifiers(): Flow<List<ModifierOption>> {
+        return modifierDao?.observeActive()?.map { list -> list.map { it.toDomain() } } ?: flowOf(emptyList())
+    }
+
+    suspend fun saveModifier(modifier: ModifierOption) = withContext(Dispatchers.IO) {
+        val id = if (modifier.id.isBlank()) UUID.randomUUID().toString() else modifier.id
+        val entity = ModifierEntity.fromDomain(modifier.copy(id = id))
+        // 1. Simpan ke Room lokal
+        modifierDao?.upsert(entity)
+        // 2. Upload ke Supabase DULU sebelum sync
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.upsertModifiers(listOf(
+                com.kapos.mobile.core.data.remote.dto.SupabaseModifierDto(
+                    id = entity.id, name = entity.name, price = entity.price,
+                    category = entity.category, isDefault = entity.isDefault,
+                    isActive = entity.isActive, sortOrder = entity.sortOrder
+                )
+            ))
+        }
+        // 3. Sync untuk pull perubahan lain dari cloud
+        scope.launch { syncMenu() }
+    }
+
+    suspend fun deleteModifier(id: String) = withContext(Dispatchers.IO) {
+        modifierDao?.deleteById(id)
+        if (supabaseClient.isConfigured()) {
+            supabaseClient.deleteModifier(id)
+        }
+    }
+
+    suspend fun toggleModifierActive(id: String, isActive: Boolean) = withContext(Dispatchers.IO) {
+        modifierDao?.toggleActive(id, isActive)
+        // Upload perubahan ke Supabase sebelum sync
+        if (supabaseClient.isConfigured()) {
+            val entity = modifierDao?.getById(id)
+            if (entity != null) {
+                supabaseClient.upsertModifiers(listOf(
+                    com.kapos.mobile.core.data.remote.dto.SupabaseModifierDto(
+                        id = entity.id, name = entity.name, price = entity.price,
+                        category = entity.category, isDefault = entity.isDefault,
+                        isActive = entity.isActive, sortOrder = entity.sortOrder
+                    )
+                ))
+            }
+        }
+        scope.launch { syncMenu() }
+    }
+
 
     private fun CategoryEntity.toDomain() = Category(
         id = id,
@@ -177,11 +296,15 @@ class PosRepository(
         emoji = emoji,
         spiceLevel = spiceLevel,
         description = description,
-        isActive = isActive
+        isActive = isActive,
+        allowSpiceLevel = allowSpiceLevel,
+        allowSambal = allowSambal,
+        allowComplimentary = allowComplimentary,
+        allowToppings = allowToppings
     )
 
     fun observeOrders(): Flow<List<Order>> {
-        return orderDao.observeOrders().map { list ->
+        return orderDao?.observeOrders()?.map { list ->
             list.map { entity ->
                 Order(
                     id = entity.id,
@@ -204,11 +327,11 @@ class PosRepository(
                     voidedAt = entity.voidedAt
                 )
             }
-        }
+        } ?: flowOf(emptyList())
     }
 
     suspend fun getOrderItems(orderId: String): List<OrderItem> = withContext(Dispatchers.IO) {
-        orderDao.getItemsForOrder(orderId).map {
+        orderDao?.getItemsForOrder(orderId)?.map {
             OrderItem(
                 id = it.id,
                 orderId = it.orderId,
@@ -220,11 +343,11 @@ class PosRepository(
                 notes = it.notes,
                 subtotal = it.subtotal
             )
-        }
+        } ?: emptyList()
     }
 
     fun observeAllOrderItems(): Flow<List<OrderItem>> {
-        return orderDao.observeAllOrderItems().map { list ->
+        return orderDao?.observeAllOrderItems()?.map { list ->
             list.map {
                 OrderItem(
                     id = it.id,
@@ -238,7 +361,7 @@ class PosRepository(
                     subtotal = it.subtotal
                 )
             }
-        }
+        } ?: flowOf(emptyList())
     }
 
     suspend fun submitOrder(
@@ -278,13 +401,18 @@ class PosRepository(
             )
         }
 
-        // 1. Instantly write to Room (SSOT)
-        database.orderDao().insertCompleteOrder(orderEntity, itemEntities)
+        // Write to Room and deduct BOM stock atomically inside a transaction
+        if (database != null) {
+            database.withTransaction {
+                database.orderDao().insertCompleteOrder(orderEntity, itemEntities)
+                inventoryRepository?.deductStockForOrderItems(items)
+            }
+        } else {
+            // Fallback for mocks / unit tests without database instance
+            inventoryRepository?.deductStockForOrderItems(items)
+        }
 
-        // 2. Automatically deduct raw material stock via BOM
-        inventoryRepository?.deductStockForOrderItems(items)
-
-        // 3. Trigger asynchronous background push to Supabase
+        // Trigger asynchronous background push to Supabase
         scope.launch {
             syncPendingOrders()
         }
@@ -292,60 +420,220 @@ class PosRepository(
         order
     }
 
-    suspend fun refreshFromSupabase() = withContext(Dispatchers.IO) {
-        if (!supabaseClient.isConfigured()) return@withContext
+    // Legacy alias for backward compatibility
+    suspend fun refreshFromSupabase() = syncAll()
+
+    /**
+     * Sinkronisasi menyeluruh 2 arah (Katalog Menu + Transaksi).
+     * Dipanggil saat startup, periodik background, dan tombol Sync Now.
+     */
+    suspend fun syncAll(): Boolean = withContext(Dispatchers.IO) {
+        if (!supabaseClient.isConfigured()) return@withContext false
         _isSyncing.value = true
+        var success = false
         try {
             val isConnected = supabaseClient.testConnection()
             _isOnline.value = isConnected
             if (isConnected) {
-                val remoteCats = supabaseClient.fetchCategories()
-                if (remoteCats.isNotEmpty()) {
-                    categoryDao.upsertAll(remoteCats.map {
-                        CategoryEntity(
-                            id = it.id,
-                            name = it.name,
-                            emoji = it.emoji ?: "🍽️",
-                            color = it.color ?: "#0B5C73",
-                            sortOrder = it.sortOrder ?: 0,
-                            isActive = it.isActive ?: true
-                        )
-                    })
-                }
-
-                val remoteProds = supabaseClient.fetchProducts()
-                if (remoteProds.isNotEmpty()) {
-                    productDao.upsertAll(remoteProds.map {
-                        ProductEntity(
-                            id = it.id,
-                            categoryId = it.categoryId,
-                            name = it.name,
-                            price = it.price,
-                            costPrice = it.costPrice ?: 0.0,
-                            emoji = it.emoji ?: "🍢",
-                            spiceLevel = it.spiceLevel ?: "",
-                            description = it.description ?: "",
-                            isActive = it.isActive ?: true
-                        )
-                    })
-                }
-
-                // Push any pending orders
-                syncPendingOrders()
+                val menuOk = syncMenuInternal()
+                val transOk = syncTransactionsInternal()
+                val invOk = inventoryRepository?.syncInventory() ?: true
+                val custOk = customerRepository?.syncCustomers() ?: true
+                shiftRepository?.syncPendingShifts()
+                success = menuOk && transOk && invOk && custOk
+                if (success) _lastSyncTime.value = System.currentTimeMillis()
             }
         } catch (e: Exception) {
             _isOnline.value = false
         } finally {
             _isSyncing.value = false
         }
+        success
     }
 
-    suspend fun syncPendingOrders() = withContext(Dispatchers.IO) {
-        if (!supabaseClient.isConfigured()) return@withContext
-        val pending = orderDao.getPendingOrders()
-        if (pending.isEmpty()) return@withContext
+    /** Sinkronisasi 2 arah Katalog Menu (Kategori & Produk). Bisa dipanggil mandiri. */
+    suspend fun syncMenu(): Boolean = withContext(Dispatchers.IO) {
+        if (!supabaseClient.isConfigured()) return@withContext false
+        _isSyncing.value = true
+        try {
+            syncMenuInternal()
+        } catch (e: Exception) {
+            false
+        } finally {
+            _isSyncing.value = false
+        }
+    }
+
+    /** Sinkronisasi 2 arah Transaksi (Orders & Order Items). Bisa dipanggil mandiri. */
+    suspend fun syncTransactions(): Boolean = withContext(Dispatchers.IO) {
+        if (!supabaseClient.isConfigured()) return@withContext false
+        _isSyncing.value = true
+        try {
+            syncTransactionsInternal()
+        } catch (e: Exception) {
+            false
+        } finally {
+            _isSyncing.value = false
+        }
+    }
+
+    private suspend fun syncMenuInternal(): Boolean {
+        // =========================================================
+        // STRATEGI: CLOUD-WINS (Cloud adalah sumber kebenaran)
+        // Pull dari cloud → update local agar sesuai cloud.
+        // TIDAK push local ke cloud di sini.
+        // Upload ke cloud HANYA saat user sengaja tambah/edit/hapus
+        // item (sudah di-handle oleh saveCategory, saveProduct, dll).
+        // Ini mencegah data lama di lokal ter-upload ulang ke cloud
+        // setelah admin membersihkan data di Supabase.
+        // =========================================================
+
+        // --- PULL & SYNC categories (cloud wins) ---
+        val remoteCats = supabaseClient.fetchCategories()
+        val remoteCatIds = remoteCats.map { it.id }.toSet()
+        // Upsert semua yang ada di cloud ke lokal
+        if (remoteCats.isNotEmpty()) {
+            categoryDao?.upsertAll(remoteCats.map {
+                CategoryEntity(
+                    id = it.id,
+                    name = it.name,
+                    emoji = it.emoji ?: "🍽️",
+                    color = it.color ?: "#0B5C73",
+                    sortOrder = it.sortOrder ?: 0,
+                    isActive = it.isActive ?: true
+                )
+            })
+        }
+        // Hapus dari lokal yang sudah tidak ada di cloud
+        val localCats = categoryDao?.getAllIncludeInactive() ?: emptyList()
+        val catsToDelete = localCats.filter { it.id !in remoteCatIds }
+        catsToDelete.forEach { categoryDao?.deleteById(it.id) }
+
+        // --- PULL & SYNC products (cloud wins) ---
+        val remoteProds = supabaseClient.fetchProducts()
+        val remoteProdIds = remoteProds.map { it.id }.toSet()
+        // Upsert semua yang ada di cloud ke lokal
+        if (remoteProds.isNotEmpty()) {
+            productDao?.upsertAll(remoteProds.map {
+                ProductEntity(
+                    id = it.id,
+                    categoryId = it.categoryId,
+                    name = it.name,
+                    price = it.price,
+                    costPrice = it.costPrice ?: 0.0,
+                    emoji = it.emoji ?: "🍢",
+                    spiceLevel = it.spiceLevel ?: "",
+                    description = it.description ?: "",
+                    isActive = it.isActive ?: true,
+                    allowSpiceLevel = it.allowSpiceLevel ?: false,
+                    allowSambal = it.allowSambal ?: false,
+                    allowComplimentary = it.allowComplimentary ?: false,
+                    allowToppings = it.allowToppings ?: false
+                )
+            })
+        }
+        // Hapus dari lokal yang sudah tidak ada di cloud
+        val localProds = productDao?.getAllIncludeInactive() ?: emptyList()
+        val prodsToDelete = localProds.filter { it.id !in remoteProdIds }
+        prodsToDelete.forEach { productDao?.deleteById(it.id) }
+
+        // --- PULL & SYNC modifiers (cloud wins) ---
+        val remoteMods = supabaseClient.fetchModifiers()
+        val remoteModIds = remoteMods.map { it.id }.toSet()
+        // Upsert semua yang ada di cloud ke lokal
+        if (remoteMods.isNotEmpty()) {
+            modifierDao?.upsertAll(remoteMods.map {
+                ModifierEntity(
+                    id = it.id,
+                    name = it.name,
+                    price = it.price,
+                    category = it.category,
+                    isDefault = it.isDefault ?: false,
+                    isActive = it.isActive ?: true,
+                    sortOrder = it.sortOrder ?: 0
+                )
+            })
+        }
+        // Hapus dari lokal yang sudah tidak ada di cloud
+        val localMods = modifierDao?.getAll() ?: emptyList()
+        val modsToDelete = localMods.filter { it.id !in remoteModIds }
+        modsToDelete.forEach { modifierDao?.deleteById(it.id) }
+
+        return true
+    }
+
+
+    private suspend fun syncTransactionsInternal(): Boolean {
+        // --- PUSH pending local orders ---
+        syncPendingOrders()
+        // --- PULL remote orders not yet in local DB ---
+        val remoteOrders = supabaseClient.fetchOrders()
+        if (remoteOrders.isNotEmpty()) {
+            val localIds = orderDao?.getAll()?.map { it.id }?.toSet() ?: emptySet()
+            val newOrders = remoteOrders.filter { it.id !in localIds }
+            if (newOrders.isNotEmpty()) {
+                val isoFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US).apply {
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }
+                for (remote in newOrders) {
+                    val createdAt = remote.createdAt?.let {
+                        try { isoFormat.parse(it.take(19))?.time } catch (e: Exception) { System.currentTimeMillis() }
+                    } ?: System.currentTimeMillis()
+                    val paidAt = remote.paidAt?.let {
+                        try { isoFormat.parse(it.take(19))?.time } catch (e: Exception) { null }
+                    }
+                    val orderEntity = OrderEntity(
+                        id = remote.id,
+                        orderNo = remote.orderNo,
+                        customerName = remote.customerName,
+                        customerPhone = remote.customerPhone,
+                        orderType = remote.orderType.uppercase().replace('-', '_'),
+                        tableNo = remote.tableNo,
+                        subtotal = remote.subtotal,
+                        discount = remote.discount,
+                        total = remote.total,
+                        paymentMethod = remote.paymentMethod.uppercase(),
+                        paymentStatus = if (remote.status == "void") "VOID" else "PAID",
+                        cashierName = remote.cashierId ?: "Kasir",
+                        notes = remote.notes,
+                        voidReason = remote.voidReason,
+                        createdAt = createdAt,
+                        paidAt = paidAt,
+                        syncStatus = SyncStatus.SYNCED.name
+                    )
+                    orderDao?.insertOrder(orderEntity)
+                    // Pull items for this order
+                    val remoteItems = supabaseClient.fetchOrderItems(listOf(remote.id))
+                    if (remoteItems.isNotEmpty()) {
+                        orderDao?.insertOrderItems(remoteItems.map {
+                            OrderItemEntity(
+                                id = it.id,
+                                orderId = it.orderId,
+                                productId = it.productId,
+                                productName = it.productName,
+                                price = it.price,
+                                quantity = it.quantity,
+                                spiceLevel = it.spiceLevel ?: "",
+                                notes = it.notes ?: "",
+                                subtotal = it.subtotal
+                            )
+                        })
+                    }
+                }
+            }
+        }
+        return true
+    }
+
+    fun isSupabaseConfigured(): Boolean = supabaseClient.isConfigured()
+
+    suspend fun syncPendingOrders(): Boolean = withContext(Dispatchers.IO) {
+        if (!supabaseClient.isConfigured()) return@withContext false
+        val pending = orderDao?.getPendingOrders() ?: return@withContext true
+        if (pending.isEmpty()) return@withContext true
 
         _isSyncing.value = true
+        var allSuccess = true
         try {
             val isoFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
                 timeZone = java.util.TimeZone.getTimeZone("UTC")
@@ -392,11 +680,15 @@ class PosRepository(
 
                 if (orderSuccess && itemsSuccess) {
                     orderDao.updateSyncStatus(order.id, SyncStatus.SYNCED.name)
+                } else {
+                    allSuccess = false
                 }
             }
             _isOnline.value = true
+            allSuccess
         } catch (e: Exception) {
             _isOnline.value = false
+            false
         } finally {
             _isSyncing.value = false
         }
@@ -404,46 +696,49 @@ class PosRepository(
 
     suspend fun voidOrder(orderId: String, reason: String = "Dibatalkan Kasir") = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
-        val orderEntity = orderDao.getOrderById(orderId)
-
-        // 1. Restore BOM stock for order items
-        val itemEntities = orderDao.getItemsForOrder(orderId)
-        val domainItems = itemEntities.map {
-            OrderItem(
-                id = it.id,
-                orderId = it.orderId,
-                productId = it.productId,
-                productName = it.productName,
-                price = it.price,
-                quantity = it.quantity,
-                spiceLevel = it.spiceLevel,
-                notes = it.notes,
-                subtotal = it.subtotal
-            )
-        }
-        inventoryRepository?.restoreStockForOrderItems(domainItems)
-
-        // 2. Reverse customer loyalty points and spend if member order
-        if (orderEntity != null) {
-            val phone = orderEntity.customerPhone
-            if (!phone.isNullOrBlank()) {
-                val customer = customerRepository?.getCustomerByPhone(phone)
-                if (customer != null) {
-                    val pointsEarned = (orderEntity.total / 10000.0).toInt().coerceAtLeast(0)
-                    customerRepository?.reverseCustomerTransaction(
-                        customerId = customer.id,
-                        totalSpent = orderEntity.total,
-                        pointsRedeemed = 0,
-                        pointsEarned = pointsEarned
+        if (database != null) {
+            database.withTransaction {
+                val orderEntity = database.orderDao().getOrderById(orderId)
+                val itemEntities = database.orderDao().getItemsForOrder(orderId)
+                val domainItems = itemEntities.map {
+                    OrderItem(
+                        id = it.id,
+                        orderId = it.orderId,
+                        productId = it.productId,
+                        productName = it.productName,
+                        price = it.price,
+                        quantity = it.quantity,
+                        spiceLevel = it.spiceLevel,
+                        notes = it.notes,
+                        subtotal = it.subtotal
                     )
                 }
+                inventoryRepository?.restoreStockForOrderItems(domainItems)
+
+                if (orderEntity != null) {
+                    val phone = orderEntity.customerPhone
+                    if (!phone.isNullOrBlank()) {
+                        val customer = customerRepository?.getCustomerByPhone(phone)
+                        if (customer != null) {
+                            val pointsEarned = (orderEntity.total / 10000.0).toInt().coerceAtLeast(0)
+                            customerRepository?.reverseCustomerTransaction(
+                                customerId = customer.id,
+                                totalSpent = orderEntity.total,
+                                pointsRedeemed = 0,
+                                pointsEarned = pointsEarned
+                            )
+                        }
+                    }
+                }
+
+                database.orderDao().voidOrderWithReason(orderId, reason, now)
             }
+        } else {
+            // Fallback for mocks / unit tests without database instance
+            orderDao?.voidOrderWithReason(orderId, reason, now)
         }
 
-        // 3. Mark order as VOID in local DB
-        orderDao.voidOrderWithReason(orderId, reason, now)
-
-        // 4. Trigger cloud push to sync VOID status to Supabase
+        // Trigger cloud push to sync VOID status to Supabase
         scope.launch { syncPendingOrders() }
     }
 }

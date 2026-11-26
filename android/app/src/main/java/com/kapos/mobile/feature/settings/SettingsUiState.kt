@@ -12,8 +12,8 @@ data class SettingsUiState(
     val printerName: String = "",
     val paperWidth: Int = 58,
     val autoPrintCheckout: Boolean = true,
-    val cashierPin: String = "1111",
-    val ownerPin: String = "1234",
+    val cashierPin: String = "",
+    val ownerPin: String = "",
     val dailyFixedCost: Double = 350000.0,
     val dailyRevenueTarget: Double = 1500000.0,
     val pairedDevices: List<com.kapos.mobile.core.printer.BluetoothDeviceInfo> = emptyList(),
@@ -31,5 +31,14 @@ data class SettingsUiState(
     val backupExportPath: String? = null,
     val backupStatusMessage: String? = null,
     val isBackupSuccess: Boolean? = null,
-    val autoLockMinutes: Int = 2
+    val autoLockMinutes: Int = 2,
+    val autoSyncIntervalMinutes: Int = 5,
+    /** Epoch millis of the last successful sync, null if never synced */
+    val lastSyncTime: Long? = null,
+    /** Human-readable result of the last manual syncNow() call */
+    val syncResultMessage: String? = null,
+    val isSyncSuccess: Boolean? = null,
+    val isResettingDatabase: Boolean = false,
+    val resetDatabaseStatusMessage: String? = null,
+    val isResetSuccess: Boolean? = null
 )

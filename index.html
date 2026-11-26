@@ -1302,6 +1302,11 @@
                   <span class="material-symbols-outlined">cloud_upload</span>
                   Push Data Lokal ke Supabase
                 </button>
+                <button type="button" class="btn btn-secondary" id="btn-sync-all" style="width:100%;">
+                  <span class="material-symbols-outlined">sync</span>
+                  Sinkronkan Semua (Tarik &amp; Unggah)
+                </button>
+                <span id="sync-last-time" style="font-size:0.8rem;opacity:0.8;color:var(--secondary);text-align:center;"></span>
               </form>
             </div>
 
@@ -2057,13 +2062,17 @@
         </button>
       </div>
       <div class="modal-body" id="receipt-preview-content" style="padding:12px;background:var(--surface-container-lowest);font-family:monospace;"></div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="flex-wrap:wrap;gap:8px;">
         <button class="btn btn-secondary" id="btn-receipt-modal-wa">
           <span class="material-symbols-outlined" style="font-size:16px;">share</span>
           WhatsApp
         </button>
-        <button class="btn btn-primary" id="btn-receipt-modal-print">
+        <button class="btn btn-secondary" id="btn-receipt-modal-system-print">
           <span class="material-symbols-outlined" style="font-size:16px;">print</span>
+          Cetak via Komputer / USB
+        </button>
+        <button class="btn btn-primary" id="btn-receipt-modal-print">
+          <span class="material-symbols-outlined" style="font-size:16px;">bluetooth</span>
           Cetak Bluetooth
         </button>
       </div>

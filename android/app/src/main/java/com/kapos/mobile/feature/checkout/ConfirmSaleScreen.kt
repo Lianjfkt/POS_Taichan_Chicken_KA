@@ -22,15 +22,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -104,6 +105,9 @@ fun ConfirmSaleRoute(
         onSplitCashGivenChange = viewModel::onSplitCashGivenChange,
         onSplitNonCashMethodChange = viewModel::onSplitNonCashMethodChange,
         onSelectPromotion = viewModel::onSelectPromotion,
+        onDiscountPinChange = viewModel::onDiscountPinChange,
+        onDismissDiscountPinDialog = viewModel::onDismissDiscountPinDialog,
+        onConfirmDiscountPin = viewModel::confirmDiscountPin,
         onSubmitOrder = {
             viewModel.submitOrder {
                 onSuccessFinish()
@@ -138,6 +142,9 @@ fun ConfirmSaleScreen(
     onSplitCashGivenChange: (Double) -> Unit = {},
     onSplitNonCashMethodChange: (PaymentMethod) -> Unit = {},
     onSelectPromotion: (Promotion?) -> Unit = {},
+    onDiscountPinChange: (String) -> Unit = {},
+    onDismissDiscountPinDialog: () -> Unit = {},
+    onConfirmDiscountPin: () -> Unit = {},
     onSubmitOrder: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -165,7 +172,7 @@ fun ConfirmSaleScreen(
             ) {
                 IconButton(onClick = onBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
                         tint = TextPrimary
                     )
@@ -336,7 +343,7 @@ fun ConfirmSaleScreen(
                                     // Loyalty points redemption toggle
                                     if (uiState.availablePoints > 0) {
                                         Spacer(modifier = Modifier.height(10.dp))
-                                        Divider(color = Primary.copy(alpha = 0.2f), thickness = 1.dp)
+                                        HorizontalDivider(color = Primary.copy(alpha = 0.2f), thickness = 1.dp)
                                         Spacer(modifier = Modifier.height(8.dp))
 
                                         Row(
@@ -499,7 +506,7 @@ fun ConfirmSaleScreen(
                             }
                         }
 
-                        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+                        HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
 
                         // Subtotal
                         Row(
@@ -572,6 +579,32 @@ fun ConfirmSaleScreen(
                                     text = "- ${CurrencyFormatter.formatRupiah(uiState.manualDiscount)}",
                                     style = MaterialTheme.typography.bodySmall.copy(color = Danger, fontWeight = FontWeight.Bold)
                                 )
+                            }
+                            if (uiState.requiresDiscountAuthorization) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(AppShapes.Sm)
+                                        .background(com.kapos.mobile.core.theme.Warning.copy(alpha = 0.15f))
+                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = null,
+                                        tint = com.kapos.mobile.core.theme.Warning,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Diskon > 10% — Butuh Otorisasi PIN Owner saat proses bayar",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = com.kapos.mobile.core.theme.TextPrimary,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    )
+                                }
                             }
                         }
 
@@ -664,7 +697,7 @@ fun ConfirmSaleScreen(
                             }
                         }
 
-                        Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+                        HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -998,6 +1031,80 @@ fun ConfirmSaleScreen(
                 onSave = onQuickAddCustomer,
                 onDismiss = onCloseQuickAddCustomerDialog
             )
+        }
+
+        // SECURITY: Dialog Otorisasi PIN Owner untuk Diskon Besar (>10%)
+        if (uiState.showDiscountPinDialog) {
+            androidx.compose.ui.window.Dialog(onDismissRequest = onDismissDiscountPinDialog) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(com.kapos.mobile.core.theme.AppShapes.Lg)
+                        .background(SurfaceWhite)
+                        .border(1.dp, com.kapos.mobile.core.theme.OutlineSoft, com.kapos.mobile.core.theme.AppShapes.Lg)
+                        .padding(24.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = Danger,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Otorisasi Diskon Besar",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Danger
+                                )
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Diskon manual melebihi 10% dari subtotal. Masukkan PIN Owner untuk menyetujui diskon ini.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedTextField(
+                            value = uiState.discountPinInput,
+                            onValueChange = onDiscountPinChange,
+                            label = { Text("PIN Otorisasi Owner") },
+                            placeholder = { Text("Masukkan PIN") },
+                            keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword),
+                            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            isError = uiState.discountPinError != null,
+                            supportingText = uiState.discountPinError?.let { err ->
+                                { Text(err, color = Danger, fontSize = 11.sp) }
+                            },
+                            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                errorBorderColor = Danger
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            com.kapos.mobile.core.components.SecondaryButton(
+                                text = "Batalkan Diskon",
+                                onClick = onDismissDiscountPinDialog,
+                                modifier = Modifier.weight(1f)
+                            )
+                            com.kapos.mobile.core.components.PrimaryButton(
+                                text = "Setujui",
+                                onClick = onConfirmDiscountPin,
+                                enabled = uiState.discountPinInput.isNotBlank(),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

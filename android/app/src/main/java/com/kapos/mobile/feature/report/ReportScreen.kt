@@ -20,8 +20,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Download
@@ -30,10 +32,8 @@ import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -148,7 +148,7 @@ fun ReportScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (onBack != null) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Kembali", tint = TextPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = TextPrimary)
                         }
                         Spacer(modifier = Modifier.width(4.dp))
                     }
@@ -216,7 +216,7 @@ fun ReportScreen(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = if (uiState.netProfit >= 0) Icons.Default.TrendingUp else Icons.Default.TrendingDown,
+                                    imageVector = if (uiState.netProfit >= 0) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
                                     contentDescription = null,
                                     tint = if (uiState.netProfit >= 0) Color(0xFF166534) else Danger,
                                     modifier = Modifier.size(14.dp)
@@ -233,7 +233,7 @@ fun ReportScreen(
                         }
                     }
 
-                    Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 12.dp))
 
                     // Financial Breakdown Table
                     FinancialRow(label = "Penjualan Kotor (Gross Revenue)", amount = uiState.grossRevenue)
@@ -396,7 +396,7 @@ fun ReportScreen(
                         }
                     }
 
-                    Divider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
+                    HorizontalDivider(color = OutlineSoft, thickness = 1.dp, modifier = Modifier.padding(vertical = 10.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -486,7 +486,7 @@ fun ReportScreen(
                             }
 
                             if (index < uiState.topSellingProducts.lastIndex) {
-                                Divider(color = SurfaceTint, thickness = 1.dp)
+                                HorizontalDivider(color = SurfaceTint, thickness = 1.dp)
                             }
                         }
                     }

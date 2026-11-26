@@ -58,11 +58,11 @@ fun ProductCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(if (isSoldOut) SurfaceTint.copy(alpha = 0.6f) else SurfaceWhite)
-            .border(1.dp, if (isSoldOut) OutlineSoft else OutlineSoft, RoundedCornerShape(14.dp))
+            .border(1.dp, OutlineSoft, RoundedCornerShape(12.dp))
             .clickable(enabled = !isSoldOut, onClick = onAddClick)
-            .padding(14.dp)
+            .padding(11.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -117,7 +117,7 @@ fun ProductCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(7.dp))
 
             // Title
             Text(
@@ -153,7 +153,7 @@ fun ProductCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(9.dp))
 
             // Price & Add Button Row
             Row(

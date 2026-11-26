@@ -62,6 +62,7 @@ import com.kapos.mobile.domain.model.Product
 @Composable
 fun ModifierDialog(
     product: Product,
+    availableModifiers: List<ModifierOption> = emptyList(),
     onDismiss: () -> Unit,
     onConfirmAddToCart: (
         product: Product,
@@ -71,12 +72,13 @@ fun ModifierDialog(
         notes: String
     ) -> Unit
 ) {
+    val modifierSource = if (availableModifiers.isNotEmpty()) availableModifiers else PresetModifiers.allOptions
     val spiceOptions = listOf("Original", "Lv.1", "Lv.2", "Lv.3", "Lv.4", "Lv.5")
     var selectedSpice by remember {
         mutableStateOf(if (product.spiceLevel.isNotBlank()) product.spiceLevel else "Original")
     }
 
-    val defaultSambal = PresetModifiers.allOptions.firstOrNull { it.category == ModifierCategory.SAMBAL && it.isDefault }
+    val defaultSambal = modifierSource.firstOrNull { it.category == ModifierCategory.SAMBAL && it.isDefault }
     var selectedSambal by remember { mutableStateOf(defaultSambal) }
 
     // Multi-select for extras and complimentaries
@@ -143,115 +145,119 @@ fun ModifierDialog(
                         .weight(1f, fill = false)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    // Level Pedas / Varian
-                    Text(
-                        text = "Level Pedas / Varian",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = TextPrimary)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        spiceOptions.forEach { option ->
-                            SelectableTag(
-                                text = option,
-                                isSelected = selectedSpice == option,
-                                onClick = { selectedSpice = option }
-                            )
+                // Level Pedas / Varian — hanya tampil jika produk mengizinkan
+                    if (product.allowSpiceLevel) {
+                        Text(
+                            text = "Level Pedas / Varian",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = TextPrimary)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            spiceOptions.forEach { option ->
+                                SelectableTag(
+                                    text = option,
+                                    isSelected = selectedSpice == option,
+                                    onClick = { selectedSpice = option }
+                                )
+                            }
                         }
+                        Spacer(modifier = Modifier.height(14.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Pilihan Sambal
-                    Text(
-                        text = "Pilihan Sambal (Bisa untuk Semua Menu)",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = TextPrimary)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        PresetModifiers.allOptions
-                            .filter { it.category == ModifierCategory.SAMBAL }
-                            .forEach { option ->
-                                SelectableTag(
-                                    text = option.name,
-                                    isSelected = selectedSambal?.id == option.id,
-                                    onClick = {
-                                        selectedSambal = if (selectedSambal?.id == option.id) null else option
-                                    }
-                                )
-                            }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Pelengkap & Alat Makan (Sarung Tangan, Sedotan, dll.)
-                    Text(
-                        text = "Pelengkap & Alat Makan (Gratis)",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = TextPrimary)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        PresetModifiers.allOptions
-                            .filter { it.category == ModifierCategory.COMPLIMENTARY }
-                            .forEach { option ->
-                                val isSelected = selectedExtras.contains(option)
-                                SelectableTag(
-                                    text = option.name,
-                                    isSelected = isSelected,
-                                    onClick = {
-                                        selectedExtras = if (isSelected) {
-                                            selectedExtras - option
-                                        } else {
-                                            selectedExtras + option
+                    // Pilihan Sambal — hanya tampil jika produk mengizinkan
+                    if (product.allowSambal) {
+                        Text(
+                            text = "Pilihan Sambal",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = TextPrimary)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            modifierSource
+                                .filter { it.category == ModifierCategory.SAMBAL }
+                                .forEach { option ->
+                                    SelectableTag(
+                                        text = option.name,
+                                        isSelected = selectedSambal?.id == option.id,
+                                        onClick = {
+                                            selectedSambal = if (selectedSambal?.id == option.id) null else option
                                         }
-                                    }
-                                )
-                            }
+                                    )
+                                }
+                        }
+                        Spacer(modifier = Modifier.height(14.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Ekstra Topping & Kemasan Berbayar
-                    Text(
-                        text = "Ekstra Topping & Kemasan",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = TextPrimary)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        PresetModifiers.allOptions
-                            .filter { it.category == ModifierCategory.EXTRA || it.category == ModifierCategory.PACKAGING }
-                            .forEach { option ->
-                                val isSelected = selectedExtras.contains(option)
-                                SelectableTag(
-                                    text = option.name,
-                                    isSelected = isSelected,
-                                    onClick = {
-                                        selectedExtras = if (isSelected) {
-                                            selectedExtras - option
-                                        } else {
-                                            selectedExtras + option
+                    // Pelengkap & Alat Makan — hanya tampil jika produk mengizinkan
+                    if (product.allowComplimentary) {
+                        Text(
+                            text = "Pelengkap & Alat Makan (Gratis)",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = TextPrimary)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            modifierSource
+                                .filter { it.category == ModifierCategory.COMPLIMENTARY }
+                                .forEach { option ->
+                                    val isSelected = selectedExtras.contains(option)
+                                    SelectableTag(
+                                        text = option.name,
+                                        isSelected = isSelected,
+                                        onClick = {
+                                            selectedExtras = if (isSelected) {
+                                                selectedExtras - option
+                                            } else {
+                                                selectedExtras + option
+                                            }
                                         }
-                                    }
-                                )
-                            }
+                                    )
+                                }
+                        }
+                        Spacer(modifier = Modifier.height(14.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    // Ekstra Topping & Kemasan — hanya tampil jika produk mengizinkan
+                    if (product.allowToppings) {
+                        Text(
+                            text = "Ekstra Topping & Kemasan",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = TextPrimary)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            modifierSource
+                                .filter { it.category == ModifierCategory.EXTRA || it.category == ModifierCategory.PACKAGING }
+                                .forEach { option ->
+                                    val isSelected = selectedExtras.contains(option)
+                                    SelectableTag(
+                                        text = option.name,
+                                        isSelected = isSelected,
+                                        onClick = {
+                                            selectedExtras = if (isSelected) {
+                                                selectedExtras - option
+                                            } else {
+                                                selectedExtras + option
+                                            }
+                                        }
+                                    )
+                                }
+                        }
+                        Spacer(modifier = Modifier.height(14.dp))
+                    }
 
                     // Catatan Khusus
                     Text(

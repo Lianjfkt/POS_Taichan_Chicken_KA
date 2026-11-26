@@ -1,341 +1,421 @@
 -- ==============================================================================
--- KA POS v2.0 — Supabase PostgreSQL Database Schema
--- Tailored for F&B: Taichan & Chicken KA
--- Includes: Auth Profiles, Products, Inventory, Recipes (BOM), Shifts, Realtime KDS
+-- TAICHAN & CHICKEN KA - UNIFIED SUPABASE POSTGRESQL SCHEMA v3.0 & RLS POLICIES
+-- ==============================================================================
+-- File: supabase_schema.sql
+-- Description: Single Source of Truth schema definition (Web App + Android App),
+--              primary keys, foreign keys, indexes, Realtime publication, and
+--              anti-fraud Row Level Security (RLS) policies.
 -- ==============================================================================
 
--- Enable UUID extension
-create extension if not exists "uuid-ossp";
+-- 1. EXTENSIONS
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- ------------------------------------------------------------------------------
--- 1. ENUMS & TYPES
--- ------------------------------------------------------------------------------
-create type order_status as enum ('pending', 'cooking', 'ready', 'completed', 'void');
-create type order_type as enum ('dine-in', 'take-away', 'delivery');
-create type payment_method as enum ('cash', 'qris', 'transfer');
-create type cash_flow_type as enum ('masuk', 'keluar');
-create type user_role as enum ('owner', 'kasir', 'dapur');
+-- ==============================================================================
+-- 2. MENU CATALOG TABLES (Categories, Products & Modifiers)
+-- ==============================================================================
 
--- ------------------------------------------------------------------------------
--- 2. USER PROFILES (Integrated with Supabase Auth)
--- ------------------------------------------------------------------------------
-create table if not exists public.profiles (
-  id uuid references auth.users on delete cascade primary key,
-  full_name text not null,
-  role user_role not null default 'kasir',
-  phone text,
-  is_active boolean default true,
-  created_at timestamptz default timezone('utc'::text, now())
+CREATE TABLE IF NOT EXISTS public.categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    emoji TEXT DEFAULT '🍽️',
+    color TEXT DEFAULT '#0B5C73',
+    sort_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
--- ------------------------------------------------------------------------------
--- 3. STORE SETTINGS
--- ------------------------------------------------------------------------------
-create table if not exists public.store_settings (
-  id int primary key default 1,
-  store_name text not null default 'Taichan & Chicken KA',
-  address text default 'Bandar Lampung',
-  phone text default '08xxxxxxxxxx',
-  receipt_footer text default 'Terima kasih sudah mampir! Selamat menikmati 🍢',
-  paper_width int default 58,
-  bank_name text default 'BCA',
-  bank_account_no text default '1234567890',
-  bank_account_name text default 'Taichan & Chicken KA',
-  updated_at timestamptz default now()
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS emoji TEXT DEFAULT '🍽️';
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#0B5C73';
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
+
+CREATE TABLE IF NOT EXISTS public.products (
+    id TEXT PRIMARY KEY,
+    category_id TEXT REFERENCES public.categories(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    price DOUBLE PRECISION NOT NULL,
+    cost_price DOUBLE PRECISION DEFAULT 0.0,
+    emoji TEXT DEFAULT '🍢',
+    spice_level TEXT DEFAULT '',
+    description TEXT DEFAULT '',
+    is_active BOOLEAN DEFAULT TRUE,
+    allow_spice_level BOOLEAN DEFAULT FALSE,
+    allow_sambal BOOLEAN DEFAULT FALSE,
+    allow_complimentary BOOLEAN DEFAULT FALSE,
+    allow_toppings BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
--- ------------------------------------------------------------------------------
--- 4. CATEGORIES & PRODUCTS
--- ------------------------------------------------------------------------------
-create table if not exists public.categories (
-  id text primary key,
-  name text not null,
-  emoji text default '🍽️',
-  color text default '#f97316',
-  sort_order int default 0,
-  is_active boolean default true,
-  created_at timestamptz default now()
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS category_id TEXT REFERENCES public.categories(id) ON DELETE SET NULL;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS cost_price DOUBLE PRECISION DEFAULT 0.0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS emoji TEXT DEFAULT '🍢';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS spice_level TEXT DEFAULT '';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_spice_level BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_sambal BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_complimentary BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS allow_toppings BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
+
+CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_active ON public.products(is_active);
+
+-- Modifiers Table (Level Pedas, Sambal, Complimentary, Extra Toppings, Packaging)
+CREATE TABLE IF NOT EXISTS public.modifiers (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    price DOUBLE PRECISION DEFAULT 0.0,
+    category TEXT NOT NULL,
+    is_default BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
-create table if not exists public.products (
-  id text primary key,
-  category_id text references public.categories(id) on delete set null,
-  name text not null,
-  price numeric(12,2) not null check (price >= 0),
-  cost_price numeric(12,2) not null default 0,
-  emoji text default '🍢',
-  spice_level text default '',
-  description text default '',
-  is_active boolean default true,
-  created_at timestamptz default now()
+-- ==============================================================================
+-- 3. TRANSACTIONS & SALES TABLES (Orders & Order Items)
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.orders (
+    id TEXT PRIMARY KEY,
+    order_no TEXT NOT NULL DEFAULT '',
+    customer_name TEXT,
+    customer_phone TEXT,
+    order_type TEXT NOT NULL DEFAULT 'dine-in', -- dine-in, takeaway, online
+    table_no TEXT,
+    subtotal DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    discount DOUBLE PRECISION DEFAULT 0.0,
+    total DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    payment_method TEXT NOT NULL DEFAULT 'cash', -- cash, qris, debit, transfer
+    status TEXT NOT NULL DEFAULT 'completed', -- completed, void, pending
+    cashier_id TEXT DEFAULT 'Kasir',
+    notes TEXT,
+    void_reason TEXT,
+    void_by TEXT,
+    void_at TIMESTAMPTZ,
+    paid_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
--- ------------------------------------------------------------------------------
--- 5. INVENTORY & RECIPES (Bill of Materials / BOM)
--- ------------------------------------------------------------------------------
-create table if not exists public.inventory_items (
-  id text primary key,
-  name text not null,
-  category text default 'Bahan Utama',
-  unit text not null default 'pcs',
-  stock numeric(12,2) not null default 0,
-  min_stock numeric(12,2) not null default 0,
-  cost_per_unit numeric(12,2) not null default 0,
-  emoji text default '📦',
-  updated_at timestamptz default now()
+-- Migrasi aman jika tabel orders sudah ada sebelumnya di Supabase
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS order_no TEXT DEFAULT '';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_name TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS order_type TEXT DEFAULT 'dine-in';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS table_no TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS subtotal DOUBLE PRECISION DEFAULT 0.0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS discount DOUBLE PRECISION DEFAULT 0.0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS total DOUBLE PRECISION DEFAULT 0.0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'cash';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'completed';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS cashier_id TEXT DEFAULT 'Kasir';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS void_reason TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS void_by TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS void_at TIMESTAMPTZ;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
+
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_phone ON public.orders(customer_phone);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(status);
+
+CREATE TABLE IF NOT EXISTS public.order_items (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+    product_id TEXT,
+    product_name TEXT NOT NULL DEFAULT '',
+    price DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    quantity INT NOT NULL DEFAULT 1,
+    spice_level TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    subtotal DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
-create table if not exists public.product_recipes (
-  id uuid default uuid_generate_v4() primary key,
-  product_id text references public.products(id) on delete cascade,
-  inventory_item_id text references public.inventory_items(id) on delete cascade,
-  quantity_required numeric(12,2) not null check (quantity_required > 0),
-  created_at timestamptz default now(),
-  unique(product_id, inventory_item_id)
+-- Migrasi aman jika tabel order_items sudah ada sebelumnya di Supabase
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS product_id TEXT;
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS product_name TEXT DEFAULT '';
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS price DOUBLE PRECISION DEFAULT 0.0;
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS quantity INT DEFAULT 1;
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS spice_level TEXT DEFAULT '';
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS subtotal DOUBLE PRECISION DEFAULT 0.0;
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW());
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON public.order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON public.order_items(product_id);
+
+-- ==============================================================================
+-- 4. INVENTORY, RAW MATERIALS & RECIPES (BOM & Expiry Tracking)
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.raw_materials (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    sku TEXT,
+    unit TEXT NOT NULL, -- gr, ml, pcs, kg
+    current_stock DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    minimum_stock DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    cost_per_unit DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
-create table if not exists public.inventory_mutations (
-  id uuid default uuid_generate_v4() primary key,
-  inventory_item_id text references public.inventory_items(id) on delete cascade,
-  mutation_type text not null, -- 'masuk', 'keluar', 'penyesuaian', 'penjualan'
-  quantity numeric(12,2) not null,
-  stock_before numeric(12,2) not null,
-  stock_after numeric(12,2) not null,
-  notes text,
-  created_by text default 'System',
-  created_at timestamptz default now()
+CREATE TABLE IF NOT EXISTS public.material_batches (
+    id TEXT PRIMARY KEY,
+    material_id TEXT NOT NULL REFERENCES public.raw_materials(id) ON DELETE CASCADE,
+    batch_number TEXT NOT NULL,
+    initial_quantity DOUBLE PRECISION NOT NULL,
+    remaining_quantity DOUBLE PRECISION NOT NULL,
+    cost_per_unit DOUBLE PRECISION NOT NULL,
+    received_at TIMESTAMPTZ NOT NULL,
+    expiry_date TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
--- ------------------------------------------------------------------------------
--- 6. CASHIER SESSIONS (Shift & Cash Drawer Management)
--- ------------------------------------------------------------------------------
-create table if not exists public.cashier_shifts (
-  id text primary key,
-  cashier_name text not null,
-  cashier_id uuid references public.profiles(id) on delete set null,
-  opened_at timestamptz default now(),
-  closed_at timestamptz,
-  starting_cash numeric(12,2) not null default 0,
-  total_cash_sales numeric(12,2) default 0,
-  total_non_cash_sales numeric(12,2) default 0,
-  total_cash_in numeric(12,2) default 0,
-  total_cash_out numeric(12,2) default 0,
-  expected_cash_drawer numeric(12,2) default 0,
-  actual_cash_counted numeric(12,2),
-  cash_discrepancy numeric(12,2),
-  status text not null default 'open' check (status in ('open', 'closed')),
-  notes text
+CREATE INDEX IF NOT EXISTS idx_batches_material ON public.material_batches(material_id);
+CREATE INDEX IF NOT EXISTS idx_batches_expiry ON public.material_batches(expiry_date);
+
+-- Recipes & BOM (Bill of Materials)
+CREATE TABLE IF NOT EXISTS public.recipes (
+    id TEXT PRIMARY KEY,
+    product_id TEXT REFERENCES public.products(id) ON DELETE CASCADE,
+    product_name TEXT NOT NULL,
+    yield_qty INT NOT NULL DEFAULT 1,
+    instructions TEXT DEFAULT '',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
-create table if not exists public.cash_logs (
-  id uuid default uuid_generate_v4() primary key,
-  shift_id text references public.cashier_shifts(id) on delete set null,
-  type cash_flow_type not null,
-  amount numeric(12,2) not null check (amount > 0),
-  notes text not null,
-  created_by text not null,
-  created_at timestamptz default now()
+CREATE TABLE IF NOT EXISTS public.recipe_items (
+    id TEXT PRIMARY KEY,
+    recipe_id TEXT NOT NULL REFERENCES public.recipes(id) ON DELETE CASCADE,
+    raw_material_id TEXT NOT NULL REFERENCES public.raw_materials(id) ON DELETE RESTRICT,
+    quantity_required DOUBLE PRECISION NOT NULL,
+    unit TEXT NOT NULL,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
--- ------------------------------------------------------------------------------
--- 7. ORDERS & TRANSACTIONS
--- ------------------------------------------------------------------------------
-create table if not exists public.orders (
-  id text primary key,
-  shift_id text references public.cashier_shifts(id) on delete set null,
-  order_type order_type not null default 'dine-in',
-  table_number text default '',
-  status order_status not null default 'pending',
-  total_amount numeric(12,2) not null default 0,
-  payment_method payment_method default 'cash',
-  amount_received numeric(12,2) default 0,
-  change_returned numeric(12,2) default 0,
-  cashier_name text default 'Kasir',
-  notes text default '',
-  void_reason text,
-  void_by text,
-  void_at timestamptz,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
+CREATE INDEX IF NOT EXISTS idx_recipe_items_recipe ON public.recipe_items(recipe_id);
+
+-- ==============================================================================
+-- 5. CUSTOMERS & LOYALTY
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.customers (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL UNIQUE,
+    email TEXT,
+    points INT DEFAULT 0,
+    total_spent DOUBLE PRECISION DEFAULT 0.0,
+    visit_count INT DEFAULT 0,
+    last_visit TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
-create table if not exists public.order_items (
-  id uuid default uuid_generate_v4() primary key,
-  order_id text references public.orders(id) on delete cascade,
-  product_id text references public.products(id) on delete set null,
-  product_name text not null,
-  quantity int not null check (quantity > 0),
-  unit_price numeric(12,2) not null,
-  unit_cost numeric(12,2) default 0,
-  subtotal numeric(12,2) not null,
-  notes text default ''
+CREATE INDEX IF NOT EXISTS idx_customers_phone ON public.customers(phone);
+
+-- ==============================================================================
+-- 6. CASHIER SHIFTS & CASH MOVEMENTS
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.shifts (
+    id TEXT PRIMARY KEY,
+    cashier_name TEXT NOT NULL,
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ,
+    starting_cash DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    expected_cash DOUBLE PRECISION,
+    actual_cash DOUBLE PRECISION,
+    cash_difference DOUBLE PRECISION,
+    total_transactions INT DEFAULT 0,
+    notes TEXT,
+    is_open BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
--- ------------------------------------------------------------------------------
--- 8. TRIGGER: AUTO DEDUCT INVENTORY ON COMPLETED ORDER
--- ------------------------------------------------------------------------------
-create or replace function public.fn_deduct_inventory_on_order()
-returns trigger as $$
-declare
-  item_rec record;
-  curr_stock numeric(12,2);
-  new_stock numeric(12,2);
-begin
-  -- Only trigger when order status transitions to 'completed'
-  if new.status = 'completed' and (old.status is null or old.status <> 'completed') then
-    for item_rec in
-      select 
-        oi.product_id,
-        oi.quantity as ordered_qty,
-        pr.inventory_item_id,
-        pr.quantity_required,
-        (oi.quantity * pr.quantity_required) as total_deduct
-      from public.order_items oi
-      join public.product_recipes pr on pr.product_id = oi.product_id
-      where oi.order_id = new.id
-    loop
-      -- Fetch current stock
-      select stock into curr_stock 
-      from public.inventory_items 
-      where id = item_rec.inventory_item_id 
-      for update;
+ALTER TABLE public.shifts ADD COLUMN IF NOT EXISTS is_open BOOLEAN DEFAULT TRUE;
 
-      if found then
-        new_stock := curr_stock - item_rec.total_deduct;
-        
-        -- Update inventory stock
-        update public.inventory_items
-        set stock = new_stock, updated_at = now()
-        where id = item_rec.inventory_item_id;
+-- Cash Movements (Petty Cash: Kas Masuk / Kas Keluar untuk Audit Fraud)
+CREATE TABLE IF NOT EXISTS public.cash_movements (
+    id TEXT PRIMARY KEY,
+    shift_id TEXT REFERENCES public.shifts(id) ON DELETE CASCADE,
+    type TEXT NOT NULL, -- CASH_IN, CASH_OUT
+    category TEXT NOT NULL,
+    amount DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
+);
 
-        -- Record stock movement audit trail
-        insert into public.inventory_mutations (
-          inventory_item_id,
-          mutation_type,
-          quantity,
-          stock_before,
-          stock_after,
-          notes,
-          created_by,
-          created_at
-        ) values (
-          item_rec.inventory_item_id,
-          'penjualan',
-          item_rec.total_deduct,
-          curr_stock,
-          new_stock,
-          'Order #' || new.id,
-          coalesce(new.cashier_name, 'System'),
-          now()
-        );
-      end if;
-    end loop;
-  end if;
-  return new;
-end;
-$$ language plpgsql security definer;
+CREATE INDEX IF NOT EXISTS idx_cash_movements_shift ON public.cash_movements(shift_id);
+CREATE INDEX IF NOT EXISTS idx_cash_movements_created ON public.cash_movements(created_at DESC);
 
-drop trigger if exists trg_deduct_inventory on public.orders;
-create trigger trg_deduct_inventory
-after update or insert on public.orders
-for each row execute function public.fn_deduct_inventory_on_order();
+-- ==============================================================================
+-- 7. ROW LEVEL SECURITY (RLS) POLICIES
+-- ==============================================================================
+-- Keamanan & Fraud Prevention:
+-- 1. Read (SELECT) dibuka untuk klien POS yang terkonfigurasi.
+-- 2. Insert & Update dibuka untuk sinkronisasi POS offline-first.
+-- 3. DELETE DILARANG untuk orders, order_items, shifts, dan cash_movements
+--    agar kasir/pihak tidak bertanggung jawab tidak dapat menghapus jejak audit penjualan/kas.
 
--- ------------------------------------------------------------------------------
--- 9. REALTIME PUBLICATION (Kitchen Display System & POS Sync)
--- ------------------------------------------------------------------------------
-alter publication supabase_realtime add table public.orders;
-alter publication supabase_realtime add table public.order_items;
-alter publication supabase_realtime add table public.cashier_shifts;
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.modifiers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.raw_materials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.material_batches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recipe_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shifts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cash_movements ENABLE ROW LEVEL SECURITY;
 
--- ------------------------------------------------------------------------------
--- 10. ROW LEVEL SECURITY (RLS) POLICIES
--- ------------------------------------------------------------------------------
-alter table public.profiles enable row level security;
-alter table public.categories enable row level security;
-alter table public.products enable row level security;
-alter table public.inventory_items enable row level security;
-alter table public.product_recipes enable row level security;
-alter table public.inventory_mutations enable row level security;
-alter table public.cashier_shifts enable row level security;
-alter table public.cash_logs enable row level security;
-alter table public.orders enable row level security;
-alter table public.order_items enable row level security;
-alter table public.store_settings enable row level security;
+-- Categories, Products & Modifiers: Read & Sync
+DROP POLICY IF EXISTS "Allow read access to all" ON public.categories;
+DROP POLICY IF EXISTS "Allow write access to authenticated and anon" ON public.categories;
+DROP POLICY IF EXISTS "Allow all for categories" ON public.categories;
+CREATE POLICY "Allow all for categories" ON public.categories
+    FOR ALL TO public USING (true) WITH CHECK (true);
 
--- Open policies for POS client (using Anon Key or Authenticated role)
-create policy "Allow read access to all" on public.categories for select using (true);
-create policy "Allow write access to authenticated and anon" on public.categories for all using (true);
+DROP POLICY IF EXISTS "Allow read access to all" ON public.products;
+DROP POLICY IF EXISTS "Allow write access to authenticated and anon" ON public.products;
+DROP POLICY IF EXISTS "Allow all for products" ON public.products;
+CREATE POLICY "Allow all for products" ON public.products
+    FOR ALL TO public USING (true) WITH CHECK (true);
 
-create policy "Allow read access to all" on public.products for select using (true);
-create policy "Allow write access to authenticated and anon" on public.products for all using (true);
+DROP POLICY IF EXISTS "Allow all for modifiers" ON public.modifiers;
+CREATE POLICY "Allow all for modifiers" ON public.modifiers
+    FOR ALL TO public USING (true) WITH CHECK (true);
 
-create policy "Allow read access to all" on public.orders for select using (true);
-create policy "Allow write access to authenticated and anon" on public.orders for all using (true);
+-- Orders: INSERT & SELECT & UPDATE diperbolehkan (untuk sinkronisasi & VOID).
+-- DELETE DIBLOKIR TOTAL (Audit Trail Anti-Fraud: Order tidak boleh dihapus fisik).
+DROP POLICY IF EXISTS "Allow read access to all" ON public.orders;
+DROP POLICY IF EXISTS "Allow write access to authenticated and anon" ON public.orders;
+DROP POLICY IF EXISTS "Allow all for orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow select for orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow insert for orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow update for orders" ON public.orders;
+DROP POLICY IF EXISTS "Disallow delete for orders" ON public.orders;
+CREATE POLICY "Allow select for orders" ON public.orders FOR SELECT TO public USING (true);
+CREATE POLICY "Allow insert for orders" ON public.orders FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Allow update for orders" ON public.orders FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Disallow delete for orders" ON public.orders AS RESTRICTIVE FOR DELETE TO public USING (false);
 
-create policy "Allow read access to all" on public.order_items for select using (true);
-create policy "Allow write access to authenticated and anon" on public.order_items for all using (true);
+-- Order Items: Sama seperti orders, blokir DELETE
+DROP POLICY IF EXISTS "Allow read access to all" ON public.order_items;
+DROP POLICY IF EXISTS "Allow write access to authenticated and anon" ON public.order_items;
+DROP POLICY IF EXISTS "Allow all for order_items" ON public.order_items;
+DROP POLICY IF EXISTS "Allow select for order_items" ON public.order_items;
+DROP POLICY IF EXISTS "Allow insert for order_items" ON public.order_items;
+DROP POLICY IF EXISTS "Allow update for order_items" ON public.order_items;
+DROP POLICY IF EXISTS "Disallow delete for order_items" ON public.order_items;
+CREATE POLICY "Allow select for order_items" ON public.order_items FOR SELECT TO public USING (true);
+CREATE POLICY "Allow insert for order_items" ON public.order_items FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Allow update for order_items" ON public.order_items FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Disallow delete for order_items" ON public.order_items AS RESTRICTIVE FOR DELETE TO public USING (false);
 
-create policy "Allow read access to all" on public.cashier_shifts for select using (true);
-create policy "Allow write access to authenticated and anon" on public.cashier_shifts for all using (true);
+-- Shifts & Cash Movements: Cegah kasir menghapus catatan kas/selisih uang
+DROP POLICY IF EXISTS "Allow all for shifts" ON public.shifts;
+DROP POLICY IF EXISTS "Allow select for shifts" ON public.shifts;
+DROP POLICY IF EXISTS "Allow insert for shifts" ON public.shifts;
+DROP POLICY IF EXISTS "Allow update for shifts" ON public.shifts;
+DROP POLICY IF EXISTS "Disallow delete for shifts" ON public.shifts;
+CREATE POLICY "Allow select for shifts" ON public.shifts FOR SELECT TO public USING (true);
+CREATE POLICY "Allow insert for shifts" ON public.shifts FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Allow update for shifts" ON public.shifts FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Disallow delete for shifts" ON public.shifts AS RESTRICTIVE FOR DELETE TO public USING (false);
 
-create policy "Allow read access to all" on public.cash_logs for select using (true);
-create policy "Allow write access to authenticated and anon" on public.cash_logs for all using (true);
+DROP POLICY IF EXISTS "Allow all for cash_movements" ON public.cash_movements;
+DROP POLICY IF EXISTS "Allow select for cash_movements" ON public.cash_movements;
+DROP POLICY IF EXISTS "Allow insert for cash_movements" ON public.cash_movements;
+DROP POLICY IF EXISTS "Allow update for cash_movements" ON public.cash_movements;
+DROP POLICY IF EXISTS "Disallow delete for cash_movements" ON public.cash_movements;
+CREATE POLICY "Allow select for cash_movements" ON public.cash_movements FOR SELECT TO public USING (true);
+CREATE POLICY "Allow insert for cash_movements" ON public.cash_movements FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Allow update for cash_movements" ON public.cash_movements FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Disallow delete for cash_movements" ON public.cash_movements AS RESTRICTIVE FOR DELETE TO public USING (false);
 
-create policy "Allow read access to all" on public.inventory_items for select using (true);
-create policy "Allow write access to authenticated and anon" on public.inventory_items for all using (true);
+-- Raw materials, Batches & Recipes
+DROP POLICY IF EXISTS "Allow all for raw_materials" ON public.raw_materials;
+CREATE POLICY "Allow all for raw_materials" ON public.raw_materials
+    FOR ALL TO public USING (true) WITH CHECK (true);
 
-create policy "Allow read access to all" on public.product_recipes for select using (true);
-create policy "Allow write access to authenticated and anon" on public.product_recipes for all using (true);
+DROP POLICY IF EXISTS "Allow all for material_batches" ON public.material_batches;
+CREATE POLICY "Allow all for material_batches" ON public.material_batches
+    FOR ALL TO public USING (true) WITH CHECK (true);
 
-create policy "Allow read access to all" on public.inventory_mutations for select using (true);
-create policy "Allow write access to authenticated and anon" on public.inventory_mutations for all using (true);
+DROP POLICY IF EXISTS "Allow all for recipes" ON public.recipes;
+CREATE POLICY "Allow all for recipes" ON public.recipes
+    FOR ALL TO public USING (true) WITH CHECK (true);
 
-create policy "Allow read access to all" on public.store_settings for select using (true);
-create policy "Allow write access to authenticated and anon" on public.store_settings for all using (true);
+DROP POLICY IF EXISTS "Allow all for recipe_items" ON public.recipe_items;
+CREATE POLICY "Allow all for recipe_items" ON public.recipe_items
+    FOR ALL TO public USING (true) WITH CHECK (true);
 
--- ------------------------------------------------------------------------------
--- 11. SEED DATA (KA Taichan & Chicken Default Data)
--- ------------------------------------------------------------------------------
-insert into public.store_settings (id, store_name, address, phone, receipt_footer)
-values (1, 'Taichan & Chicken KA', 'Bandar Lampung', '081234567890', 'Terima kasih sudah mampir! Selamat menikmati 🍢')
-on conflict (id) do nothing;
+-- Customers
+DROP POLICY IF EXISTS "Allow all for customers" ON public.customers;
+CREATE POLICY "Allow all for customers" ON public.customers
+    FOR ALL TO public USING (true) WITH CHECK (true);
 
-insert into public.categories (id, name, emoji, color, sort_order) values
-('k1', 'Taichan', '🍢', '#f97316', 0),
-('k2', 'Chicken', '🍗', '#ef4444', 1),
-('k3', 'Minuman', '🧊', '#3b82f6', 2),
-('k4', 'Nasi', '🍚', '#22c55e', 3),
-('k5', 'Lainnya', '🍴', '#6b7280', 4)
-on conflict (id) do nothing;
-
-insert into public.products (id, category_id, name, price, cost_price, emoji, spice_level) values
-('1', 'k1', 'Taichan Pedas Lv.3', 18000, 10000, '🍢', 'Lv.3'),
-('2', 'k1', 'Taichan Original', 15000, 8500, '🍢', ''),
-('3', 'k1', 'Taichan Jumbo Lv.2', 22000, 12000, '🍢', 'Lv.2'),
-('4', 'k2', 'Chicken Crispy', 20000, 11000, '🍗', ''),
-('5', 'k2', 'Chicken Pedas Lv.1', 20000, 11000, '🍗', 'Lv.1'),
-('6', 'k3', 'Es Teh Manis', 5000, 1500, '🧊', ''),
-('7', 'k3', 'Es Jeruk', 7000, 2500, '🍊', ''),
-('8', 'k3', 'Air Mineral', 4000, 1200, '💧', ''),
-('9', 'k4', 'Nasi Putih', 5000, 1800, '🍚', ''),
-('10', 'k4', 'Nasi Goreng', 18000, 9000, '🍳', '')
-on conflict (id) do nothing;
-
-insert into public.inventory_items (id, name, category, unit, stock, min_stock, cost_per_unit, emoji) values
-('1', 'Daging Ayam Fillet', 'Daging', 'kg', 8.5, 3.0, 32000, '🍗'),
-('2', 'Bumbu Taichan Khas KA', 'Bumbu', 'pak', 12.0, 5.0, 8000, '🌶'),
-('3', 'Minyak Goreng', 'Lainnya', 'liter', 4.0, 3.0, 18000, '🫙'),
-('4', 'Cup Gelas Minuman', 'Kemasan', 'pcs', 200.0, 50.0, 500, '🥤'),
-('5', 'Es Batu Kristal', 'Minuman', 'kg', 2.0, 5.0, 3000, '🧊')
-on conflict (id) do nothing;
-
--- Sample Recipes (BOM) linking Taichan to raw ingredients:
--- 1 Porsi Taichan Original uses 0.15kg Chicken and 0.1 pak Bumbu
-insert into public.product_recipes (product_id, inventory_item_id, quantity_required) values
-('2', '1', 0.15),
-('2', '2', 0.10),
-('1', '1', 0.15),
-('1', '2', 0.15),
-('6', '4', 1.00),
-('6', '5', 0.20)
-on conflict do nothing;
+-- ==============================================================================
+-- 8. REALTIME PUBLICATION (Web & Android Two-Way Sync)
+-- ==============================================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'categories'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.categories;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'products'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.products;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'orders'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'order_items'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.order_items;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'raw_materials'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.raw_materials;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'shifts'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.shifts;
+    END IF;
+EXCEPTION
+    WHEN undefined_object THEN
+        -- Ignore if supabase_realtime publication does not exist outside Supabase
+        NULL;
+END $$;

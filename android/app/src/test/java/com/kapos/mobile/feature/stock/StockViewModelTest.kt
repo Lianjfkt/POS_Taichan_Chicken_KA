@@ -1,9 +1,12 @@
 package com.kapos.mobile.feature.stock
 
-import com.kapos.mobile.core.data.repository.StockRepository
-import com.kapos.mobile.domain.model.ChickenPart
+import com.kapos.mobile.domain.model.RawMaterial
+import com.kapos.mobile.domain.model.RawMaterialCategory
 import com.kapos.mobile.domain.model.StockFreshness
+import com.kapos.mobile.domain.model.StockMovementType
 import com.kapos.mobile.domain.model.TaichanBatch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,13 +15,21 @@ import org.junit.Test
 
 class StockViewModelTest {
 
-    private lateinit var stockRepository: StockRepository
     private lateinit var viewModel: StockViewModel
 
     @Before
     fun setUp() {
-        stockRepository = StockRepository(context = null)
-        viewModel = StockViewModel(stockRepository)
+        viewModel = StockViewModel()
+    }
+
+    private fun waitUntil(maxWaitMs: Long = 1000, condition: () -> Boolean) {
+        val start = System.currentTimeMillis()
+        while (!condition()) {
+            if (System.currentTimeMillis() - start > maxWaitMs) {
+                break
+            }
+            Thread.sleep(10)
+        }
     }
 
     @Test
@@ -44,92 +55,63 @@ class StockViewModelTest {
     }
 
     @Test
-    fun testTaichanBatchAddAndRemainingStockCalculation() {
-        val initialCount = viewModel.uiState.value.taichanBatches.size
-        viewModel.addTaichanBatch(raw = 150, notes = "Batch siang")
-        
-        var attempts = 0
-        while (viewModel.uiState.value.taichanBatches.size == initialCount && attempts < 20) {
-            Thread.sleep(25)
-            attempts++
-        }
+    fun testTabSelectionAndMovementFilter() {
+        assertEquals(StockTab.INVENTORY, viewModel.uiState.value.activeTab)
 
-        val batches = viewModel.uiState.value.taichanBatches
-        val latest = batches.last()
-        assertEquals(150, latest.raw)
-
-        // Goreng 80 tusuk
-        viewModel.updateTaichanFried(latest.id, 80)
-        attempts = 0
-        while (viewModel.uiState.value.taichanBatches.find { it.id == latest.id }?.fried != 80 && attempts < 20) {
-            Thread.sleep(25)
-            attempts++
-        }
-
-        val updatedState = viewModel.uiState.value
-        val updatedBatch = updatedState.taichanBatches.find { it.id == latest.id }
-        assertEquals(80, updatedBatch?.fried)
-
-        // Simulasikan 30 tusuk terjual hari ini
-        viewModel.setTaichanSoldTodayForTest(30)
-        attempts = 0
-        while (viewModel.uiState.value.taichanSoldToday != 30 && attempts < 20) {
-            Thread.sleep(25)
-            attempts++
-        }
-
-        val stateAfterSales = viewModel.uiState.value
-        assertEquals(30, stateAfterSales.taichanSoldToday)
-        // Sisa stok siap jual: Total Fried (50 dari seed awal + 80 baru = 130) - 30 sold = 100
-        assertEquals(100, stateAfterSales.taichanRemaining)
-    }
-
-    @Test
-    fun testChickenBatchOperations() {
-        viewModel.addChickenBatch(part = ChickenPart.PAHA_ATAS, raw = 40, notes = "Restock paha")
-        Thread.sleep(50)
-        val batches = viewModel.uiState.value.chickenBatches
-        val pahaBatch = batches.find { it.part == ChickenPart.PAHA_ATAS }
-        assertTrue(pahaBatch != null)
-        assertEquals(40, pahaBatch?.raw)
-
-        viewModel.updateChickenFried(pahaBatch!!.id, 25)
-        Thread.sleep(50)
-        val updatedBatch = viewModel.uiState.value.chickenBatches.find { it.id == pahaBatch.id }
-        assertEquals(25, updatedBatch?.fried)
-
-        // Simulasikan penjualan 10 potong paha atas hari ini
-        viewModel.setChickenSoldTodayForTest(mapOf(ChickenPart.PAHA_ATAS to 10))
-        var attempts = 0
-        while ((viewModel.uiState.value.chickenSoldToday[ChickenPart.PAHA_ATAS] ?: 0) != 10 && attempts < 20) {
-            Thread.sleep(25)
-            attempts++
-        }
-
-        val summary = viewModel.uiState.value.chickenSummaries[ChickenPart.PAHA_ATAS]
-        assertEquals(40, summary?.totalRaw)
-        assertEquals(25, summary?.totalFried)
-        assertEquals(10, summary?.totalSold)
-        // Sisa siap saji: 25 fried - 10 sold = 15
-        assertEquals(15, summary?.remaining)
-    }
-
-    @Test
-    fun testStockTabAuditAndFilter() {
         viewModel.onTabSelect(StockTab.AUDIT)
-        var attempts = 0
-        while (viewModel.uiState.value.activeTab != StockTab.AUDIT && attempts < 20) {
-            Thread.sleep(25)
-            attempts++
-        }
+        waitUntil { viewModel.uiState.value.activeTab == StockTab.AUDIT }
         assertEquals(StockTab.AUDIT, viewModel.uiState.value.activeTab)
 
-        viewModel.onSelectMovementFilter(com.kapos.mobile.domain.model.StockMovementType.RESTOCK)
-        attempts = 0
-        while (viewModel.uiState.value.movementFilterType != com.kapos.mobile.domain.model.StockMovementType.RESTOCK && attempts < 20) {
-            Thread.sleep(25)
-            attempts++
-        }
-        assertEquals(com.kapos.mobile.domain.model.StockMovementType.RESTOCK, viewModel.uiState.value.movementFilterType)
+        viewModel.onSelectMovementFilter(StockMovementType.RESTOCK)
+        waitUntil { viewModel.uiState.value.movementFilterType == StockMovementType.RESTOCK }
+        assertEquals(StockMovementType.RESTOCK, viewModel.uiState.value.movementFilterType)
+
+        viewModel.onSelectMovementFilter(null)
+        waitUntil { viewModel.uiState.value.movementFilterType == null }
+        assertEquals(null, viewModel.uiState.value.movementFilterType)
+    }
+
+    @Test
+    fun testCategoryAndSearchFilters() {
+        viewModel.onMaterialCategorySelect(RawMaterialCategory.PROTEIN)
+        waitUntil { viewModel.uiState.value.selectedMaterialCategory == RawMaterialCategory.PROTEIN }
+        assertEquals(RawMaterialCategory.PROTEIN, viewModel.uiState.value.selectedMaterialCategory)
+
+        viewModel.onMaterialSearchQueryChange("Ayam")
+        waitUntil { viewModel.uiState.value.materialSearchQuery == "Ayam" }
+        assertEquals("Ayam", viewModel.uiState.value.materialSearchQuery)
+
+        viewModel.onMaterialCategorySelect(null)
+        waitUntil { viewModel.uiState.value.selectedMaterialCategory == null }
+        assertEquals(null, viewModel.uiState.value.selectedMaterialCategory)
+    }
+
+    @Test
+    fun testAddEditDialogState() {
+        assertFalse(viewModel.uiState.value.isAddEditMaterialOpen)
+
+        viewModel.openAddMaterial()
+        waitUntil { viewModel.uiState.value.isAddEditMaterialOpen }
+        assertTrue(viewModel.uiState.value.isAddEditMaterialOpen)
+        assertEquals(null, viewModel.uiState.value.materialToEdit)
+
+        val sampleMaterial = RawMaterial(
+            id = "m1",
+            name = "Beras Premium",
+            category = RawMaterialCategory.KARBO,
+            unit = "kg",
+            currentStock = 10.0,
+            minStock = 5.0,
+            costPerUnit = 14000.0
+        )
+        viewModel.openEditMaterial(sampleMaterial)
+        waitUntil { viewModel.uiState.value.materialToEdit?.name == "Beras Premium" }
+        assertTrue(viewModel.uiState.value.isAddEditMaterialOpen)
+        assertEquals("Beras Premium", viewModel.uiState.value.materialToEdit?.name)
+
+        viewModel.closeAddEditMaterial()
+        waitUntil { !viewModel.uiState.value.isAddEditMaterialOpen && viewModel.uiState.value.materialToEdit == null }
+        assertFalse(viewModel.uiState.value.isAddEditMaterialOpen)
+        assertEquals(null, viewModel.uiState.value.materialToEdit)
     }
 }

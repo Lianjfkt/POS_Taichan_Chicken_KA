@@ -16,24 +16,36 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -251,7 +263,7 @@ fun AddEditMaterialDialog(
 @Composable
 fun RestockMaterialDialog(
     material: RawMaterial,
-    onConfirm: (quantity: Double, cost: Double, notes: String) -> Unit,
+    onConfirm: (quantity: Double, cost: Double, expiryDate: Long?, notes: String, receivedDate: Long) -> Unit,
     onDismiss: () -> Unit
 ) {
     var quantityStr by remember { mutableStateOf("") }
@@ -259,7 +271,97 @@ fun RestockMaterialDialog(
     var notes by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    val now = remember { System.currentTimeMillis() }
+    val oneDay = 24L * 60 * 60 * 1000
+    var selectedReceivedDate by remember { mutableStateOf(System.currentTimeMillis()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    // Expiry chips: null for non-perishable, or timestamp
+    var selectedExpiryDays by remember { mutableStateOf<Int?>(7) } // default 7 days
+
+    val qty = quantityStr.toDoubleOrNull() ?: 0.0
+    val cost = costStr.toDoubleOrNull() ?: 0.0
+    val unitCostPreview = if (qty > 0 && cost > 0) cost / qty else null
+
+    val dayFormat = remember { SimpleDateFormat("yyyyMMdd", Locale.getDefault()) }
+    val isBackdated = remember(selectedReceivedDate, now) {
+        dayFormat.format(Date(selectedReceivedDate)) != dayFormat.format(Date(now))
+    }
+    val dateFormat = remember { SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID")) }
+
+    // Expiry calculated relative to received date
+    val expiryTimestamp = remember(selectedReceivedDate, selectedExpiryDays) {
+        selectedExpiryDays?.let { selectedReceivedDate + (it * oneDay) }
+    }
+    val isAlreadyExpired = remember(expiryTimestamp, now) {
+        expiryTimestamp != null && expiryTimestamp <= now
+    }
+
+    if (showDatePicker) {
+        val utcToday = remember(now) {
+            Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                timeInMillis = now
+                set(Calendar.HOUR_OF_DAY, 23)
+                set(Calendar.MINUTE, 59)
+                set(Calendar.SECOND, 59)
+                set(Calendar.MILLISECOND, 999)
+            }.timeInMillis
+        }
+        val utcMin = remember(now) {
+            Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                timeInMillis = now
+                add(Calendar.DAY_OF_YEAR, -7)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+        }
+
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedReceivedDate,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return utcTimeMillis in utcMin..utcToday
+                }
+                override fun isSelectableYear(year: Int): Boolean = true
+            }
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { selectedUtc ->
+                            val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                                timeInMillis = selectedUtc
+                            }
+                            val localCal = Calendar.getInstance().apply {
+                                set(Calendar.YEAR, utcCal.get(Calendar.YEAR))
+                                set(Calendar.MONTH, utcCal.get(Calendar.MONTH))
+                                set(Calendar.DAY_OF_MONTH, utcCal.get(Calendar.DAY_OF_MONTH))
+                            }
+                            selectedReceivedDate = localCal.timeInMillis
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("Pilih", color = Primary, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Batal")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
     BasicAlertDialog(onDismissRequest = onDismiss) {
+        val scrollState = rememberScrollState()
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -268,7 +370,7 @@ fun RestockMaterialDialog(
                 .border(1.dp, OutlineSoft, AppShapes.Lg)
                 .padding(20.dp)
         ) {
-            Column {
+            Column(modifier = Modifier.verticalScroll(scrollState)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
@@ -287,6 +389,66 @@ fun RestockMaterialDialog(
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
+
+                // Tanggal Masuk Barang (Received Date Selector)
+                Text(
+                    text = "Tanggal Masuk Barang",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = TextSecondary)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(AppShapes.Sm)
+                        .background(SurfaceTint)
+                        .border(1.dp, if (isBackdated) Primary else OutlineSoft, AppShapes.Sm)
+                        .clickable { showDatePicker = true }
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            tint = if (isBackdated) Primary else TextSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = dateFormat.format(Date(selectedReceivedDate)),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Medium,
+                                color = TextPrimary
+                            )
+                        )
+                    }
+
+                    if (isBackdated) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(PrimarySoft)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "Backdated (Lampau)",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = Primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "Hari Ini",
+                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
                     value = quantityStr,
@@ -314,6 +476,88 @@ fun RestockMaterialDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                if (unitCostPreview != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "≈ ${CurrencyFormatter.formatRupiah(unitCostPreview)} / ${material.unit}",
+                        style = MaterialTheme.typography.labelSmall.copy(color = Primary, fontWeight = FontWeight.Bold)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Expiry selector
+                Text(
+                    text = "Masa Simpan / Kadaluarsa (dihitung dari tgl masuk)",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = TextSecondary)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val options = listOf(
+                        Pair("3 Hari", 3),
+                        Pair("7 Hari", 7),
+                        Pair("14 Hari", 14),
+                        Pair("30 Hari", 30),
+                        Pair("Non-perishable", null)
+                    )
+
+                    options.forEach { (label, days) ->
+                        val isSelected = selectedExpiryDays == days
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) PrimarySoft else SurfaceTint)
+                                .border(1.dp, if (isSelected) Primary else OutlineSoft, RoundedCornerShape(8.dp))
+                                .clickable { selectedExpiryDays = days }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = if (isSelected) Primary else TextPrimary,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            )
+                        }
+                    }
+                }
+
+                if (expiryTimestamp != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val expFormatted = dateFormat.format(Date(expiryTimestamp))
+                    if (isAlreadyExpired) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(AppShapes.Sm)
+                                .background(Danger.copy(alpha = 0.1f))
+                                .border(1.dp, Danger, AppShapes.Sm)
+                                .padding(10.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Warning, contentDescription = null, tint = Danger, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "⚠️ Perhatian: Berdasarkan tanggal masuk dan masa simpan, bahan ini sudah KADALUARSA ($expFormatted)!",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = Danger, fontWeight = FontWeight.Bold)
+                                )
+                            }
+                        }
+                    } else {
+                        val diffDays = (((expiryTimestamp - now).toDouble() / oneDay.toDouble()) + 0.5).toInt().coerceAtLeast(1)
+                        Text(
+                            text = "Perkiraan kadaluarsa: $expFormatted (sisa $diffDays hari lagi)",
+                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
@@ -339,11 +583,10 @@ fun RestockMaterialDialog(
                     PrimaryButton(
                         text = "Tambah Stok",
                         onClick = {
-                            val qty = quantityStr.toDoubleOrNull() ?: 0.0
                             if (qty <= 0) {
                                 errorMessage = "Jumlah masuk harus lebih dari 0!"
                             } else {
-                                onConfirm(qty, costStr.toDoubleOrNull() ?: 0.0, notes)
+                                onConfirm(qty, cost, expiryTimestamp, notes, selectedReceivedDate)
                             }
                         },
                         modifier = Modifier.weight(1.3f)

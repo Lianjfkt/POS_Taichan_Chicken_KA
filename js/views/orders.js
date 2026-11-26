@@ -672,7 +672,7 @@ class OrdersView {
   }
 
   // Execute void with PIN authorization and sound alarm to Owner
-  submitVoid() {
+  async submitVoid() {
     if (!this.selectedVoidOrderNo) return;
     const orderNo = this.selectedVoidOrderNo;
     const trx = (window.State.transactions || []).find(t => t.no === orderNo);
@@ -693,7 +693,7 @@ class OrdersView {
       return;
     }
 
-    const isPinValid = window.State.verifyOwnerPin(enteredPin);
+    const isPinValid = await window.State.verifyOwnerPin(enteredPin);
     if (!isPinValid) {
       if (pinErr) {
         pinErr.textContent = 'PIN Owner salah! Pembatalan transaksi ditolak.';
@@ -727,7 +727,7 @@ class OrdersView {
 
     // 2. Restore inventory ingredients (BOM)
     (trx.items || []).forEach(item => {
-      const product = (window.State.products || []).find(p => p.id === item.id);
+      const product = (window.State.products || []).find(p => String(p.id) === String(item.id));
       if (product && product.bom && product.bom.length > 0) {
         product.bom.forEach(b => {
           const invItem = (window.State.inventory || []).find(i => i.id === b.invId);

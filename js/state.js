@@ -197,7 +197,7 @@ class StateManager {
     const price = Number(product.hr) + Number(options.extraPrice || 0);
 
     const existingIndex = this.cart.findIndex(item => 
-      item.id === product.id && item.mod === modifierText
+      String(item.id) === String(product.id) && (item.mod || '') === (modifierText || '')
     );
 
     if (existingIndex > -1) {
@@ -299,14 +299,24 @@ class StateManager {
   }
 
   async hashPassword(plain) {
-    if (!window.crypto || !window.crypto.subtle) return plain;
+    const str = String(plain ?? '');
+    const cryptoApi = (typeof window !== 'undefined' && window.crypto) || (typeof globalThis !== 'undefined' && globalThis.crypto);
+    if (!cryptoApi || !cryptoApi.subtle) return str;
     try {
       const enc = new TextEncoder();
-      const buf = await window.crypto.subtle.digest('SHA-256', enc.encode(plain));
+      const buf = await cryptoApi.subtle.digest('SHA-256', enc.encode(str));
       return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
     } catch {
-      return plain;
+      return str;
     }
+  }
+
+  async hashPin(pin) {
+    return this.hashPassword(String(pin ?? '').trim());
+  }
+
+  isSha256Hex(val) {
+    return /^[a-f0-9]{64}$/i.test(String(val || '').trim());
   }
 
   // --- Recipe BOM & HPP Calculation ---
@@ -434,18 +444,36 @@ class StateManager {
   }
 
   /**
-   * TASK 3: Verifies entered PIN against configured Owner PINs.
+   * TASK 3 & TASK 10: Verifies entered PIN against configured Owner PINs (SHA-256 or legacy plaintext).
    * Checks any active user with role === 'owner' or default PIN '1234'.
    */
-  verifyOwnerPin(enteredPin) {
+  async verifyOwnerPin(enteredPin) {
     if (!enteredPin) return false;
     const cleanPin = String(enteredPin).trim();
     if (!cleanPin) return false;
+    const hashedPin = await this.hashPin(cleanPin);
     const owners = (this.staff || []).filter(s => s.role === 'owner' && s.on !== false);
     if (owners.length === 0) {
       return cleanPin === '1234';
     }
-    return owners.some(o => String(o.pin || '').trim() === cleanPin);
+    let migrated = false;
+    const matched = owners.some(o => {
+      const stored = String(o.pin || '').trim();
+      if (!stored) return false;
+      if (stored === hashedPin) return true;
+      if (stored === cleanPin) {
+        if (!this.isSha256Hex(stored) && this.isSha256Hex(hashedPin)) {
+          o.pin = hashedPin;
+          migrated = true;
+        }
+        return true;
+      }
+      return false;
+    });
+    if (migrated) {
+      this.save(LS_KEYS.st, this.staff);
+    }
+    return matched;
   }
 
   /**
@@ -556,6 +584,10 @@ class StateManager {
 // Global State Instance
 window.State = new StateManager();
 window.escapeHtml = (s) => (window.State ? window.State.escapeHtml(s) : String(s || ''));
+async function hashPin(pin) {
+  return window.State ? window.State.hashPin(pin) : String(pin ?? '');
+}
+window.hashPin = hashPin;
 // Apply saved theme immediately
 if (window.State && window.State.currentTheme) {
   document.documentElement.setAttribute('data-theme', window.State.currentTheme);
