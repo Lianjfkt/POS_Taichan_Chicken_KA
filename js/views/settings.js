@@ -3,10 +3,22 @@
  */
 
 class SettingsView {
-  constructor() {}
+  constructor() {
+    this._isSyncing = false;
+    this._syncListenerAdded = false;
+    this._lastSyncStorageKey = 'ka_last_sync_time';
+  }
 
   init() {
     this.bindEvents();
+    if (!this._syncListenerAdded && window.State && typeof window.State.on === 'function') {
+      window.State.on('sync:complete', (data) => {
+        if (data && data.success !== false) {
+          this.updateSyncLastTime(data.time || Date.now());
+        }
+      });
+      this._syncListenerAdded = true;
+    }
     this.render();
   }
 
@@ -39,6 +51,12 @@ class SettingsView {
     const btnPushSb = document.getElementById('btn-push-supabase');
     if (btnPushSb) {
       btnPushSb.onclick = () => this.pushDataToSupabase();
+    }
+
+    // Two-way Sync All Button
+    const btnSyncAll = document.getElementById('btn-sync-all');
+    if (btnSyncAll) {
+      btnSyncAll.onclick = () => this.syncAllData();
     }
 
     // Bluetooth Printer Pair Button
@@ -106,6 +124,7 @@ class SettingsView {
     if (sbUrlInput && sb) sbUrlInput.value = sb.url || '';
     if (sbKeyInput && sb) sbKeyInput.value = sb.anonKey || '';
 
+    this.updateSyncLastTime();
     this.renderStaffList();
     this.renderAuditLogs();
   }
@@ -146,7 +165,6 @@ class SettingsView {
 
     window.State.toast('Konfigurasi Supabase disimpan. Menguji koneksi...', 'warning');
     if (window.SupabaseService) {
-      window.SupabaseService.init();
       const res = await window.SupabaseService.testConnection(url, anonKey);
       if (res.success) {
         window.State.toast(res.message, 'success');
@@ -181,6 +199,90 @@ class SettingsView {
         window.State.toast(res.message, 'success');
       } else {
         window.State.toast(res.message, 'error');
+      }
+    }
+  }
+
+  formatSyncTime(timestamp) {
+    const d = new Date(timestamp);
+    if (Number.isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    const now = new Date();
+    const isSameDay =
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate();
+    if (isSameDay) return timeStr;
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${timeStr}`;
+  }
+
+  updateSyncLastTime(timestamp) {
+    let ts = timestamp;
+    if (ts) {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(this._lastSyncStorageKey, String(ts));
+        }
+      } catch (_) {
+        // Ignore storage errors in restricted environments
+      }
+    } else {
+      const serviceTs = Number(window.SupabaseService && window.SupabaseService.lastSyncTime) || 0;
+      let storedTs = 0;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          storedTs = Number(localStorage.getItem(this._lastSyncStorageKey)) || 0;
+        }
+      } catch (_) {
+        // Ignore storage errors in restricted environments
+      }
+      ts = Math.max(serviceTs, storedTs) || null;
+    }
+
+    const el = document.getElementById('sync-last-time');
+    if (!el) return;
+    if (!ts) {
+      el.textContent = '';
+      return;
+    }
+    const formatted = this.formatSyncTime(ts);
+    el.textContent = formatted ? `Terakhir disinkronkan: ${formatted}` : '';
+  }
+
+  async syncAllData() {
+    if (this._isSyncing) return;
+    if (!window.SupabaseService) {
+      window.State.toast('Layanan Supabase belum tersedia.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-sync-all');
+    const originalHtml = btn ? btn.innerHTML : '';
+
+    this._isSyncing = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined">sync</span> Menyinkronkan...';
+    }
+
+    try {
+      const res = await window.SupabaseService.syncAll();
+      if (res && res.success) {
+        const syncTs = window.SupabaseService.lastSyncTime || Date.now();
+        this.updateSyncLastTime(syncTs);
+        window.State.toast(res.message || 'Sinkronisasi 2-arah berhasil!', 'success');
+      } else {
+        window.State.toast((res && res.message) || 'Sinkronisasi gagal.', 'error');
+      }
+    } catch (err) {
+      console.error('[Settings] Sync error:', err);
+      window.State.toast(`Gagal sinkronisasi: ${err && err.message ? err.message : err}`, 'error');
+    } finally {
+      this._isSyncing = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
       }
     }
   }
